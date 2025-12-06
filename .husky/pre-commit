@@ -1,0 +1,34 @@
+echo -e '\033[0;34m🔄 Pre-commit checks: formatting, linting, type-checking, building the project, commit message, and branch name.\033[0m'
+
+# Format code with Prettier (automatically writes changes)
+npm run format ||
+(
+    echo -e '\033[0;31m❌ Code formatting failed. Please run "npm run format" to align with Prettier standards. Add changes and commit again.\033[0m'
+    false
+)
+
+# Check ESLint Standards
+npm run check-lint ||
+(
+    echo -e '\033[0;31m❌ Linting failed. Review the errors above and update code according to ESLint standards. Add changes and commit again.\033[0m'
+    false
+)
+
+# Check tsconfig standards
+npm run check-types ||
+(
+    echo -e '\033[0;31m❌ Type checking failed. Please resolve the type issues listed above before committing.\033[0m'
+    false
+)
+
+# If everything passes... Now we can build
+echo -e '\033[0;34m🔍 Code checks passed. Initiating build process...\033[0m'
+
+npm run build ||
+(
+    echo -e '\033[0;31m❌ Build failed. Review the errors above and resolve them before committing.\033[0m'
+    false
+)
+
+# If everything passes... Now we can commit
+echo -e '\033[0;32m✅ All checks passed. Proceeding with commit.\033[0m'

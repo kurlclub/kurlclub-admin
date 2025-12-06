@@ -1,0 +1,30 @@
+# Define color codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Define the regex pattern for the commit message
+commit_regex='^(feat|fix|style|refactor|test|merge)\((FE|BE|auth|db|other)\)(!)?:  \[KC-[0-9]+\] .{1,75}$|^(chore|docs): .{1,75}$'
+
+# Get the commit message from the file passed as an argument
+commit_message=$(cat "$1")
+
+echo -e "${BLUE}🔍 Validating commit message format...${NC}"
+
+# Check if the commit message matches the pattern
+if ! echo "$commit_message" | grep -Eq "$commit_regex"; then
+  echo -e "${RED}❌ Commit message format is incorrect. Please use the following structure:${NC}"
+  echo -e "For most types: ${BLUE}<type>(<scope>)!: [KC-<number>] <short description>${NC}"
+  echo -e "Examples:"
+  echo -e "  ${BLUE}feat(FE): [KC-11] add user profile page${NC}"
+  echo -e "  ${BLUE}fix(BE): [KC-23] resolve payment API timeout issue${NC}"
+  echo -e "For 'chore' or 'docs' type: ${BLUE}<type>: <short description>${NC}"
+  echo -e "Examples:"
+  echo -e "  ${BLUE}chore: update dependencies${NC}"
+  echo -e "  ${BLUE}docs: improve README${NC}"
+  echo "Please revise your commit message and try again."
+  exit 1
+fi
+
+echo -e "${GREEN}✅ Commit message format is correct.${NC}"
