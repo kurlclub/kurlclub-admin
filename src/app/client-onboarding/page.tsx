@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-import ClientOnboardingMain from '@/components/pages/client-onboarding';
+import { OnboardingModule } from '@/components/pages/client-onboarding';
 
 export const metadata: Metadata = {
   title: 'Client Onboarding - KurlClub Admin',
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 const ClientOnboardingPage = () => {
-  return <ClientOnboardingMain />;
+  return <OnboardingModule />;
 };
 
 export default ClientOnboardingPage;
