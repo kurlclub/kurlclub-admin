@@ -2,12 +2,17 @@
 
 import { useState } from 'react';
 
-import { Button, InfoBadge, InfoCard } from '@kurlclub/ui-components';
+import {
+  Badge,
+  Button,
+  InfoBadge,
+  InfoCard,
+  Search,
+} from '@kurlclub/ui-components';
 import {
   ArrowLeft,
   Building2,
   CheckCircle,
-  ChevronRight,
   Clock,
   Mail,
   MapPin,
@@ -28,7 +33,9 @@ export function OnboardingModule() {
   );
   const [showWizard, setShowWizard] = useState(false);
   const [showContinueOnboarding, setShowContinueOnboarding] = useState(false);
-  const [resumeClient, setResumeClient] = useState<OnboardingClient | null>(null);
+  const [resumeClient, setResumeClient] = useState<OnboardingClient | null>(
+    null,
+  );
 
   const onboardingClients: OnboardingClient[] = [
     {
@@ -132,23 +139,23 @@ export function OnboardingModule() {
 
   return (
     <StudioLayout
-      title="Client Onboarding"
-      description="Manage client setup, accounts, and multi-gym subscriptions"
-      headerActions={
-        <Button
-          onClick={() => {
-            setSelectedClient(null);
-            setShowWizard(true);
-          }}
-        >
-          <Plus className="w-5 h-5" />
-          New Client
-        </Button>
-      }
+    // title="Client Onboarding"
+    // description="Manage client setup, accounts, and multi-gym subscriptions"
+    // headerActions={
+    //   <Button
+    //     onClick={() => {
+    //       setSelectedClient(null);
+    //       setShowWizard(true);
+    //     }}
+    //   >
+    //     <Plus className="w-5 h-5" />
+    //     New Client
+    //   </Button>
+    // }
     >
       {showWizard && <OnboardingWizard onClose={() => setShowWizard(false)} />}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
         <InfoCard
           item={{
             id: '1',
@@ -186,24 +193,37 @@ export function OnboardingModule() {
           }}
         />
       </div>
-
-          {selectedClient ? (
-            <ClientDetailView
-              client={selectedClient}
-              onClose={() => setSelectedClient(null)}
-              onResumeOnboarding={() => {
-                setResumeClient(selectedClient);
-                setShowContinueOnboarding(true);
-              }}
-              getStatusVariant={getStatusVariant}
-            />
-          ) : (
-            <OnboardingQueueView
-              clients={onboardingClients}
-              onSelectClient={setSelectedClient}
-              getStatusVariant={getStatusVariant}
-            />
-          )}
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <h3 className="text-[20px] font-medium text-white">
+          Active Onboarding Queue
+        </h3>
+        <Button
+          onClick={() => {
+            setSelectedClient(null);
+            setShowWizard(true);
+          }}
+        >
+          <Plus className="w-5 h-5" />
+          Add new
+        </Button>
+      </div>
+      {selectedClient ? (
+        <ClientDetailView
+          client={selectedClient}
+          onClose={() => setSelectedClient(null)}
+          onResumeOnboarding={() => {
+            setResumeClient(selectedClient);
+            setShowContinueOnboarding(true);
+          }}
+          getStatusVariant={getStatusVariant}
+        />
+      ) : (
+        <OnboardingQueueView
+          clients={onboardingClients}
+          onSelectClient={setSelectedClient}
+          getStatusVariant={getStatusVariant}
+        />
+      )}
     </StudioLayout>
   );
 }
@@ -220,84 +240,106 @@ function OnboardingQueueView({
   ) => 'success' | 'warning' | 'info' | 'error';
 }) {
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-white">
-        Active Onboarding Queue
-      </h3>
-      <div className="space-y-4">
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center gap-4">
+        <Search
+          placeholder="Search"
+          onSearch={() => {}}
+          className="max-w-[332px]"
+        />
+        <div className="flex items-center gap-5">
+          <div className="flex items-center gap-2">
+            {/* TODO: Need to add count in badge */}
+            <Badge variant="outline">In progress</Badge>
+            <Badge variant="outline">Pending activation</Badge>
+            <Badge variant="outline">Completed</Badge>
+          </div>
+          {/* TODO: Classname of button not working */}
+          <Button variant="outline" className="h-[37px]">
+            View
+          </Button>
+        </div>
+      </div>
+      <div className="flex flex-col gap-3">
         {clients.map((client) => (
           <div
             key={client.id}
             onClick={() => onSelectClient(client)}
-            className="bg-secondary-blue-500 p-6 border border-secondary-blue-400 rounded-lg hover:border-primary-green-500 hover:shadow-lg k-transition cursor-pointer group"
+            className="bg-secondary-blue-500 p-4 border border-secondary-blue-50 rounded-lg hover:border-primary-green-500 hover:shadow-lg k-transition cursor-pointer group"
           >
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-primary-green-500/20 rounded-lg group-hover:bg-primary-green-500/30 k-transition">
-                    <Building2 className="w-5 h-5 text-primary-green-500" />
+            {/* <div className="flex items-start justify-between gap-4"> */}
+            <div className="flex-1">
+              <div className="flex items-start gap-4 justify-between mb-4">
+                <div className="flex items-center gap-4">
+                  {/* TODO: Avatr comp is missing in ui library */}
+                  <div className="uppercase bg-secondary-blue-400 rounded-full h-12 w-12 text-neutral-green-300 text-[20px] font-medium flex items-center justify-center">
+                    ds
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-white">{client.name}</h4>
-                    <p className="text-sm text-gray-400">{client.owner}</p>
+                  <div className="flex flex-col gap-1">
+                    <h4 className="font-medium text-white text-[20px] leading-[109%]">
+                      {client.name}
+                    </h4>
+                    <p className="text-sm font-semibold leading-[109%] text-semantic-blue-500">
+                      Powerfit Andheri +2 more
+                    </p>
                   </div>
                 </div>
-
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">
-                      Onboarding Progress
-                    </span>
-                    <span className="text-xs font-bold text-primary-green-500">
-                      {client.step}/{client.totalSteps}
-                    </span>
-                  </div>
-                  <div className="w-full bg-secondary-blue-600 rounded-full h-2.5 overflow-hidden">
-                    <div
-                      className="bg-primary-green-500 h-full k-transition"
-                      style={{
-                        width: `${(client.step / client.totalSteps) * 100}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-4 gap-4 text-sm">
-                  <div>
-                    <p className="text-gray-400 text-xs">Email</p>
-                    <p className="text-sm font-medium text-white">
-                      {client.email}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400 text-xs">Subscription</p>
-                    <p className="text-sm font-medium text-white">
-                      {client.subscriptionTier}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400 text-xs">Sub-Gyms</p>
-                    <p className="text-sm font-medium text-white">
-                      {client.subGyms}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400 text-xs">Created</p>
-                    <p className="text-sm font-medium text-white">
-                      {client.createdAt}
-                    </p>
-                  </div>
+                <div className="flex flex-col items-end gap-2">
+                  <InfoBadge variant={getStatusVariant(client.status)}>
+                    {client.status}
+                  </InfoBadge>
+                  {/* <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-primary-green-500 k-transition" /> */}
                 </div>
               </div>
 
-              <div className="flex flex-col items-end gap-2">
-                <InfoBadge variant={getStatusVariant(client.status)}>
-                  {client.status}
-                </InfoBadge>
-                <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-primary-green-500 k-transition" />
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">
+                    Onboarding Progress
+                  </span>
+                  <span className="text-xs font-bold text-primary-green-500">
+                    {client.step}/{client.totalSteps}
+                  </span>
+                </div>
+                <div className="w-full bg-secondary-blue-600 rounded-full h-2.5 overflow-hidden">
+                  <div
+                    className="bg-primary-green-500 h-full k-transition"
+                    style={{
+                      width: `${(client.step / client.totalSteps) * 100}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-4 gap-4 text-sm">
+                <div>
+                  <p className="text-gray-400 text-xs">Email</p>
+                  <p className="text-sm font-medium text-white">
+                    {client.email}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-400 text-xs">Subscription</p>
+                  <p className="text-sm font-medium text-white">
+                    {client.subscriptionTier}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-400 text-xs">Sub-Gyms</p>
+                  <p className="text-sm font-medium text-white">
+                    {client.subGyms}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-400 text-xs">Created</p>
+                  <p className="text-sm font-medium text-white">
+                    {client.createdAt}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
+          // </div>
         ))}
       </div>
     </div>

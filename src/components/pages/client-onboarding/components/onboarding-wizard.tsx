@@ -164,7 +164,9 @@ export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
                   {idx < STEPS.length - 1 && (
                     <div
                       className={`h-1 w-6 mx-2 rounded-full transition-all ${
-                        currentStep > step.id ? 'bg-primary-green-500' : 'bg-secondary-blue-600'
+                        currentStep > step.id
+                          ? 'bg-primary-green-500'
+                          : 'bg-secondary-blue-600'
                       }`}
                     />
                   )}
@@ -194,7 +196,9 @@ export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
                 <div
                   key={idx}
                   className={`h-1.5 w-1.5 rounded-full transition-all ${
-                    idx + 1 <= currentStep ? 'bg-primary-green-500 w-6' : 'bg-secondary-blue-600'
+                    idx + 1 <= currentStep
+                      ? 'bg-primary-green-500 w-6'
+                      : 'bg-secondary-blue-600'
                   }`}
                 />
               ))}
