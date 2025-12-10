@@ -11,6 +11,7 @@ import {
 } from '@kurlclub/ui-components';
 import {
   ArrowLeft,
+  ArrowUpRight,
   Building2,
   CheckCircle,
   Clock,
@@ -264,7 +265,7 @@ function OnboardingQueueView({
         {clients.map((client) => (
           <div
             key={client.id}
-            onClick={() => onSelectClient(client)}
+            // onClick={() => onSelectClient(client)}
             className="bg-secondary-blue-500 p-4 border border-secondary-blue-50 rounded-lg hover:border-primary-green-500 hover:shadow-lg k-transition cursor-pointer group"
           >
             {/* <div className="flex items-start justify-between gap-4"> */}
@@ -284,26 +285,24 @@ function OnboardingQueueView({
                     </p>
                   </div>
                 </div>
-                <div className="flex flex-col items-end gap-2">
+                <div className="flex items-center gap-5">
                   <InfoBadge variant={getStatusVariant(client.status)}>
                     {client.status}
                   </InfoBadge>
-                  {/* <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-primary-green-500 k-transition" /> */}
+                  <ArrowUpRight className="w-8 h-8 text-gray-400 group-hover:text-primary-green-500 k-transition" />
                 </div>
               </div>
 
               <div className="mb-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-gray-400 font-medium tracking-wider">
                     Onboarding Progress
                   </span>
-                  <span className="text-xs font-bold text-primary-green-500">
-                    {client.step}/{client.totalSteps}
-                  </span>
                 </div>
-                <div className="w-full bg-secondary-blue-600 rounded-full h-2.5 overflow-hidden">
+                {/* TODO: Progress bar missing in UI library */}
+                <div className="w-full bg-secondary-blue-400 rounded-lg h-2 overflow-hidden">
                   <div
-                    className="bg-primary-green-500 h-full k-transition"
+                    className="bg-primary-green-500 h-full k-transition rounded-lg"
                     style={{
                       width: `${(client.step / client.totalSteps) * 100}%`,
                     }}
@@ -312,28 +311,37 @@ function OnboardingQueueView({
               </div>
 
               <div className="grid grid-cols-4 gap-4 text-sm">
-                <div>
-                  <p className="text-gray-400 text-xs">Email</p>
-                  <p className="text-sm font-medium text-white">
+                <div className="flex flex-col gap-3">
+                  <p className="text-secondary-blue-200 text-sm leading-[109%]">
+                    Email
+                  </p>
+                  <p className="text-sm font-semibold leading-[109%] text-white">
                     {client.email}
                   </p>
                 </div>
-                <div>
-                  <p className="text-gray-400 text-xs">Subscription</p>
-                  <p className="text-sm font-medium text-white">
+                <div className="flex flex-col gap-3">
+                  <p className="text-secondary-blue-200 text-sm leading-[109%]">
+                    Subscription
+                  </p>
+                  <p className="text-sm font-semibold leading-[109%] text-white">
                     {client.subscriptionTier}
                   </p>
                 </div>
-                <div>
-                  <p className="text-gray-400 text-xs">Sub-Gyms</p>
-                  <p className="text-sm font-medium text-white">
-                    {client.subGyms}
+                <div className="flex flex-col gap-3">
+                  <p className="text-secondary-blue-200 text-sm leading-[109%]">
+                    Created on
+                  </p>
+                  <p className="text-sm font-semibold leading-[109%] text-white">
+                    {/* TODO: Date format is not as er figma */}
+                    {client.createdAt}
                   </p>
                 </div>
-                <div>
-                  <p className="text-gray-400 text-xs">Created</p>
-                  <p className="text-sm font-medium text-white">
-                    {client.createdAt}
+                <div className="flex flex-col gap-3">
+                  <p className="text-secondary-blue-200 text-sm leading-[109%]">
+                    Created by
+                  </p>
+                  <p className="text-sm font-semibold leading-[109%] text-white">
+                    {client.owner}
                   </p>
                 </div>
               </div>
