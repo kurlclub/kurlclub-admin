@@ -138,24 +138,10 @@ export function OnboardingModule() {
     );
   }
 
-  return (
-    <StudioLayout
-    // title="Client Onboarding"
-    // description="Manage client setup, accounts, and multi-gym subscriptions"
-    // headerActions={
-    //   <Button
-    //     onClick={() => {
-    //       setSelectedClient(null);
-    //       setShowWizard(true);
-    //     }}
-    //   >
-    //     <Plus className="w-5 h-5" />
-    //     New Client
-    //   </Button>
-    // }
-    >
-      {showWizard && <OnboardingWizard onClose={() => setShowWizard(false)} />}
-
+  return showWizard ? (
+    <OnboardingWizard onClose={() => setShowWizard(false)} />
+  ) : (
+    <StudioLayout>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-7">
         <InfoCard
           item={{
@@ -194,10 +180,12 @@ export function OnboardingModule() {
           }}
         />
       </div>
+
       <div className="flex items-center justify-between gap-4 mb-6">
         <h3 className="text-[20px] font-medium text-white">
           Active Onboarding Queue
         </h3>
+
         <Button
           onClick={() => {
             setSelectedClient(null);
@@ -208,6 +196,7 @@ export function OnboardingModule() {
           Add new
         </Button>
       </div>
+
       {selectedClient ? (
         <ClientDetailView
           client={selectedClient}
@@ -231,7 +220,6 @@ export function OnboardingModule() {
 
 function OnboardingQueueView({
   clients,
-  onSelectClient,
   getStatusVariant,
 }: {
   clients: OnboardingClient[];

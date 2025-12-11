@@ -1,0 +1,51 @@
+{
+  "[typescript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "editor.wordWrap": "on",
+  "editor.tabSize": 2,
+  "cSpell.words": ["figtree"],
+  "todo-tree.highlights.customHighlight": {
+    "BUG": {
+      "foreground": "#ffffff",
+      "background": "#ff0000"
+    },
+    "HACK": {
+      "icon": "tools"
+    },
+    "FIXME": {
+      "icon": "flame"
+    },
+    "XXX": {
+      "icon": "x"
+    },
+    "[ ]": {
+      "icon": "issue-draft"
+    },
+    "[x]": {
+      "icon": "issue-closed"
+    },
+    "TODO": {
+      "foreground": "#ffffff",
+      "background": "#ffbd2a",
+      "iconColour": "#ffbd2a"
+    },
+    "NOTE": {
+      "foreground": "#ffffff",
+      "background": "#f205b3",
+      "iconColour": "#3498db"
+    },
+    "DISCUSS": {
+      "foreground": "#ffffff",
+      "background": "#9c27b0"
+    },
+    "WIP": {
+      "foreground": "#000000",
+      "background": "#ffff00"
+    },
+    "ENH": {
+      "foreground": "#ffffff",
+      "background": "#2ECC71"
+    }
+  }
+}

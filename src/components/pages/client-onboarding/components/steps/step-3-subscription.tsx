@@ -64,6 +64,56 @@ import { StepWrapper } from '../stepper-wrapper';
  * Choose tier and billing cycle
  */
 
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
+
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
+
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
+
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
+
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
+
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
+
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
+
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
+
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
+
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
+
 export function OnboardingStep3() {
   const { formData, setFormData, setSelectedTier } = useOnboardingContext();
   const { data, handleFieldChange, errors } =
@@ -88,8 +138,8 @@ export function OnboardingStep3() {
 
   return (
     <StepWrapper
-      title="Select Subscription"
-      description="Choose the subscription plan that best fits the client's needs."
+      title="Active Onboarding Queue"
+      description="Enter the basic details about the gym client you're onboarding."
       errors={errors}
     >
       <div className="space-y-6">

@@ -66,6 +66,56 @@ import { StepWrapper } from '../stepper-wrapper';
  * Add multiple gym locations based on tier limits
  */
 
+/**
+ * Step 4: Sub-Gym Configuration
+ * Add multiple gym locations based on tier limits
+ */
+
+/**
+ * Step 4: Sub-Gym Configuration
+ * Add multiple gym locations based on tier limits
+ */
+
+/**
+ * Step 4: Sub-Gym Configuration
+ * Add multiple gym locations based on tier limits
+ */
+
+/**
+ * Step 4: Sub-Gym Configuration
+ * Add multiple gym locations based on tier limits
+ */
+
+/**
+ * Step 4: Sub-Gym Configuration
+ * Add multiple gym locations based on tier limits
+ */
+
+/**
+ * Step 4: Sub-Gym Configuration
+ * Add multiple gym locations based on tier limits
+ */
+
+/**
+ * Step 4: Sub-Gym Configuration
+ * Add multiple gym locations based on tier limits
+ */
+
+/**
+ * Step 4: Sub-Gym Configuration
+ * Add multiple gym locations based on tier limits
+ */
+
+/**
+ * Step 4: Sub-Gym Configuration
+ * Add multiple gym locations based on tier limits
+ */
+
+/**
+ * Step 4: Sub-Gym Configuration
+ * Add multiple gym locations based on tier limits
+ */
+
 export function OnboardingStep4() {
   const { formData, setFormData, selectedTier } = useOnboardingContext();
   const [showForm, setShowForm] = useState(false);
@@ -107,7 +157,7 @@ export function OnboardingStep4() {
   return (
     <StepWrapper
       title="Sub-Gym Locations"
-      description={`Add all additional gym locations managed by this client account. Your ${selectedTier} plan allows up to ${maxGyms} location${maxGyms > 1 ? 's' : ''}.`}
+      description="Add all additional gym locations managed by this client account. Your Professional plan allows up to 5 locations."
       errors={errors}
     >
       <div className="space-y-4">
