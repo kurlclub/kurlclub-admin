@@ -5,14 +5,47 @@
 
 'use client';
 
-import { Check } from 'lucide-react';
-
 import { useOnboardingContext } from '../../hooks';
 import { useOnboardingForm } from '../../hooks';
 import type { SubscriptionData, SubscriptionTier } from '../../types';
 import { getSubscriptionPlans } from '../../utils';
 import { validateSubscription } from '../../utils';
 import { StepWrapper } from '../stepper-wrapper';
+
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
+
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
+
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
+
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
+
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
+
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
+
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
 
 /**
  * Step 3: Subscription Selection
@@ -137,49 +170,44 @@ export function OnboardingStep3() {
   const plans = getSubscriptionPlans();
 
   return (
-    <StepWrapper
-      title="Active Onboarding Queue"
-      description="Enter the basic details about the gym client you're onboarding."
-      errors={errors}
-    >
-      <div className="space-y-6">
+    <div className="flex flex-col gap-8 max-w-[1040px] mx-auto">
+      <StepWrapper
+        title="Active Onboarding Queue"
+        description="Enter the basic details about the gym client you're onboarding."
+        errors={errors}
+        cardWrapper="p-0! border-none"
+      >
         <div className="grid grid-cols-3 gap-4">
           {plans.map((plan) => (
             <div
               key={plan.id}
               onClick={() => handleTierChange(plan.id)}
-              className={`p-6 rounded-lg border-2 cursor-pointer transition-all ${
+              className={`rounded-lg border cursor-pointer transition-all overflow-hidden hover:border-primary-green-500 k-transition
+              ${
                 data.tier === plan.id
-                  ? 'border-primary bg-primary/5'
-                  : 'border-border hover:border-primary/50'
-              }`}
+                  ? 'border-primary-green-500 bg-secondary-blue-400 scale-[1.01]'
+                  : ''
+              }
+              `}
             >
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="font-semibold text-foreground">{plan.name}</h4>
-                {plan.badge && (
-                  <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded-full">
-                    {plan.badge}
+              <div className="flex flex-col gap-4 p-5 bg-secondary-blue-500">
+                <h4 className="font-medium text-[24px] leading-[109%]">
+                  {plan.name}
+                </h4>
+                <span className="text-primary-green-200 font-medium text-[32px] leading-[109%]">
+                  ₹299
+                  <span className="text-primary-blue-50 text-base leading-[109%]">
+                    /month
                   </span>
-                )}
-              </div>
-
-              <p className="text-2xl font-bold text-foreground mb-1">
-                {plan.price}
-                <span className="text-xs text-muted-foreground ml-1">
-                  {plan.period}
                 </span>
-              </p>
-              <p className="text-xs text-muted-foreground mb-4">
-                {plan.description}
-              </p>
-
-              <div className="space-y-2">
+              </div>
+              <div className="flex flex-col gap-5 m-5 mt-6">
                 {plan.features.map((feature, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center gap-2 text-sm text-foreground"
+                    className="flex items-center gap-2 text-sm text-foreground font-medium leading-[130%]"
                   >
-                    <Check className="w-4 h-4 text-primary shrink-0" />
+                    <span className="w-3.5 h-3.5 rounded-full border-3 border-primary-green-100" />
                     {feature}
                   </div>
                 ))}
@@ -187,35 +215,67 @@ export function OnboardingStep3() {
             </div>
           ))}
         </div>
+      </StepWrapper>
+      {/* TODO: radio component missing in Library */}
+      <div className="flex flex-col gap-5 w-fit">
+        <label className="block text-base font-semibold leading-[109%] text-white">
+          Billing Cycle
+        </label>
 
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-3">
-            Billing Cycle
+        <div className="flex gap-[22px] items-center">
+          {/* Monthly */}
+          <label className="flex items-center gap-2 cursor-pointer group">
+            <input
+              type="radio"
+              name="billing"
+              checked={data.billingCycle === 'monthly'}
+              onChange={() => handleBillingChange('monthly')}
+              className="hidden"
+            />
+            <span
+              className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors
+        ${
+          data.billingCycle === 'monthly'
+            ? 'border-primary-green-500'
+            : 'border-[#5A5F73]'
+        }
+        group-hover:border-primary-green-500
+      `}
+            >
+              {data.billingCycle === 'monthly' && (
+                <span className="h-2.5 w-2.5 rounded-full bg-primary-green-500"></span>
+              )}
+            </span>
+            <span className="text-white font-base leading-[109%]">Monthly</span>
           </label>
-          <div className="flex gap-4">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="billing"
-                checked={data.billingCycle === 'monthly'}
-                onChange={() => handleBillingChange('monthly')}
-                className="w-4 h-4"
-              />
-              <span className="text-sm text-foreground">Monthly</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="billing"
-                checked={data.billingCycle === 'annual'}
-                onChange={() => handleBillingChange('annual')}
-                className="w-4 h-4"
-              />
-              <span className="text-sm text-foreground">Annual (Save 20%)</span>
-            </label>
-          </div>
+
+          {/* Annual */}
+          <label className="flex items-center gap-2 cursor-pointer group">
+            <input
+              type="radio"
+              name="billing"
+              checked={data.billingCycle === 'annual'}
+              onChange={() => handleBillingChange('annual')}
+              className="hidden"
+            />
+            <span
+              className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors
+        ${
+          data.billingCycle === 'annual'
+            ? 'border-primary-green-500'
+            : 'border-[#5A5F73]'
+        }
+        group-hover:border-primary-green-500
+      `}
+            >
+              {data.billingCycle === 'annual' && (
+                <span className="h-2.5 w-2.5 rounded-full bg-primary-green-500"></span>
+              )}
+            </span>
+            <span className="text-white font-base leading-[109%]">Annual</span>
+          </label>
         </div>
       </div>
-    </StepWrapper>
+    </div>
   );
 }

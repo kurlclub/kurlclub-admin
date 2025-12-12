@@ -94,7 +94,7 @@ export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
                     {/* TODO: #68729A Color not added in library */}
                     <span
                       className={`h-7 w-7 border-[#68729A] border rounded-full flex items-center justify-center text-primary-blue-50 font-semibold text-sm leading-[109%] 
-    ${isActive || isCompleted ? 'bg-primary-green-500 text-black!' : ''}`}
+    ${isActive || isCompleted ? 'bg-primary-green-500 text-black! border-primary-green-500' : ''}`}
                     >
                       {step.id}
                     </span>
@@ -123,10 +123,12 @@ export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
           </div>
         </div>
         <div className="flex-1 overflow-auto p-8 bg-primary-blue-500">
-          <div className="animate-in fade-in duration-300 max-w-[635px] mx-auto">
+          <div className="animate-in fade-in duration-300 mx-auto">
             {renderStepContent()}
           </div>
-          <div className="flex items-center justify-between max-w-[635px] mx-auto mt-6">
+          <div
+            className={`flex items-center justify-between mx-auto mt-6 ${currentStep == 1 || currentStep == 2 ? 'max-w-[635px]' : 'max-w-[1040px] mt-9!'}`}
+          >
             <Button
               onClick={handlePrevious}
               disabled={currentStep === 1}

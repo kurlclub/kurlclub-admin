@@ -114,6 +114,41 @@ import { StepWrapper } from '../stepper-wrapper';
  * Collects gym name, owner, contact details
  */
 
+/**
+ * Step 1: Client Information
+ * Collects gym name, owner, contact details
+ */
+
+/**
+ * Step 1: Client Information
+ * Collects gym name, owner, contact details
+ */
+
+/**
+ * Step 1: Client Information
+ * Collects gym name, owner, contact details
+ */
+
+/**
+ * Step 1: Client Information
+ * Collects gym name, owner, contact details
+ */
+
+/**
+ * Step 1: Client Information
+ * Collects gym name, owner, contact details
+ */
+
+/**
+ * Step 1: Client Information
+ * Collects gym name, owner, contact details
+ */
+
+/**
+ * Step 1: Client Information
+ * Collects gym name, owner, contact details
+ */
+
 export function OnboardingStep1() {
   const { formData, setFormData } = useOnboardingContext();
   const { data, handleChange, errors } = useOnboardingForm<ClientInfoData>(
@@ -139,8 +174,9 @@ export function OnboardingStep1() {
       description="Enter the basic details about the gym client you're onboarding."
       errors={errors}
       helpText="This information will be used to create the client account and send welcome communications."
+      className="max-w-[635px] mx-auto"
     >
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-5 max-w-[635px]">
         {/* TODO: Required star missing in input */}
         <Input
           label="Gym name *"
