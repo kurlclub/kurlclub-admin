@@ -7,7 +7,8 @@
 
 import { useState } from 'react';
 
-import { AlertCircle, Building2, Plus, X } from 'lucide-react';
+import { Button, Input } from '@kurlclub/ui-components';
+import { AlertCircle, MapPin, Plus, X } from 'lucide-react';
 
 import { useOnboardingContext } from '../../hooks';
 import { useOnboardingForm } from '../../hooks';
@@ -151,13 +152,44 @@ import { StepWrapper } from '../stepper-wrapper';
  * Add multiple gym locations based on tier limits
  */
 
+/**
+ * Step 4: Sub-Gym Configuration
+ * Add multiple gym locations based on tier limits
+ */
+
+/**
+ * Step 4: Sub-Gym Configuration
+ * Add multiple gym locations based on tier limits
+ */
+
+/**
+ * Step 4: Sub-Gym Configuration
+ * Add multiple gym locations based on tier limits
+ */
+
+/**
+ * Step 4: Sub-Gym Configuration
+ * Add multiple gym locations based on tier limits
+ */
+
+/**
+ * Step 4: Sub-Gym Configuration
+ * Add multiple gym locations based on tier limits
+ */
+
+/**
+ * Step 4: Sub-Gym Configuration
+ * Add multiple gym locations based on tier limits
+ */
+
 export function OnboardingStep4() {
   const { formData, setFormData, selectedTier } = useOnboardingContext();
   const [showForm, setShowForm] = useState(false);
   const [newGym, setNewGym] = useState({ name: '', city: '', country: '' });
 
   const maxGyms = getGymLimitByTier(selectedTier);
-  const canAddMore = formData.subGyms.subGyms.length < maxGyms;
+  // const canAddMore = formData.subGyms.subGyms.length < maxGyms;
+  const canAddMore = true;
 
   const { errors } = useOnboardingForm<SubGymData>(formData.subGyms, {
     onValidate: (data) => validateSubGyms(data.subGyms, maxGyms),
@@ -194,85 +226,70 @@ export function OnboardingStep4() {
       title="Sub-Gym Locations"
       description="Add all additional gym locations managed by this client account. Your Professional plan allows up to 5 locations."
       errors={errors}
+      className="max-w-[754px] mx-auto"
+      cardWrapper="p-0! border-0"
+      gymCount={`${formData.subGyms.subGyms.length}/${maxGyms}`}
     >
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">
-            {formData.subGyms.subGyms.length}/{maxGyms} locations
-          </span>
-        </div>
-
+      <div className="flex flex-col gap-5">
         {formData.subGyms.subGyms.map((gym) => (
           <div
             key={gym.id}
-            className="p-4 rounded-lg border border-border flex items-center justify-between hover:bg-secondary/30 transition-colors"
+            className="p-5 rounded-lg border border-primary-blue-300 flex items-start justify-between bg-secondary-blue-500"
           >
             <div className="flex items-center gap-3">
-              <Building2 className="w-5 h-5 text-primary" />
-              <div>
-                <p className="font-medium text-foreground">{gym.name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {gym.city}, {gym.country}
+              <MapPin className="h-[34px] w-[34px] text-primary-green-300" />
+              <div className="flex flex-col gap-2">
+                <p className="text-base leading-[109%] text-white">
+                  {gym.name}
+                </p>
+                <p className="text-sm text-secondary-blue-200 leading-[109%]">
+                  Kakkur, Kerala, India
                 </p>
               </div>
             </div>
             <button
               onClick={() => removeSubGym(gym.id)}
               disabled={formData.subGyms.subGyms.length === 1}
-              className="p-2 hover:bg-destructive/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title="Remove location"
+              className="cursor-pointer group"
             >
-              <X className="w-4 h-4 text-destructive" />
+              <X className="w-6 h-6 text-alert-red-300 group-hover:text-alert-red-400 k-transition" />
             </button>
           </div>
         ))}
 
         {showForm ? (
-          <div className="p-4 rounded-lg border border-border space-y-3 bg-secondary/30">
-            <input
-              type="text"
-              placeholder="Location name"
-              className="w-full bg-secondary px-4 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground"
+          <div className="p-2 rounded-lg border border-secondary-blue-500 flex flex-col gap-5">
+            <Input
+              label="Location name"
               value={newGym.name}
               onChange={(e) => setNewGym({ ...newGym, name: e.target.value })}
             />
-            <input
-              type="text"
-              placeholder="City"
-              className="w-full bg-secondary px-4 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground"
+            <Input
+              label="City"
               value={newGym.city}
               onChange={(e) => setNewGym({ ...newGym, city: e.target.value })}
             />
-            <input
-              type="text"
-              placeholder="Country"
-              className="w-full bg-secondary px-4 py-2 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-foreground"
+            <Input
+              label="Country"
               value={newGym.country}
               onChange={(e) =>
                 setNewGym({ ...newGym, country: e.target.value })
               }
             />
             <div className="flex gap-2">
-              <button
-                onClick={addSubGym}
-                className="flex-1 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity font-medium"
-              >
-                Add Location
-              </button>
-              <button
-                onClick={() => setShowForm(false)}
-                className="flex-1 px-4 py-2 rounded-lg border border-border text-foreground hover:bg-secondary transition-colors font-medium"
-              >
+              <Button onClick={addSubGym}>Add Location</Button>
+              <Button variant="outline" onClick={() => setShowForm(false)}>
                 Cancel
-              </button>
+              </Button>
             </div>
           </div>
         ) : canAddMore ? (
           <button
             onClick={() => setShowForm(true)}
-            className="w-full p-4 rounded-lg border-2 border-dashed border-border hover:border-primary/50 hover:bg-secondary/30 transition-all flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground"
+            className="w-full p-[18px] rounded-lg border-2 border-dashed border-primary-blue-300 hover:border-primary-green-500 hover:bg-secondary-blue-600 k-transition text-base leading-[109%] flex items-center justify-center gap-2 text-white cursor-pointer hover:text-primary-green-500"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-6 h-6" />
             Add Another Location
           </button>
         ) : (

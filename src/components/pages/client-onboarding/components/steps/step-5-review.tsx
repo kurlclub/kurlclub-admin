@@ -5,10 +5,41 @@
 
 'use client';
 
-import { CheckCircle2, Mail } from 'lucide-react';
+import { Input } from '@kurlclub/ui-components';
+import { Check, Mail } from 'lucide-react';
 
 import { useOnboardingContext } from '../../hooks';
 import { StepWrapper } from '../stepper-wrapper';
+
+/**
+ * Step 5: Review & Activate
+ * Final confirmation before onboarding activation
+ */
+
+/**
+ * Step 5: Review & Activate
+ * Final confirmation before onboarding activation
+ */
+
+/**
+ * Step 5: Review & Activate
+ * Final confirmation before onboarding activation
+ */
+
+/**
+ * Step 5: Review & Activate
+ * Final confirmation before onboarding activation
+ */
+
+/**
+ * Step 5: Review & Activate
+ * Final confirmation before onboarding activation
+ */
+
+/**
+ * Step 5: Review & Activate
+ * Final confirmation before onboarding activation
+ */
 
 /**
  * Step 5: Review & Activate
@@ -152,65 +183,96 @@ export function OnboardingStep5() {
     <StepWrapper
       title="Review & Activate"
       description="Review all information before completing the onboarding."
+      className="max-w-[754px] mx-auto"
     >
-      <div className="space-y-4">
-        <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
-          <div className="flex gap-3">
-            <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-            <div>
-              <p className="font-medium text-foreground">
-                {formData.clientInfo.gymName}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Owner: {formData.clientInfo.ownerName}
-              </p>
-            </div>
-          </div>
+      <div className="flex flex-col gap-5">
+        {/* TODO: Readonly not working in input */}
+        <Input label="Owner" value={formData.clientInfo.ownerName} readOnly />
+        <Input label="Gym name" value={formData.clientInfo.gymName} readOnly />
+        <div className="grid grid-cols-2 gap-3">
+          <Input label="Email" value={formData.clientInfo.email} readOnly />
+          <Input
+            label="Subscription"
+            value={formData.subscription.tier}
+            readOnly
+          />
+          <Input
+            label="Username"
+            value={formData.accountCreation.username}
+            readOnly
+          />
+          <Input
+            label="Sub-Gyms"
+            value={formData.subGyms.subGyms.length}
+            readOnly
+          />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="p-4 rounded-lg border border-border">
-            <p className="text-xs text-muted-foreground mb-1">Email</p>
-            <p className="font-medium text-foreground text-sm">
-              {formData.clientInfo.email}
-            </p>
-          </div>
-          <div className="p-4 rounded-lg border border-border">
-            <p className="text-xs text-muted-foreground mb-1">Subscription</p>
-            <p className="font-medium text-foreground text-sm">
-              {formData.subscription.tier}
-            </p>
-          </div>
-          <div className="p-4 rounded-lg border border-border">
-            <p className="text-xs text-muted-foreground mb-1">Username</p>
-            <p className="font-medium text-foreground font-mono text-sm">
-              {formData.accountCreation.username}
-            </p>
-          </div>
-          <div className="p-4 rounded-lg border border-border">
-            <p className="text-xs text-muted-foreground mb-1">Sub-Gyms</p>
-            <p className="font-medium text-foreground text-sm">
-              {formData.subGyms.subGyms.length} Locations
-            </p>
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" defaultChecked className="w-4 h-4 rounded" />
-            <span className="text-sm text-foreground">
+        <div className="flex flex-col gap-3">
+          {/* TODO: Checkbox missing in ui Library */}
+          <label className="flex items-center gap-2 cursor-pointer group">
+            <input type="checkbox" defaultChecked className="peer sr-only" />
+            <span
+              className="h-4 w-4 rounded-[3px] border flex items-center justify-center
+      border-primary-blue-300
+      transition-all
+      group-hover:border-primary-green-500
+      peer-checked:border-primary-green-500
+      peer-checked:bg-primary-green-500"
+            >
+              <Check
+                className="
+        w-3 h-3 text-transparent transition-all
+        group-has-[input:checked]:text-black
+      "
+                strokeWidth={3}
+              />
+            </span>
+            <span className="text-sm text-white leading-[109%]">
               Send welcome email with credentials
             </span>
           </label>
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" defaultChecked className="w-4 h-4 rounded" />
-            <span className="text-sm text-foreground">
+          <label className="flex items-center gap-2 cursor-pointer group">
+            <input type="checkbox" defaultChecked className="peer sr-only" />
+            <span
+              className="h-4 w-4 rounded-[3px] border flex items-center justify-center
+      border-primary-blue-300
+      transition-all
+      group-hover:border-primary-green-500
+      peer-checked:border-primary-green-500
+      peer-checked:bg-primary-green-500"
+            >
+              <Check
+                className="
+        w-3 h-3 text-transparent transition-all
+        group-has-[input:checked]:text-black
+      "
+                strokeWidth={3}
+              />
+            </span>
+            <span className="text-sm text-white leading-[109%]">
               Schedule onboarding call
             </span>
           </label>
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" className="w-4 h-4 rounded" />
-            <span className="text-sm text-foreground">
+          <label className="flex items-center gap-2 cursor-pointer group">
+            <input type="checkbox" defaultChecked className="peer sr-only" />
+            <span
+              className="h-4 w-4 rounded-[3px] border flex items-center justify-center
+      border-primary-blue-300
+      transition-all
+      group-hover:border-primary-green-500
+      peer-checked:border-primary-green-500
+      peer-checked:bg-primary-green-500"
+            >
+              <Check
+                className="
+        w-3 h-3 text-transparent transition-all
+        group-has-[input:checked]:text-black
+      "
+                strokeWidth={3}
+              />
+            </span>
+            <span className="text-sm text-white leading-[109%]">
               Assign account manager
             </span>
           </label>

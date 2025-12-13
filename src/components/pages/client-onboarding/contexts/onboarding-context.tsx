@@ -145,6 +145,36 @@ import type {
  * Context provider and state mutations
  */
 
+/**
+ * Global state management for onboarding workflow
+ * Context provider and state mutations
+ */
+
+/**
+ * Global state management for onboarding workflow
+ * Context provider and state mutations
+ */
+
+/**
+ * Global state management for onboarding workflow
+ * Context provider and state mutations
+ */
+
+/**
+ * Global state management for onboarding workflow
+ * Context provider and state mutations
+ */
+
+/**
+ * Global state management for onboarding workflow
+ * Context provider and state mutations
+ */
+
+/**
+ * Global state management for onboarding workflow
+ * Context provider and state mutations
+ */
+
 const initialFormData: OnboardingFormData = {
   clientInfo: {
     gymName: '',

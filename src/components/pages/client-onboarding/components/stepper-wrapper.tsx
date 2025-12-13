@@ -13,6 +13,7 @@ interface StepWrapperProps {
   errors?: Array<{ field: string; message: string }>;
   className?: string;
   cardWrapper?: string;
+  gymCount?: string;
 }
 
 export function StepWrapper({
@@ -21,12 +22,21 @@ export function StepWrapper({
   children,
   className = '',
   cardWrapper = '',
+  gymCount,
 }: StepWrapperProps) {
   return (
     <div className={`flex flex-col gap-7 ${className}`}>
       <div className="flex flex-col gap-3">
-        <h3 className="text-2xl font-bold text-white">{title}</h3>
-        <p className="text-sm text-gray-400 leading-relaxed">{description}</p>
+        <div className="flex items-center gap-4 justify-between">
+          <h3 className="text-[20px] font-medium leading-[109%] text-white">
+            {title}
+          </h3>
+          <span className="text-sm text-secondary-blue-50 leading-[109%]">
+            {gymCount}
+          </span>
+        </div>
+        {/* TODO: color missing in library */}
+        <p className="text-base leading-[109%] text-[#F8F8F8]">{description}</p>
       </div>
 
       {/* Main content area */}

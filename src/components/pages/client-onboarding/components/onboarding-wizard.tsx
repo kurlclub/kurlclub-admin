@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 import { Button } from '@kurlclub/ui-components';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 
 import { OnboardingProvider } from '../contexts';
 import {
@@ -127,7 +127,7 @@ export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
             {renderStepContent()}
           </div>
           <div
-            className={`flex items-center justify-between mx-auto mt-6 ${currentStep == 1 || currentStep == 2 ? 'max-w-[635px]' : 'max-w-[1040px] mt-9!'}`}
+            className={`flex items-center justify-between mx-auto mt-6 ${currentStep == 1 || currentStep == 2 ? 'max-w-[635px]' : currentStep === 4 || currentStep == 5 ? 'max-w-[754px]' : 'max-w-[1040px] mt-9!'}`}
           >
             <Button
               onClick={handlePrevious}
@@ -142,8 +142,17 @@ export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
               </span>
             </div>
             <Button onClick={handleNext}>
-              Next
-              <ArrowRight className="h-3 w-3" />
+              {currentStep == 5 ? (
+                <>
+                  <Check />
+                  Save
+                </>
+              ) : (
+                <>
+                  Next
+                  <ArrowRight className="h-3 w-3" />
+                </>
+              )}
             </Button>
           </div>
         </div>

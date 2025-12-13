@@ -147,6 +147,36 @@ import { StepWrapper } from '../stepper-wrapper';
  * Choose tier and billing cycle
  */
 
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
+
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
+
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
+
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
+
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
+
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
+
 export function OnboardingStep3() {
   const { formData, setFormData, setSelectedTier } = useOnboardingContext();
   const { data, handleFieldChange, errors } =
