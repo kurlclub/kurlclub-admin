@@ -179,6 +179,21 @@ import { StepWrapper } from '../stepper-wrapper';
  * Collects gym name, owner, contact details
  */
 
+/**
+ * Step 1: Client Information
+ * Collects gym name, owner, contact details
+ */
+
+/**
+ * Step 1: Client Information
+ * Collects gym name, owner, contact details
+ */
+
+/**
+ * Step 1: Client Information
+ * Collects gym name, owner, contact details
+ */
+
 export function OnboardingStep1() {
   const { formData, setFormData } = useOnboardingContext();
   const { data, handleChange, errors } = useOnboardingForm<ClientInfoData>(

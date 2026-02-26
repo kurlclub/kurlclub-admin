@@ -10,7 +10,6 @@ import {
   Search,
 } from '@kurlclub/ui-components';
 import {
-  ArrowLeft,
   ArrowUpRight,
   Building2,
   CheckCircle,
@@ -25,7 +24,7 @@ import {
 
 import { StudioLayout } from '@/components/shared/layout';
 
-import { ContinueOnboardingModule, OnboardingWizard } from './components';
+import { OnboardingWizard } from './components';
 import type { OnboardingClient } from './types';
 
 export function OnboardingModule() {
@@ -33,10 +32,6 @@ export function OnboardingModule() {
     null,
   );
   const [showWizard, setShowWizard] = useState(false);
-  const [showContinueOnboarding, setShowContinueOnboarding] = useState(false);
-  const [resumeClient, setResumeClient] = useState<OnboardingClient | null>(
-    null,
-  );
 
   const onboardingClients: OnboardingClient[] = [
     {
@@ -109,35 +104,6 @@ export function OnboardingModule() {
     }
   };
 
-  if (showContinueOnboarding && resumeClient) {
-    return (
-      <div className="relative">
-        <button
-          onClick={() => {
-            setShowContinueOnboarding(false);
-            setResumeClient(null);
-          }}
-          className="absolute top-4 left-4 z-50 flex items-center gap-2 px-4 py-2 rounded-lg bg-secondary-blue-500 text-white hover:bg-secondary-blue-600 k-transition border border-secondary-blue-400"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Queue
-        </button>
-        <ContinueOnboardingModule
-          clientId={resumeClient.id}
-          clientName={resumeClient.name}
-          currentStep={resumeClient.step}
-          totalSteps={resumeClient.totalSteps}
-          subscriptionTier={resumeClient.subscriptionTier}
-          onComplete={() => {
-            setShowContinueOnboarding(false);
-            setResumeClient(null);
-            setSelectedClient(null);
-          }}
-        />
-      </div>
-    );
-  }
-
   return showWizard ? (
     <OnboardingWizard onClose={() => setShowWizard(false)} />
   ) : (
@@ -201,11 +167,9 @@ export function OnboardingModule() {
         <ClientDetailView
           client={selectedClient}
           onClose={() => setSelectedClient(null)}
-          onResumeOnboarding={() => {
-            setResumeClient(selectedClient);
-            setShowContinueOnboarding(true);
-          }}
+          onResumeOnboarding={() => {}}
           getStatusVariant={getStatusVariant}
+          showWizard={setShowWizard}
         />
       ) : (
         <OnboardingQueueView
@@ -221,6 +185,7 @@ export function OnboardingModule() {
 function OnboardingQueueView({
   clients,
   getStatusVariant,
+  onSelectClient,
 }: {
   clients: OnboardingClient[];
   onSelectClient: (client: OnboardingClient) => void;
@@ -253,7 +218,7 @@ function OnboardingQueueView({
         {clients.map((client) => (
           <div
             key={client.id}
-            // onClick={() => onSelectClient(client)}
+            onClick={() => onSelectClient(client)}
             className="bg-secondary-blue-500 p-4 border border-secondary-blue-50 rounded-lg hover:border-primary-green-500 hover:shadow-lg k-transition cursor-pointer group"
           >
             {/* <div className="flex items-start justify-between gap-4"> */}
@@ -347,26 +312,30 @@ function ClientDetailView({
   onClose,
   onResumeOnboarding,
   getStatusVariant,
+  showWizard,
 }: {
   client: OnboardingClient;
   onClose: () => void;
+  showWizard: (show: boolean) => void;
   onResumeOnboarding: (client: OnboardingClient) => void;
   getStatusVariant: (
     status: string,
   ) => 'success' | 'warning' | 'info' | 'error';
 }) {
   return (
-    <div className="bg-secondary-blue-500 p-8 rounded-lg border border-secondary-blue-400">
-      <div className="flex items-center justify-between mb-8">
+    <div className="bg-secondary-blue-500 rounded-xl border border-secondary-blue-400 shadow-xl mx-auto">
+      {/* Header */}
+      <div className="flex items-start justify-between p-6 border-b border-secondary-blue-400">
         <div className="flex items-center gap-4">
           <div className="p-3 bg-primary-green-500/20 rounded-lg">
-            <Building2 className="w-8 h-8 text-primary-green-500" />
+            <Building2 className="w-7 h-7 text-primary-green-500" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-white">{client.name}</h2>
-            <p className="text-gray-400">Owned by {client.owner}</p>
+            <h2 className="text-xl font-bold text-white">{client.name}</h2>
+            <p className="text-sm text-gray-400">Owned by {client.owner}</p>
           </div>
         </div>
+
         <button
           onClick={onClose}
           className="p-2 hover:bg-secondary-blue-600 rounded-lg k-transition"
@@ -375,130 +344,145 @@ function ClientDetailView({
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-8">
+      {/* Body */}
+      <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left Column */}
         <div className="space-y-6">
-          <div>
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
-              Contact Information
-            </h3>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 p-4 rounded-lg bg-secondary-blue-600 border border-secondary-blue-400 hover:bg-secondary-blue-700 k-transition">
-                <Mail className="w-5 h-5 text-primary-green-500 shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-xs text-gray-400">Email</p>
-                  <p className="text-sm font-medium text-white truncate">
-                    {client.email}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-4 rounded-lg bg-secondary-blue-600 border border-secondary-blue-400 hover:bg-secondary-blue-700 k-transition">
-                <Phone className="w-5 h-5 text-primary-green-500 shrink-0" />
-                <div>
-                  <p className="text-xs text-gray-400">Phone</p>
-                  <p className="text-sm font-medium text-white">
-                    {client.contactNumber}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-4 rounded-lg bg-secondary-blue-600 border border-secondary-blue-400 hover:bg-secondary-blue-700 k-transition">
-                <MapPin className="w-5 h-5 text-primary-green-500 shrink-0" />
-                <div>
-                  <p className="text-xs text-gray-400">Location</p>
-                  <p className="text-sm font-medium text-white">
-                    {client.city}, {client.state}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* Contact Card */}
+          <SectionCard title="Contact Information">
+            <InfoRow icon={<Mail />} label="Email" value={client.email} />
+            <InfoRow
+              icon={<Phone />}
+              label="Phone"
+              value={client.contactNumber}
+            />
+            <InfoRow
+              icon={<MapPin />}
+              label="Location"
+              value={`${client.city}, ${client.state}`}
+            />
+          </SectionCard>
 
-          <div>
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
-              Subscription Details
-            </h3>
-            <div className="space-y-3">
-              <div className="p-4 rounded-lg border border-secondary-blue-400 bg-secondary-blue-600">
-                <p className="text-xs text-gray-400 mb-1">Plan</p>
-                <p className="text-lg font-bold text-white">
-                  {client.subscriptionTier}
-                </p>
-              </div>
-              <div className="p-4 rounded-lg border border-secondary-blue-400 bg-secondary-blue-600">
-                <p className="text-xs text-gray-400 mb-1">
-                  Gym Locations Allowed
-                </p>
-                <p className="text-lg font-bold text-primary-green-500">
-                  {client.subGyms} /{' '}
-                  {client.subscriptionTier === 'Starter'
-                    ? '1'
-                    : client.subscriptionTier === 'Professional'
-                      ? '5'
-                      : 'Unlimited'}
-                </p>
-              </div>
+          {/* Subscription Card */}
+          <SectionCard title="Subscription">
+            <div className="flex justify-between">
+              <span className="text-gray-400 text-sm">Plan</span>
+              <span className="text-white font-semibold">
+                {client.subscriptionTier}
+              </span>
             </div>
-          </div>
+
+            <div className="flex justify-between">
+              <span className="text-gray-400 text-sm">Gyms</span>
+              <span className="text-primary-green-500 font-semibold">
+                {client.subGyms} /{' '}
+                {client.subscriptionTier === 'Starter'
+                  ? '1'
+                  : client.subscriptionTier === 'Professional'
+                    ? '5'
+                    : 'Unlimited'}
+              </span>
+            </div>
+          </SectionCard>
         </div>
 
+        {/* Right Column */}
         <div className="space-y-6">
-          <div>
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
-              Onboarding Status
-            </h3>
-            <div className="space-y-4">
-              <div className="p-5 rounded-lg bg-primary-green-500/20 border border-primary-green-500/40">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="font-medium text-white">Progress</p>
-                  <span className="text-sm font-bold text-primary-green-500">
-                    {client.step}/{client.totalSteps}
-                  </span>
-                </div>
-                <div className="w-full bg-secondary-blue-600 rounded-full h-3 overflow-hidden">
-                  <div
-                    className="bg-primary-green-500 h-full k-transition"
-                    style={{
-                      width: `${(client.step / client.totalSteps) * 100}%`,
-                    }}
-                  />
-                </div>
-              </div>
-
-              <InfoBadge variant={getStatusVariant(client.status)}>
-                {client.status}
-              </InfoBadge>
+          {/* Onboarding */}
+          <SectionCard title="Onboarding Status">
+            <div className="flex justify-between mb-2">
+              <span className="text-gray-400 text-sm">Progress</span>
+              <span className="text-primary-green-500 font-semibold">
+                {client.step}/{client.totalSteps}
+              </span>
             </div>
-          </div>
 
-          <div>
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
-              Account Credentials
-            </h3>
-            <div className="space-y-3">
-              <div className="p-4 rounded-lg bg-secondary-blue-600 border border-secondary-blue-400">
-                <p className="text-xs text-gray-400 mb-2">Username</p>
-                <p className="font-mono text-sm text-white">
+            <div className="w-full bg-secondary-blue-600 rounded-full h-2 mb-3">
+              <div
+                className="bg-primary-green-500 h-full rounded-full"
+                style={{
+                  width: `${(client.step / client.totalSteps) * 100}%`,
+                }}
+              />
+            </div>
+
+            <InfoBadge variant={getStatusVariant(client.status)}>
+              {client.status}
+            </InfoBadge>
+          </SectionCard>
+
+          {/* Credentials */}
+          <SectionCard title="Account Credentials">
+            <div className="space-y-2 text-sm">
+              <div>
+                <p className="text-gray-400">Username</p>
+                <p className="font-mono text-white">
                   {client.username || 'Not Generated'}
                 </p>
               </div>
-              <div className="p-4 rounded-lg bg-secondary-blue-600 border border-secondary-blue-400">
-                <p className="text-xs text-gray-400 mb-2">Temp Password</p>
-                <p className="font-mono text-sm text-white">
+
+              <div>
+                <p className="text-gray-400">Temp Password</p>
+                <p className="font-mono text-white">
                   {client.tempPassword ? '••••••••' : 'Not Generated'}
                 </p>
               </div>
             </div>
-          </div>
+          </SectionCard>
 
+          {/* Action */}
           {client.status !== 'Completed' && (
             <button
-              onClick={() => onResumeOnboarding(client)}
-              className="w-full px-5 py-3 rounded-lg bg-primary-green-500 text-primary-blue-500 hover:bg-primary-green-600 k-transition font-semibold shadow-lg flex items-center justify-center gap-2"
+              onClick={() => {
+                showWizard(true);
+                onResumeOnboarding(client);
+              }}
+              className="w-full py-3 rounded-lg bg-primary-green-500 text-primary-blue-500 hover:bg-primary-green-600 font-semibold flex items-center justify-center gap-2 shadow-lg"
             >
               <Clock className="w-4 h-4" />
               Resume Onboarding
             </button>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* Reusable Components */
+
+function SectionCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="bg-secondary-blue-600 border border-secondary-blue-400 rounded-lg p-4 space-y-3">
+      <h3 className="text-[12px] font-semibold text-gray-400 uppercase tracking-wider">
+        {title}
+      </h3>
+      {children}
+    </div>
+  );
+}
+
+function InfoRow({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="text-primary-green-500 w-5 h-5">{icon}</div>
+      <div className="min-w-0">
+        <p className="text-[12px] text-gray-400">{label}</p>
+        <p className="text-[14px] text-white truncate">{value}</p>
       </div>
     </div>
   );

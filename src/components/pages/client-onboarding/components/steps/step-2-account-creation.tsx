@@ -178,8 +178,23 @@ import { StepWrapper } from '../stepper-wrapper';
  * Generates username and temporary password
  */
 
+/**
+ * Step 2: Account Creation
+ * Generates username and temporary password
+ */
+
+/**
+ * Step 2: Account Creation
+ * Generates username and temporary password
+ */
+
+/**
+ * Step 2: Account Creation
+ * Generates username and temporary password
+ */
+
 export function OnboardingStep2() {
-  const { formData, setFormData } = useOnboardingContext();
+  const { formData } = useOnboardingContext();
   const { data, errors } = useOnboardingForm<AccountCreationData>(
     formData.accountCreation,
     {

@@ -176,6 +176,21 @@ import { StepWrapper } from '../stepper-wrapper';
  * Final confirmation before onboarding activation
  */
 
+/**
+ * Step 5: Review & Activate
+ * Final confirmation before onboarding activation
+ */
+
+/**
+ * Step 5: Review & Activate
+ * Final confirmation before onboarding activation
+ */
+
+/**
+ * Step 5: Review & Activate
+ * Final confirmation before onboarding activation
+ */
+
 export function OnboardingStep5() {
   const { formData } = useOnboardingContext();
 

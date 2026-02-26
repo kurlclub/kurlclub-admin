@@ -46,6 +46,8 @@ export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
   const handlePrevious = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+    } else {
+      onClose();
     }
   };
 
@@ -127,14 +129,14 @@ export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
             {renderStepContent()}
           </div>
           <div
-            className={`flex items-center justify-between mx-auto mt-6 ${currentStep == 1 || currentStep == 2 ? 'max-w-[635px]' : currentStep === 4 || currentStep == 5 ? 'max-w-[754px]' : 'max-w-[1040px] mt-9!'}`}
+            className={`flex items-center justify-between mx-auto sticky bottom-0 mt-6 ${currentStep == 1 || currentStep == 2 ? 'max-w-[635px]' : currentStep === 4 || currentStep == 5 ? 'max-w-[754px]' : 'max-w-[1040px] mt-9!'}`}
           >
             <Button
               onClick={handlePrevious}
-              disabled={currentStep === 1}
-              variant="outline"
+              variant={currentStep === 1 ? 'destructive' : 'outline'}
             >
-              <ArrowLeft className="h-3 w-3" /> Back
+              <ArrowLeft className="h-3 w-3" />
+              {currentStep === 1 ? 'Cancel' : 'Back'}
             </Button>
             <div className="flex items-center gap-2">
               <span className="text-sm leading-[109%] text-primary-blue-100">
