@@ -5,12 +5,39 @@
 
 'use client';
 
+import { Input } from '@kurlclub/ui-components';
+
 import { useOnboardingContext } from '../../hooks';
 import { useOnboardingForm } from '../../hooks';
 import type { SubscriptionData, SubscriptionTier } from '../../types';
 import { getSubscriptionPlans } from '../../utils';
 import { validateSubscription } from '../../utils';
 import { StepWrapper } from '../stepper-wrapper';
+
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
+
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
+
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
+
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
+
+/**
+ * Step 3: Subscription Selection
+ * Choose tier and billing cycle
+ */
 
 /**
  * Step 3: Subscription Selection
@@ -320,6 +347,31 @@ export function OnboardingStep3() {
             <span className="text-white font-base leading-[109%]">Annual</span>
           </label>
         </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-6 w-full max-w-[600px]">
+        <Input
+          type="number"
+          label="Setup Fee (₹)"
+          placeholder="e.g. 5000"
+          value={data.setupFee}
+          onChange={(e) => {
+            const newData = { ...data, setupFee: e.target.value };
+            handleFieldChange('setupFee', e.target.value);
+            setFormData({ ...formData, subscription: newData });
+          }}
+        />
+        <Input
+          type="number"
+          label="Monthly Studio Fee (₹)"
+          placeholder="e.g. 299"
+          value={data.monthlyStudioFee}
+          onChange={(e) => {
+            const newData = { ...data, monthlyStudioFee: e.target.value };
+            handleFieldChange('monthlyStudioFee', e.target.value);
+            setFormData({ ...formData, subscription: newData });
+          }}
+        />
       </div>
     </div>
   );

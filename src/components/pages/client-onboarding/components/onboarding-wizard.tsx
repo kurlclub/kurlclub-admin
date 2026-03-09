@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-
 import { Button } from '@kurlclub/ui-components';
-import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, X } from 'lucide-react';
 
 import { OnboardingProvider } from '../contexts';
+import { useOnboardingContext } from '../hooks';
+import type { OnboardingClient } from '../types';
 import {
   OnboardingStep1,
   OnboardingStep2,
@@ -16,45 +16,143 @@ import {
 
 interface OnboardingWizardProps {
   onClose: () => void;
+  initialClient?: OnboardingClient | null;
 }
 
 const STEPS = [
-  { id: 1, name: 'Client Info', description: 'Basic information', icon: '📋' },
+  {
+    id: 1,
+    name: 'Client Info',
+    description: 'Basic details',
+    icon: (
+      <svg
+        className="w-4 h-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+        />
+      </svg>
+    ),
+  },
   {
     id: 2,
     name: 'Account Setup',
-    description: 'Create credentials',
-    icon: '👤',
+    description: 'Credentials',
+    icon: (
+      <svg
+        className="w-4 h-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+        />
+      </svg>
+    ),
   },
-  { id: 3, name: 'Subscription', description: 'Choose plan', icon: '💳' },
-  { id: 4, name: 'Gym Locations', description: 'Add sub-gyms', icon: '🏢' },
-  { id: 5, name: 'Review', description: 'Confirm & activate', icon: '✓' },
+  {
+    id: 3,
+    name: 'Subscription',
+    description: 'Choose plan',
+    icon: (
+      <svg
+        className="w-4 h-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+        />
+      </svg>
+    ),
+  },
+  {
+    id: 4,
+    name: 'Gym Locations',
+    description: 'Add sub-gyms',
+    icon: (
+      <svg
+        className="w-4 h-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+        />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+        />
+      </svg>
+    ),
+  },
+  {
+    id: 5,
+    name: 'Review',
+    description: 'Confirm & activate',
+    icon: (
+      <svg
+        className="w-4 h-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={2}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+      </svg>
+    ),
+  },
 ] as const;
 
-export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
-  const [currentStep, setCurrentStep] = useState(1);
+export function OnboardingWizard({
+  onClose,
+  initialClient,
+}: OnboardingWizardProps) {
+  const { currentStep, setCurrentStep, submitForm, isSubmitting } =
+    useOnboardingContext();
   const totalSteps = STEPS.length;
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     } else {
-      onClose();
+      const success = await submitForm();
+      if (success) {
+        onClose();
+      }
     }
   };
 
   const handlePrevious = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    } else {
-      onClose();
-    }
+    if (currentStep > 1) setCurrentStep(currentStep - 1);
+    else onClose();
   };
 
   const handleStepClick = (stepId: number) => {
-    if (stepId <= currentStep) {
-      setCurrentStep(stepId);
-    }
+    if (stepId <= currentStep) setCurrentStep(stepId);
   };
 
   const renderStepContent = () => {
@@ -75,84 +173,167 @@ export function OnboardingWizard({ onClose }: OnboardingWizardProps) {
   };
 
   return (
-    <OnboardingProvider>
-      <div className="bg-secondary-blue-600 z-60 w-full overflow-hidden flex flex-col">
-        {/* Header */}
-        <div className="flex flex-col items-center justify-between gap-10 py-8 px-5 border-b border-secondary-blue-400">
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-            {STEPS.map((step, idx) => {
-              const isCompleted = step.id < currentStep;
-              const isActive = step.id === currentStep;
-              const isLocked = step.id > currentStep;
+    <OnboardingProvider initialClient={initialClient}>
+      <div className="h-full flex flex-col bg-primary-blue-500 overflow-hidden">
+        {/* ── Top Bar ───────────────────────────────────── */}
+        <div className="shrink-0 bg-secondary-blue-600 border-b border-secondary-blue-400">
+          <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            {/* Left: title */}
+            <div>
+              <h1 className="text-lg font-semibold text-white">
+                {initialClient
+                  ? `Resuming: ${initialClient.name}`
+                  : 'New Client Onboarding'}
+              </h1>
+              <p className="text-xs text-secondary-blue-200 mt-0.5">
+                Step {currentStep} of {totalSteps} —{' '}
+                {STEPS[currentStep - 1].name}
+              </p>
+            </div>
 
-              return (
-                <div key={step.id} className="flex items-center shrink-0">
-                  <button
-                    onClick={() => handleStepClick(step.id)}
-                    disabled={isLocked}
-                    className={`flex items-center gap-2 text-sm font-semibold leading-[109%]
-                      `}
-                  >
-                    {/* TODO: #68729A Color not added in library */}
-                    <span
-                      className={`h-7 w-7 border-[#68729A] border rounded-full flex items-center justify-center text-primary-blue-50 font-semibold text-sm leading-[109%] 
-    ${isActive || isCompleted ? 'bg-primary-green-500 text-black! border-primary-green-500' : ''}`}
+            {/* Center: stepper */}
+            <nav className="hidden md:flex items-center gap-1">
+              {STEPS.map((step, idx) => {
+                const isCompleted = step.id < currentStep;
+                const isActive = step.id === currentStep;
+                const isAccessible = step.id <= currentStep;
+
+                return (
+                  <div key={step.id} className="flex items-center">
+                    {/* Connector */}
+                    {idx > 0 && (
+                      <div
+                        className={`w-10 h-px mx-1 transition-colors ${
+                          step.id <= currentStep
+                            ? 'bg-primary-green-500'
+                            : 'bg-secondary-blue-400'
+                        }`}
+                      />
+                    )}
+
+                    <button
+                      onClick={() => handleStepClick(step.id)}
+                      disabled={!isAccessible}
+                      className="flex items-center gap-2 group outline-none"
+                      title={step.description}
                     >
-                      {step.id}
-                    </span>
-                    {step.name}
-                  </button>
+                      {/* Circle */}
+                      <div
+                        className={`
+                        relative w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold
+                        transition-all duration-200
+                        ${
+                          isCompleted
+                            ? 'bg-primary-green-500 text-primary-blue-500 shadow-lg shadow-primary-green-500/30'
+                            : isActive
+                              ? 'bg-primary-green-500/20 border-2 border-primary-green-500 text-primary-green-400'
+                              : 'bg-secondary-blue-500 border border-secondary-blue-300 text-secondary-blue-200 group-hover:border-secondary-blue-100'
+                        }
+                      `}
+                      >
+                        {isCompleted ? (
+                          <Check className="w-3.5 h-3.5" />
+                        ) : (
+                          <span className="text-inherit">{step.icon}</span>
+                        )}
+                        {isActive && (
+                          <span className="absolute -inset-1 rounded-full border-2 border-primary-green-500/30 animate-pulse" />
+                        )}
+                      </div>
 
-                  {idx < STEPS.length - 1 && (
-                    <div
-                      className={`h-0.5 w-3.5 mx-2 rounded-full transition-all bg-secondary-blue-50`}
-                    />
-                  )}
-                </div>
-              );
-            })}
+                      {/* Label — only for active */}
+                      {isActive && (
+                        <span className="text-xs font-semibold text-white hidden lg:block whitespace-nowrap">
+                          {step.name}
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                );
+              })}
+            </nav>
+
+            {/* Right: close */}
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg text-secondary-blue-200 hover:text-white hover:bg-secondary-blue-500 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
-          <div className="flex flex-col items-center gap-3">
-            <h2 className="text-[32px] font-semibold leading-[109%] text-white">
-              New client onboarding
-            </h2>
-            <p className="text-base text-[#F8F8F8] leading-[109%]">
-              {
-                "Enter the basic details about the gym client you're onboarding."
-              }
-            </p>
+          {/* Mobile step indicator */}
+          <div className="md:hidden px-6 pb-3">
+            <div className="flex gap-1">
+              {STEPS.map((step) => (
+                <div
+                  key={step.id}
+                  className={`h-1 flex-1 rounded-full transition-all ${
+                    step.id < currentStep
+                      ? 'bg-primary-green-500'
+                      : step.id === currentStep
+                        ? 'bg-primary-green-400'
+                        : 'bg-secondary-blue-400'
+                  }`}
+                />
+              ))}
+            </div>
           </div>
         </div>
-        <div className="flex-1 overflow-auto p-8 bg-primary-blue-500">
-          <div className="animate-in fade-in duration-300 mx-auto">
+
+        <div className="flex-1 overflow-y-auto min-h-0">
+          <div className="max-w-5xl mx-auto px-6 py-8 animate-in fade-in duration-300">
             {renderStepContent()}
           </div>
-          <div
-            className={`flex items-center justify-between mx-auto sticky bottom-0 mt-6 ${currentStep == 1 || currentStep == 2 ? 'max-w-[635px]' : currentStep === 4 || currentStep == 5 ? 'max-w-[754px]' : 'max-w-[1040px] mt-9!'}`}
-          >
+        </div>
+
+        {/* ── Footer Navigation ─────────────────────────── */}
+        <div className="shrink-0 bg-secondary-blue-600 border-t border-secondary-blue-400 mt-auto">
+          <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
             <Button
-              onClick={handlePrevious}
               variant={currentStep === 1 ? 'destructive' : 'outline'}
+              onClick={handlePrevious}
+              className="gap-2"
             >
-              <ArrowLeft className="h-3 w-3" />
+              <ArrowLeft className="w-4 h-4" />
               {currentStep === 1 ? 'Cancel' : 'Back'}
             </Button>
-            <div className="flex items-center gap-2">
-              <span className="text-sm leading-[109%] text-primary-blue-100">
-                Step {currentStep} of {totalSteps}
-              </span>
+
+            {/* Step dots for small screens */}
+            <div className="flex items-center gap-1.5 md:hidden">
+              {STEPS.map((s) => (
+                <div
+                  key={s.id}
+                  className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                    s.id === currentStep
+                      ? 'bg-primary-green-500 scale-125'
+                      : s.id < currentStep
+                        ? 'bg-primary-green-700'
+                        : 'bg-secondary-blue-400'
+                  }`}
+                />
+              ))}
             </div>
-            <Button onClick={handleNext}>
-              {currentStep == 5 ? (
+
+            <Button
+              onClick={handleNext}
+              className="gap-2 min-w-[140px]"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
                 <>
-                  <Check />
-                  Save
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Activating...
+                </>
+              ) : currentStep === totalSteps ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  Activate Client
                 </>
               ) : (
                 <>
-                  Next
-                  <ArrowRight className="h-3 w-3" />
+                  Continue
+                  <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </Button>
