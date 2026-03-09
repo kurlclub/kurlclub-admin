@@ -1,10 +1,23 @@
 /**
  * Centralized type definitions for the onboarding feature
- * Single source of truth for all TypeScript interfaces
+ * Aligned with backend API structure
  */
 
 export type SubscriptionTier = 'Starter' | 'Professional' | 'Enterprise';
 export type ClientStatus = 'In Progress' | 'Pending Activation' | 'Completed';
+
+/* ── Gym Interface (Matches GymsJson API) ───────────── */
+export interface GymLocation {
+  GymName: string;
+  Location: string;
+  ContactNumber1: string;
+  ContactNumber2: string;
+  Email: string;
+  Status: string;
+  SocialLinks: string[];
+}
+
+export type SubGym = GymLocation; // Alias for backward compatibility if needed
 
 export interface OnboardingClient {
   id: number;
@@ -27,37 +40,29 @@ export interface OnboardingClient {
   username?: string;
 }
 
+/* ── Wizard Data Models ─────────────────────────────── */
+
 export interface ClientInfoData {
-  gymName: string;
-  ownerName: string;
-  email: string;
-  phone: string;
-  address: string;
-  country: string;
-  city: string;
-  state: string;
-  zipCode: string;
+  email: string; // Account Owner Email
+  phoneNumber: string; // Account Owner Phone
+  profilePhotoFile: File | null;
+  profilePhotoPreview?: string;
 }
 
 export interface AccountCreationData {
-  username: string;
-  tempPassword: string;
+  userName: string;
+  password?: string;
 }
 
 export interface SubscriptionData {
   tier: SubscriptionTier;
   billingCycle: 'monthly' | 'annual';
-}
-
-export interface SubGym {
-  id: number | string;
-  name: string;
-  city: string;
-  country: string;
+  setupFee: string;
+  monthlyStudioFee: string;
 }
 
 export interface SubGymData {
-  subGyms: SubGym[];
+  gyms: GymLocation[];
 }
 
 export interface OnboardingFormData {
@@ -66,6 +71,8 @@ export interface OnboardingFormData {
   subscription: SubscriptionData;
   subGyms: SubGymData;
 }
+
+/* ── Interfaces ─────────────────────────────────────── */
 
 export interface ValidationError {
   field: string;
@@ -78,20 +85,19 @@ export interface OnboardingContextType {
   completedSteps: number[];
   selectedTier: SubscriptionTier;
   errors: ValidationError[];
+  isSubmitting: boolean;
   setFormData: (data: OnboardingFormData) => void;
   setCurrentStep: (step: number) => void;
   completeStep: (step: number) => void;
   setSelectedTier: (tier: SubscriptionTier) => void;
   setErrors: (errors: ValidationError[]) => void;
   resetForm: () => void;
-}
-
-export interface OnboardingModuleProps {
-  onResumeClient?: (client: OnboardingClient) => void;
+  submitForm: () => Promise<boolean>;
 }
 
 export interface OnboardingWizardProps {
   onClose: () => void;
+  initialClient?: OnboardingClient | null;
 }
 
 export interface ContinueOnboardingProps {

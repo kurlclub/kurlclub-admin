@@ -5,7 +5,7 @@
 import type {
   AccountCreationData,
   ClientInfoData,
-  SubGym,
+  GymLocation,
   SubscriptionData,
   ValidationError,
 } from '../types';
@@ -13,33 +13,16 @@ import type {
 export const validateClientInfo = (data: ClientInfoData): ValidationError[] => {
   const errors: ValidationError[] = [];
 
-  if (!data.gymName?.trim()) {
-    errors.push({ field: 'gymName', message: 'Gym name is required' });
-  }
-
-  if (!data.ownerName?.trim()) {
-    errors.push({ field: 'ownerName', message: 'Owner name is required' });
-  }
-
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!data.email || !emailRegex.test(data.email)) {
-    errors.push({ field: 'email', message: 'Valid email is required' });
+    errors.push({ field: 'email', message: 'Valid owner email is required' });
   }
 
-  if (!data.phone?.trim()) {
-    errors.push({ field: 'phone', message: 'Phone number is required' });
-  }
-
-  if (!data.address?.trim()) {
-    errors.push({ field: 'address', message: 'Address is required' });
-  }
-
-  if (!data.city?.trim()) {
-    errors.push({ field: 'city', message: 'City is required' });
-  }
-
-  if (!data.state?.trim()) {
-    errors.push({ field: 'state', message: 'State is required' });
+  if (!data.phoneNumber?.trim()) {
+    errors.push({
+      field: 'phoneNumber',
+      message: 'Owner phone number is required',
+    });
   }
 
   return errors;
@@ -50,21 +33,21 @@ export const validateAccountCreation = (
 ): ValidationError[] => {
   const errors: ValidationError[] = [];
 
-  if (!data.username?.trim()) {
-    errors.push({ field: 'username', message: 'Username is required' });
-  } else if (data.username.length < 3) {
+  if (!data.userName?.trim()) {
+    errors.push({ field: 'userName', message: 'Username is required' });
+  } else if (data.userName.length < 3) {
     errors.push({
-      field: 'username',
+      field: 'userName',
       message: 'Username must be at least 3 characters',
     });
   }
 
-  if (!data.tempPassword?.trim()) {
-    errors.push({ field: 'tempPassword', message: 'Password is required' });
-  } else if (data.tempPassword.length < 12) {
+  if (!data.password?.trim()) {
+    errors.push({ field: 'password', message: 'Password is required' });
+  } else if (data.password.length < 8) {
     errors.push({
-      field: 'tempPassword',
-      message: 'Password must be at least 12 characters',
+      field: 'password',
+      message: 'Password must be at least 8 characters',
     });
   }
 
@@ -91,36 +74,42 @@ export const validateSubscription = (
 };
 
 export const validateSubGyms = (
-  subGyms: SubGym[],
+  gyms: GymLocation[],
   maxAllowed: number,
 ): ValidationError[] => {
   const errors: ValidationError[] = [];
 
-  if (!subGyms || subGyms.length === 0) {
+  if (!gyms || gyms.length === 0) {
     errors.push({
-      field: 'subGyms',
+      field: 'gyms',
       message: 'At least one gym location is required',
     });
   }
 
-  if (subGyms.length > maxAllowed) {
+  if (gyms.length > maxAllowed) {
     errors.push({
-      field: 'subGyms',
+      field: 'gyms',
       message: `Maximum ${maxAllowed} locations allowed`,
     });
   }
 
-  subGyms.forEach((gym, idx) => {
-    if (!gym.name?.trim()) {
+  gyms.forEach((gym, idx) => {
+    if (!gym.GymName?.trim()) {
       errors.push({
-        field: `subGyms.${idx}.name`,
+        field: `gyms.${idx}.GymName`,
         message: 'Gym name is required',
       });
     }
-    if (!gym.city?.trim()) {
+    if (!gym.Location?.trim()) {
       errors.push({
-        field: `subGyms.${idx}.city`,
-        message: 'City is required',
+        field: `gyms.${idx}.Location`,
+        message: 'Location is required',
+      });
+    }
+    if (!gym.Email?.trim()) {
+      errors.push({
+        field: `gyms.${idx}.Email`,
+        message: 'Gym email is required',
       });
     }
   });
@@ -132,13 +121,13 @@ export const validateOnboardingData = (
   clientInfo: ClientInfoData,
   accountCreation: AccountCreationData,
   subscription: SubscriptionData,
-  subGyms: SubGym[],
+  gyms: GymLocation[],
   maxGyms: number,
 ): ValidationError[] => {
   return [
     ...validateClientInfo(clientInfo),
     ...validateAccountCreation(accountCreation),
     ...validateSubscription(subscription),
-    ...validateSubGyms(subGyms, maxGyms),
+    ...validateSubGyms(gyms, maxGyms),
   ];
 };
