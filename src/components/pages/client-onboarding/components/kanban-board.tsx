@@ -121,31 +121,28 @@ export function KanbanBoard({
   function handleDragOver({ active, over }: DragOverEvent) {
     if (!over) return;
     const activeCard = items.find((c) => c.id === active.id);
-    const overCard = items.find((c) => c.id === over.id);
-    const overColId = over.data.current?.sortable?.containerId as
-      | ClientStatus
-      | undefined;
-
     if (!activeCard) return;
 
-    // If dropped over a card in another column
+    // Check if over is a column ID directly
+    const overColId = COLUMNS.find((col) => col.id === over.id)?.id;
+
+    if (overColId && overColId !== activeCard.status) {
+      setItems((prev) =>
+        prev.map((c) =>
+          c.id === activeCard.id ? { ...c, status: overColId } : c,
+        ),
+      );
+      return;
+    }
+
+    // Check if over a card
+    const overCard = items.find((c) => c.id === over.id);
     if (overCard && overCard.status !== activeCard.status) {
       setItems((prev) =>
         prev.map((c) =>
           c.id === activeCard.id ? { ...c, status: overCard.status } : c,
         ),
       );
-    }
-    // If dropped over an empty column
-    if (overColId && overColId !== activeCard.status) {
-      const validStatus = COLUMNS.find((col) => col.id === overColId);
-      if (validStatus) {
-        setItems((prev) =>
-          prev.map((c) =>
-            c.id === activeCard.id ? { ...c, status: overColId } : c,
-          ),
-        );
-      }
     }
   }
 
@@ -216,7 +213,7 @@ function KanbanColumn({
   onSelectClient: (c: OnboardingClient) => void;
   onResumeClient: (c: OnboardingClient) => void;
 }) {
-  const { setNodeRef } = useDroppable({
+  const { setNodeRef, isOver } = useDroppable({
     id: col.id,
   });
 
@@ -246,12 +243,19 @@ function KanbanColumn({
       </div>
 
       {/* Card list */}
-      <SortableContext
-        id={col.id}
-        items={cards.map((c) => c.id)}
-        strategy={verticalListSortingStrategy}
+      <div
+        ref={setNodeRef}
+        className={`flex flex-col gap-2.5 min-h-[400px] rounded-xl transition-colors ${
+          isOver
+            ? 'bg-secondary-blue-500/30 border-2 border-dashed border-secondary-blue-300'
+            : ''
+        }`}
       >
-        <div ref={setNodeRef} className="flex flex-col gap-2.5 min-h-[500px]">
+        <SortableContext
+          id={col.id}
+          items={cards.map((c) => c.id)}
+          strategy={verticalListSortingStrategy}
+        >
           {cards.map((client) => (
             <SortableCard
               key={client.id}
@@ -262,14 +266,31 @@ function KanbanColumn({
               isDragging={false}
             />
           ))}
+        </SortableContext>
 
-          {cards.length === 0 && (
-            <div className="flex items-center justify-center h-32 rounded-xl border-2 border-dashed border-secondary-blue-400 bg-secondary-blue-500/30">
-              <p className="text-secondary-blue-300 text-xs">Drop here</p>
+        {cards.length === 0 && (
+          <div className="flex flex-col items-center justify-center h-full rounded-xl border-2 border-dashed border-secondary-blue-400/30 bg-secondary-blue-600/20 py-12">
+            <div className="w-12 h-12 rounded-full bg-secondary-blue-500/50 flex items-center justify-center mb-3">
+              <svg
+                className="w-6 h-6 text-secondary-blue-300"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                />
+              </svg>
             </div>
-          )}
-        </div>
-      </SortableContext>
+            <p className="text-secondary-blue-300 text-xs font-medium">
+              Drop cards here
+            </p>
+          </div>
+        )}
+      </div>
     </motion.div>
   );
 }

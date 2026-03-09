@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 import {
   Building2,
   CheckCircle2,
@@ -31,7 +33,7 @@ export function OnboardingStep5() {
       <div className="space-y-8 animate-in slide-in-from-bottom-2 duration-500">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Account Identity Summary */}
-          <div className="p-6 rounded-[32px] bg-secondary-blue-500/50 border border-secondary-blue-400 space-y-6">
+          <div className="p-6 rounded-4xl bg-secondary-blue-500/50 border border-secondary-blue-400 space-y-6">
             <SectionSubHeader
               title="Account Identity"
               icon={<User className="w-3.5 h-3.5" />}
@@ -40,9 +42,11 @@ export function OnboardingStep5() {
             <div className="flex items-center gap-5">
               <div className="w-20 h-20 rounded-2xl overflow-hidden bg-secondary-blue-600 border border-secondary-blue-400 flex items-center justify-center">
                 {profilePhotoPreview ? (
-                  <img
+                  <Image
                     src={profilePhotoPreview}
                     alt="Owner"
+                    width={80}
+                    height={80}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -74,7 +78,7 @@ export function OnboardingStep5() {
           </div>
 
           {/* Security & Access Summary */}
-          <div className="p-6 rounded-[32px] bg-secondary-blue-500/50 border border-secondary-blue-400 space-y-6">
+          <div className="p-6 rounded-4xl bg-secondary-blue-500/50 border border-secondary-blue-400 space-y-6">
             <SectionSubHeader
               title="Access Configuration"
               icon={<ShieldCheck className="w-3.5 h-3.5" />}
@@ -109,7 +113,7 @@ export function OnboardingStep5() {
           </div>
 
           {/* Facilities Summary */}
-          <div className="p-6 rounded-[32px] bg-secondary-blue-500/50 border border-secondary-blue-400 lg:col-span-2 space-y-6">
+          <div className="p-6 rounded-4xl bg-secondary-blue-500/50 border border-secondary-blue-400 lg:col-span-2 space-y-6">
             <div className="flex items-center justify-between">
               <SectionSubHeader
                 title="Registered Facilities"
@@ -152,7 +156,7 @@ export function OnboardingStep5() {
         </div>
 
         {/* Action Note */}
-        <div className="p-5 rounded-[24px] bg-primary-green-500/5 border border-primary-green-500/20 flex gap-4 items-start">
+        <div className="p-5 rounded-3xl bg-primary-green-500/5 border border-primary-green-500/20 flex gap-4 items-start">
           <div className="w-10 h-10 rounded-xl bg-primary-green-500/10 flex items-center justify-center text-primary-green-400 shrink-0">
             <Clock className="w-5 h-5" />
           </div>

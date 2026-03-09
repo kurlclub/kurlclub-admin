@@ -1,8 +1,3 @@
-/**
- * Global state management for onboarding workflow
- * Context provider and state mutations
- */
-
 'use client';
 
 import type React from 'react';
@@ -15,41 +10,6 @@ import type {
   SubscriptionTier,
   ValidationError,
 } from '../types';
-
-/**
- * Global state management for onboarding workflow
- * Context provider and state mutations
- */
-
-/**
- * Global state management for onboarding workflow
- * Context provider and state mutations
- */
-
-/**
- * Global state management for onboarding workflow
- * Context provider and state mutations
- */
-
-/**
- * Global state management for onboarding workflow
- * Context provider and state mutations
- */
-
-/**
- * Global state management for onboarding workflow
- * Context provider and state mutations
- */
-
-/**
- * Global state management for onboarding workflow
- * Context provider and state mutations
- */
-
-/**
- * Global state management for onboarding workflow
- * Context provider and state mutations
- */
 
 const initialFormData: OnboardingFormData = {
   clientInfo: {

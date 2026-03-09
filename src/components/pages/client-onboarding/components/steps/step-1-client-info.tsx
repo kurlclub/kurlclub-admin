@@ -3,6 +3,8 @@
 import type React from 'react';
 import { useRef } from 'react';
 
+import Image from 'next/image';
+
 import { Input } from '@kurlclub/ui-components';
 import { Camera, User, X } from 'lucide-react';
 
@@ -69,9 +71,11 @@ export function OnboardingStep1() {
           <div className="relative group">
             <div className="w-32 h-32 rounded-3xl overflow-hidden bg-secondary-blue-500 border-2 border-dashed border-secondary-blue-400 flex items-center justify-center group-hover:border-primary-green-400 transition-all">
               {profilePhotoPreview ? (
-                <img
+                <Image
                   src={profilePhotoPreview}
                   alt="Preview"
+                  width={128}
+                  height={128}
                   className="w-full h-full object-cover"
                 />
               ) : (
