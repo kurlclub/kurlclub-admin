@@ -5,78 +5,71 @@ interface LoginRequest {
   password: string;
 }
 
-interface LoginResponse {
-  status: string;
-  message: string;
-  data: {
-    accessToken: string;
-    refreshToken: string;
-    expiresIn: number;
-    user: {
-      id: number;
-      uid: string;
-      userName: string;
-      email: string;
-      role: string;
-      phoneNumber: string;
-      photoURL: string;
-      emailVerified: boolean;
-      phoneVerified: boolean;
-    };
-  };
-}
+type ApiMeta = {
+  timestamp: string;
+  apiVersion: string;
+  traceId: string;
+  requestId: string;
+};
 
-interface UserDetailsResponse {
-  status: string;
-  message: string;
-  data: {
-    userId: number;
+type ApiEnvelope<T> = {
+  success?: boolean;
+  statusCode?: number;
+  message?: string;
+  data: T;
+  meta?: ApiMeta;
+};
+
+type LegacyLoginData = {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  user: {
+    id: number;
+    uid: string;
     userName: string;
-    userEmail: string;
-    photoPath?: string | null;
-    userRole: string;
-    isMultiClub: boolean;
-    clubs: Array<{
-      gymId: number;
-      gymName: string;
-      location: string;
-      contactNumber1: string;
-      contactNumber2: string | null;
-      email: string;
-      socialLinks: string;
-      gymAdminId: number;
-      status: number;
-      gymIdentifier: string;
-      photoPath: string | null;
-    }>;
-    subscription?: {
-      plan: {
-        id: number;
-        name: string;
-        tier: string;
-        status: 'active' | 'expired' | 'cancelled';
-      };
-      subscriptionId: number;
-      billingCycle: 'monthly' | 'sixMonths' | 'yearly';
-      startDate: string;
-      endDate: string;
-      usageLimits: {
-        maxClubs: number;
-        maxMembers: number;
-        maxTrainers: number;
-        maxStaffs: number;
-      };
-      features: Record<string, boolean | number>;
-    };
+    email: string;
+    role: string;
+    phoneNumber: string;
+    photoURL: string;
+    emailVerified: boolean;
+    phoneVerified: boolean;
   };
-}
+};
+
+type ModernLoginData = {
+  accessToken: string;
+  refreshToken: string;
+  email?: string;
+  role?: string;
+  expiresAt?: string;
+  refreshTokenExpiresAt?: string;
+};
+
+type LoginData = LegacyLoginData | ModernLoginData;
+
+type LoginResponse = ApiEnvelope<LoginData>;
+
+type AuthMeData = {
+  id: number;
+  email: string;
+  role: string;
+  createdAt: string;
+};
+
+type AuthMeResponse = ApiEnvelope<AuthMeData>;
 
 export const login = async (credentials: LoginRequest) => {
   try {
-    const response = await api.post<LoginResponse>('/Auth/login', credentials, {
-      skipAuth: true,
-    });
-    return { success: true, data: response.data };
+    const response = await api.post<LoginResponse | LoginData>(
+      '/Auth/login',
+      credentials,
+      { skipAuth: true },
+    );
+    const data =
+      (response as LoginResponse).data ?? (response as LoginData | undefined);
+    const meta = (response as LoginResponse).meta;
+    return { success: true, data, meta };
   } catch (error) {
     console.error('Login error:', error);
     return {
@@ -86,52 +79,36 @@ export const login = async (credentials: LoginRequest) => {
   }
 };
 
-export const getUserByUid = async (uid: string, currentGymId?: number) => {
+export const getAuthMe = async () => {
   try {
-    const response = await api.get<UserDetailsResponse>(
-      `/User/GetUserById/${uid}`,
-    );
+    const response = await api.get<AuthMeResponse | AuthMeData>('/Auth/me');
+    const payload =
+      (response as AuthMeResponse).data ?? (response as AuthMeData | undefined);
+    const meta = (response as AuthMeResponse).meta;
 
-    const activeGym =
-      response.data.clubs.find((club) => club.status === 1) ||
-      (currentGymId &&
-        response.data.clubs.find((club) => club.gymId === currentGymId)) ||
-      response.data.clubs[0];
+    if (!payload) {
+      return { success: false, error: 'Failed to get user' };
+    }
+
+    const email = payload.email || '';
+    const derivedUserName =
+      email && email.includes('@') ? email.split('@')[0] : '';
 
     return {
       success: true,
       data: {
-        ...response.data,
-        gyms: activeGym
-          ? [
-              {
-                gymId: activeGym.gymId,
-                gymName: activeGym.gymName,
-                gymLocation: activeGym.location,
-              },
-            ]
-          : [],
+        userId: payload.id,
+        userName: derivedUserName || 'Admin User',
+        userEmail: email,
+        userRole: payload.role || '',
+        createdAt: payload.createdAt,
       },
-      activeGymDetails: activeGym,
-      allClubs: response.data.clubs,
+      meta,
     };
   } catch (error) {
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to get user',
-    };
-  }
-};
-
-export const switchClub = async (uid: string, gymId: number) => {
-  try {
-    await api.post('/User/clubSwitcher', { uid, gymId });
-    return { success: true };
-  } catch (error) {
-    console.error('Switch club error:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to switch club',
     };
   }
 };
@@ -142,7 +119,6 @@ export const logout = () => {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('appUser');
-      localStorage.removeItem('gymBranch');
 
       document.cookie = 'accessToken=; path=/; max-age=0';
       document.cookie = 'refreshToken=; path=/; max-age=0';

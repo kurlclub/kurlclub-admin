@@ -29,7 +29,6 @@ const clearStorage = (): void => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('appUser');
-    localStorage.removeItem('gymBranch');
   } catch (error) {
     console.error('Failed to clear storage:', error);
   }

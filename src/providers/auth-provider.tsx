@@ -5,65 +5,56 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 import { decrypt, encrypt } from '@/lib/crypto';
-import {
-  getUserByUid,
-  login,
-  logout as logoutApi,
-  switchClub as switchClubApi,
-} from '@/services/auth/auth';
-import { AppUser, GymDetails } from '@/types/user';
+import { getAuthMe, login, logout as logoutApi } from '@/services/auth/auth';
+import { AppUser } from '@/types/user';
+
+import { useApiMeta } from './api-meta-provider';
 
 interface AuthContextType {
   user: AppUser | null;
-  gymDetails: GymDetails | null;
-  isLoading: boolean;
   login: (
     email: string,
     password: string,
   ) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
-  refreshUser: () => Promise<void>;
-  refreshGymDetails: () => Promise<void>;
-  switchClub: (gymId: number) => Promise<{ success: boolean; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const ACCESS_TOKEN_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
+const REFRESH_TOKEN_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
+
+const getMaxAgeSeconds = (isoString: string | undefined, fallback: number) => {
+  if (!isoString) return fallback;
+  const parsed = new Date(isoString);
+  const ms = parsed.getTime() - Date.now();
+  if (Number.isNaN(parsed.getTime()) || ms <= 0) {
+    return fallback;
+  }
+  return Math.max(1, Math.floor(ms / 1000));
+};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<AppUser | null>(null);
-  const [gymDetails, setGymDetails] = useState<GymDetails | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const { setLastMeta } = useApiMeta();
 
   useEffect(() => {
-    const loadCachedUser = async () => {
+    const loadCachedUser = () => {
       try {
         const token = localStorage.getItem('accessToken');
         const encryptedUser = localStorage.getItem('appUser');
-        const encryptedGymDetails = localStorage.getItem('gymDetails');
 
         if (token && encryptedUser) {
           const decryptedData = decrypt(encryptedUser);
           if (decryptedData) {
             const userData = JSON.parse(decryptedData) as AppUser;
             setUser(userData);
-
-            if (encryptedGymDetails) {
-              const decryptedGymDetails = decrypt(encryptedGymDetails);
-              if (decryptedGymDetails) {
-                setGymDetails(JSON.parse(decryptedGymDetails));
-              }
-            }
-
-            if (userData.gyms?.length > 0) {
-              localStorage.setItem(
-                'gymBranch',
-                JSON.stringify(userData.gyms[0]),
-              );
-            }
           }
+        } else if (encryptedUser) {
+          localStorage.removeItem('appUser');
         }
       } catch (error) {
         console.warn('Failed to load cached user:', error);
@@ -71,57 +62,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
           localStorage.removeItem('appUser');
-          localStorage.removeItem('gymBranch');
         } catch (e) {
           console.error('Failed to clear storage:', e);
         }
-      } finally {
-        setIsLoading(false);
       }
     };
 
     loadCachedUser();
   }, []);
 
-  const fetchGymDetailsInternal = async () => {
-    if (!user?.uid) return;
-
-    try {
-      const currentGymId = user.gyms?.[0]?.gymId;
-      const userResult = await getUserByUid(user.uid, currentGymId);
-      if (userResult.success && userResult.activeGymDetails) {
-        const gymDetails: GymDetails = {
-          id: userResult.activeGymDetails.gymId,
-          gymName: userResult.activeGymDetails.gymName,
-          location: userResult.activeGymDetails.location,
-          contactNumber1: userResult.activeGymDetails.contactNumber1,
-          contactNumber2: userResult.activeGymDetails.contactNumber2,
-          email: userResult.activeGymDetails.email,
-          socialLinks: userResult.activeGymDetails.socialLinks,
-          gymIdentifier: userResult.activeGymDetails.gymIdentifier,
-          gymAdminId: userResult.activeGymDetails.gymAdminId,
-          status: String(userResult.activeGymDetails.status),
-          photoPath: userResult.activeGymDetails.photoPath,
-        };
-        setGymDetails(gymDetails);
-        localStorage.setItem('gymDetails', encrypt(JSON.stringify(gymDetails)));
-      }
-    } catch (error) {
-      console.error('Failed to fetch gym details:', error);
-    }
-  };
-
   const handleLogin = async (email: string, password: string) => {
     try {
       const result = await login({ email, password });
+
+      // Store API meta if available
+      if (result.meta) {
+        setLastMeta(result.meta);
+      }
 
       if (!result.success || !result.data) {
         return { success: false, error: result.error || 'Login failed' };
       }
 
-      const { accessToken, refreshToken, user: loginUser } = result.data;
+      const { accessToken, refreshToken } = result.data;
 
-      if (!accessToken || !refreshToken || !loginUser?.uid) {
+      if (!accessToken || !refreshToken) {
         return { success: false, error: 'Invalid login response' };
       }
 
@@ -129,14 +94,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('refreshToken', refreshToken);
 
-        document.cookie = `accessToken=${accessToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Strict`;
-        document.cookie = `refreshToken=${refreshToken}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Strict`;
+        const accessTokenMaxAge = getMaxAgeSeconds(
+          (result.data as { expiresAt?: string }).expiresAt,
+          ACCESS_TOKEN_COOKIE_MAX_AGE,
+        );
+        const refreshTokenMaxAge = getMaxAgeSeconds(
+          (result.data as { refreshTokenExpiresAt?: string })
+            .refreshTokenExpiresAt,
+          REFRESH_TOKEN_COOKIE_MAX_AGE,
+        );
+
+        document.cookie = `accessToken=${accessToken}; path=/; max-age=${accessTokenMaxAge}; SameSite=Strict`;
+        document.cookie = `refreshToken=${refreshToken}; path=/; max-age=${refreshTokenMaxAge}; SameSite=Strict`;
       } catch (storageError) {
         console.error('Failed to store tokens:', storageError);
         return { success: false, error: 'Failed to save session' };
       }
 
-      const userResult = await getUserByUid(loginUser.uid);
+      const userResult = await getAuthMe();
+
+      // Store API meta if available
+      if (userResult.meta) {
+        setLastMeta(userResult.meta);
+      }
 
       if (!userResult.success || !userResult.data) {
         return { success: false, error: 'Failed to fetch user details' };
@@ -144,40 +124,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       const fullUser: AppUser = {
         ...userResult.data,
-        uid: loginUser.uid,
-        photoURL: loginUser.photoURL,
-        clubs: userResult.allClubs || [],
       };
 
       setUser(fullUser);
 
       try {
         localStorage.setItem('appUser', encrypt(JSON.stringify(fullUser)));
-
-        if (fullUser.gyms?.length > 0) {
-          localStorage.setItem('gymBranch', JSON.stringify(fullUser.gyms[0]));
-        }
-
-        if (userResult.activeGymDetails) {
-          const gymDetails: GymDetails = {
-            id: userResult.activeGymDetails.gymId,
-            gymName: userResult.activeGymDetails.gymName,
-            location: userResult.activeGymDetails.location,
-            contactNumber1: userResult.activeGymDetails.contactNumber1,
-            contactNumber2: userResult.activeGymDetails.contactNumber2,
-            email: userResult.activeGymDetails.email,
-            socialLinks: userResult.activeGymDetails.socialLinks,
-            gymIdentifier: userResult.activeGymDetails.gymIdentifier,
-            gymAdminId: userResult.activeGymDetails.gymAdminId,
-            status: String(userResult.activeGymDetails.status),
-            photoPath: userResult.activeGymDetails.photoPath,
-          };
-          setGymDetails(gymDetails);
-          localStorage.setItem(
-            'gymDetails',
-            encrypt(JSON.stringify(gymDetails)),
-          );
-        }
       } catch (storageError) {
         console.error('Failed to store user data:', storageError);
       }
@@ -195,80 +147,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     document.cookie = 'accessToken=; path=/; max-age=0';
     document.cookie = 'refreshToken=; path=/; max-age=0';
 
-    localStorage.removeItem('gymDetails');
-
     setUser(null);
-    setGymDetails(null);
     router.push('/auth/login');
-  };
-
-  const handleSwitchClub = async (gymId: number) => {
-    if (!user?.uid) {
-      return { success: false, error: 'User not logged in' };
-    }
-
-    try {
-      const result = await switchClubApi(user.uid, gymId);
-      if (result.success) {
-        await refreshUser();
-        return { success: true };
-      }
-      return { success: false, error: result.error };
-    } catch (error) {
-      console.error('Switch club error:', error);
-      return { success: false, error: 'Failed to switch club' };
-    }
-  };
-
-  const refreshUser = async () => {
-    if (user?.uid) {
-      const currentGymId = user.gyms?.[0]?.gymId;
-      const result = await getUserByUid(user.uid, currentGymId);
-      if (result.success && result.data) {
-        const updatedUser: AppUser = {
-          ...result.data,
-          uid: user.uid,
-          photoURL: user.photoURL,
-          clubs: result.allClubs || [],
-        };
-        setUser(updatedUser);
-        localStorage.setItem('appUser', encrypt(JSON.stringify(updatedUser)));
-
-        if (result.activeGymDetails) {
-          const gymDetails: GymDetails = {
-            id: result.activeGymDetails.gymId,
-            gymName: result.activeGymDetails.gymName,
-            location: result.activeGymDetails.location,
-            contactNumber1: result.activeGymDetails.contactNumber1,
-            contactNumber2: result.activeGymDetails.contactNumber2,
-            email: result.activeGymDetails.email,
-            socialLinks: result.activeGymDetails.socialLinks,
-            gymIdentifier: result.activeGymDetails.gymIdentifier,
-            gymAdminId: result.activeGymDetails.gymAdminId,
-            status: String(result.activeGymDetails.status),
-            photoPath: result.activeGymDetails.photoPath,
-          };
-          setGymDetails(gymDetails);
-          localStorage.setItem(
-            'gymDetails',
-            encrypt(JSON.stringify(gymDetails)),
-          );
-        }
-      }
-    }
   };
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        gymDetails,
-        isLoading,
         login: handleLogin,
         logout: handleLogout,
-        refreshUser,
-        refreshGymDetails: fetchGymDetailsInternal,
-        switchClub: handleSwitchClub,
       }}
     >
       {children}

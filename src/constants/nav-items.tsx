@@ -4,7 +4,7 @@ import { Home, Users } from 'lucide-react';
 export const navItems: NavItem[] = [
   {
     title: 'Dashboard',
-    url: '/',
+    url: '/dashboard',
     icon: Home,
   },
   {
