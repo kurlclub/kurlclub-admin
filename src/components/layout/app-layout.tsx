@@ -22,6 +22,12 @@ export function AppLayout({ children }: AppLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
 
+  const isAuthPage = pathname?.startsWith('/auth');
+
+  if (isAuthPage) {
+    return <>{children}</>;
+  }
+
   return (
     <UIAppLayout
       sidebar={

@@ -14,13 +14,16 @@ import {
 import { LogOut, User } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { useAuth } from '@/providers/auth-provider';
+
 export function NavUser() {
   const { state } = useSidebar();
   const { showConfirm } = useAppDialog();
+  const { user, logout } = useAuth();
   const router = useRouter();
 
-  const userName = 'Admin User';
-  const userEmail = 'admin@kurlclub.com';
+  const userName = user?.userName || 'Admin User';
+  const userEmail = user?.userEmail || 'admin@kurlclub.com';
   const avatarStyle = getAvatarColor(userName);
 
   const handleLogout = () => {
@@ -31,8 +34,8 @@ export function NavUser() {
       confirmLabel: 'Logout',
       cancelLabel: 'Cancel',
       onConfirm: () => {
+        logout();
         toast.success('Logged out successfully!');
-        router.push('/login');
       },
     });
   };
