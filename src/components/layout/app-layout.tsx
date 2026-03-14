@@ -11,6 +11,7 @@ import {
   AppLayout as UIAppLayout,
 } from '@kurlclub/ui-components';
 
+import { AppHeaderContent } from '@/components/layout/app-header-content';
 import { NavUser } from '@/components/layout/nav-user';
 import { navGroups } from '@/constants/nav-items';
 
@@ -41,7 +42,11 @@ export function AppLayout({ children }: AppLayoutProps) {
           footer={<NavUser />}
         />
       }
-      header={<AppHeader />}
+      header={
+        <AppHeader>
+          <AppHeaderContent />
+        </AppHeader>
+      }
     >
       {children}
     </UIAppLayout>
