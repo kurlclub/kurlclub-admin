@@ -2,14 +2,21 @@
 
 import type { ChangeEvent } from 'react';
 
+import { getGreeting } from '@kurlclub/ui-components';
+
 import {
   API_ENV_OPTIONS,
+  getApiEnvironmentLabel,
   normalizeApiEnvironment,
 } from '@/lib/api-environment';
 import { useApiEnvironment } from '@/providers/api-environment-provider';
+import { useAuth } from '@/providers/auth-provider';
 
 export function AppHeaderContent() {
+  const { user } = useAuth();
   const { environment, setEnvironment } = useApiEnvironment();
+
+  const userName = user?.userName || user?.userEmail || 'User';
 
   const handleEnvironmentChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const next = normalizeApiEnvironment(event.target.value);
@@ -20,10 +27,10 @@ export function AppHeaderContent() {
     <>
       <div className="flex flex-col text-left leading-tight">
         <span className="text-sm font-medium leading-normal text-secondary-blue-400">
-          API Environment
+          Hey, {userName}
         </span>
         <span className="text-base font-semibold text-white">
-          {environment}
+          {getGreeting()}
         </span>
       </div>
       <div className="ml-auto flex items-center gap-2">
@@ -39,7 +46,7 @@ export function AppHeaderContent() {
           >
             {API_ENV_OPTIONS.map((option) => (
               <option key={option} value={option} className="text-black">
-                {option}
+                {getApiEnvironmentLabel(option)}
               </option>
             ))}
           </select>
