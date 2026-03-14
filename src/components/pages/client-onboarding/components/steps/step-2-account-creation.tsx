@@ -44,7 +44,7 @@ export function OnboardingStep2() {
               name="userName"
               label="Username"
               placeholder="e.g. elite_fitness_admin"
-              mandetory
+              mandatory
               value={userName}
               onChange={handleInputChange}
               className="bg-secondary-blue-500/50 border-secondary-blue-400 focus:border-primary-green-400 transition-all font-medium py-6"
@@ -55,7 +55,7 @@ export function OnboardingStep2() {
               label="Temporary Password"
               type="password"
               placeholder="••••••••••••"
-              mandetory
+              mandatory
               value={password || ''}
               onChange={handleInputChange}
               className="bg-secondary-blue-500/50 border-secondary-blue-400 focus:border-primary-green-400 transition-all font-medium py-6"

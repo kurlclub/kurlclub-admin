@@ -206,7 +206,7 @@ export function OnboardingStep4() {
                   <Input
                     label="Facility Name"
                     placeholder="e.g. Iron Paradise Downtown"
-                    mandetory
+                    mandatory
                     value={currentGym.GymName}
                     onChange={(e) =>
                       handleInputChange('GymName', e.target.value)
@@ -218,7 +218,7 @@ export function OnboardingStep4() {
                   <Input
                     label="Full Address / Location"
                     placeholder="No. 123, Fitness Street, NYC, NY 10001"
-                    mandetory
+                    mandatory
                     value={currentGym.Location}
                     onChange={(e) =>
                       handleInputChange('Location', e.target.value)
@@ -229,7 +229,7 @@ export function OnboardingStep4() {
                 <Input
                   label="Contact Number 1"
                   placeholder="+1 555-0101"
-                  mandetory
+                  mandatory
                   value={currentGym.ContactNumber1}
                   onChange={(e) =>
                     handleInputChange('ContactNumber1', e.target.value)
@@ -248,7 +248,7 @@ export function OnboardingStep4() {
                 <Input
                   label="Business Email"
                   placeholder="contact@gym.com"
-                  mandetory
+                  mandatory
                   value={currentGym.Email}
                   onChange={(e) => handleInputChange('Email', e.target.value)}
                   className="bg-secondary-blue-500/50"

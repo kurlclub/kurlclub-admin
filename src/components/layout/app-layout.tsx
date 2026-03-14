@@ -12,7 +12,7 @@ import {
 } from '@kurlclub/ui-components';
 
 import { NavUser } from '@/components/layout/nav-user';
-import { navItems } from '@/constants/nav-items';
+import { navGroups } from '@/constants/nav-items';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -32,15 +32,11 @@ export function AppLayout({ children }: AppLayoutProps) {
     <UIAppLayout
       sidebar={
         <AppSidebar
-          navItems={navItems}
+          navGroups={navGroups}
           currentPath={pathname}
           onNavigate={(url) => router.push(url)}
           header={
-            <TeamSwitcher
-              collapsedLogo="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Frame%203-1bUu3foSGcahraLSyANoyl4dlcVN2Z.png"
-              expandedLogo="/assets/svg/logo-light.svg"
-              alt="Kurl Club"
-            />
+            <TeamSwitcher brandLogoVariant="admin" alt="KurlClub Admin Logo" />
           }
           footer={<NavUser />}
         />
