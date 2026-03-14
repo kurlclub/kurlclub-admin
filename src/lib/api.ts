@@ -1,9 +1,108 @@
+import {
+  API_ENV_HEADER,
+  type ApiEnvironment,
+  getStoredApiEnvironment,
+  isProductionEnvironment,
+} from '@/lib/api-environment';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL!;
 
 type Params = Record<string, string | number | boolean>;
 
 let isRefreshing = false;
 let refreshPromise: Promise<string | null> | null = null;
+
+type NonGetRequestGuard = (params: {
+  method: string;
+  url: string;
+  environment: ApiEnvironment;
+}) => Promise<boolean>;
+
+let nonGetRequestGuard: NonGetRequestGuard | null = null;
+
+export const setNonGetRequestGuard = (guard: NonGetRequestGuard | null) => {
+  nonGetRequestGuard = guard;
+};
+
+const NON_GET_CONFIRM_SKIP_PATHS = new Set<string>(['/Auth/refresh-token']);
+
+const inFlightControllers = new Set<AbortController>();
+
+export const abortInFlightRequests = (reason = 'API environment changed') => {
+  for (const controller of inFlightControllers) {
+    controller.abort(reason);
+  }
+  inFlightControllers.clear();
+};
+
+const registerInFlightController = (controller: AbortController) => {
+  inFlightControllers.add(controller);
+  controller.signal.addEventListener(
+    'abort',
+    () => {
+      inFlightControllers.delete(controller);
+    },
+    { once: true },
+  );
+};
+
+const attachAbortSignal = (
+  controller: AbortController,
+  signal?: AbortSignal | null,
+) => {
+  if (!signal) return;
+  if (signal.aborted) {
+    controller.abort(signal.reason);
+    return;
+  }
+  signal.addEventListener(
+    'abort',
+    () => {
+      controller.abort(signal.reason);
+    },
+    { once: true },
+  );
+};
+
+const createAbortError = (message: string) => {
+  if (typeof DOMException !== 'undefined') {
+    return new DOMException(message, 'AbortError');
+  }
+  const error = new Error(message);
+  error.name = 'AbortError';
+  return error;
+};
+
+const getPathnameFromUrl = (url: RequestInfo | URL) => {
+  if (typeof url === 'string') {
+    const [path] = url.split('?');
+    return path;
+  }
+  if (url instanceof URL) {
+    return url.pathname;
+  }
+  if (url instanceof Request) {
+    return new URL(url.url).pathname;
+  }
+  return '';
+};
+
+const createIdempotencyKey = () => {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID();
+  }
+  return `req_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+};
+
+const notifyCancelledRequest = async (message: string) => {
+  if (typeof window === 'undefined') return;
+  try {
+    const { toast } = await import('sonner');
+    toast.info(message);
+  } catch (error) {
+    console.warn('Failed to show cancellation toast:', error);
+  }
+};
 
 const getStorageItem = (key: string): string | null => {
   if (typeof window === 'undefined') return null;
@@ -46,6 +145,7 @@ const refreshAccessToken = async (): Promise<string | null> => {
 
   isRefreshing = true;
   refreshPromise = (async () => {
+    let requestController: AbortController | null = null;
     try {
       const refreshToken = getStorageItem('refreshToken');
       if (!refreshToken) {
@@ -54,11 +154,18 @@ const refreshAccessToken = async (): Promise<string | null> => {
         return null;
       }
 
+      requestController = new AbortController();
+      registerInFlightController(requestController);
+      attachAbortSignal(requestController, AbortSignal.timeout(10000));
+
       const response = await fetch(`${API_BASE_URL}/Auth/refresh-token`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          [API_ENV_HEADER]: getStoredApiEnvironment(),
+        },
         body: JSON.stringify({ refreshToken }),
-        signal: AbortSignal.timeout(10000),
+        signal: requestController.signal,
       });
 
       if (!response.ok) {
@@ -94,6 +201,9 @@ const refreshAccessToken = async (): Promise<string | null> => {
       redirectToLogin();
       return null;
     } finally {
+      if (requestController) {
+        inFlightControllers.delete(requestController);
+      }
       isRefreshing = false;
       refreshPromise = null;
     }
@@ -106,15 +216,18 @@ interface ExtendedRequestInit extends RequestInit {
   next?: { revalidate?: number; cache?: string };
   responseType?: 'json' | 'blob';
   skipAuth?: boolean;
+  skipConfirm?: boolean;
   isRetry?: boolean;
 }
 
 const baseFetch: typeof fetch = async (url, options = {}) => {
-  const { next, responseType, skipAuth, isRetry, ...restOptions } =
+  const { next, responseType, skipAuth, skipConfirm, isRetry, ...restOptions } =
     options as ExtendedRequestInit;
+  const { headers: requestHeaders, ...fetchOptions } = restOptions;
 
   const isFormData = restOptions.body instanceof FormData;
   const accessToken = getStorageItem('accessToken');
+  const environment = getStoredApiEnvironment();
 
   let userData = null;
   try {
@@ -130,8 +243,9 @@ const baseFetch: typeof fetch = async (url, options = {}) => {
     console.warn('Failed to get user data for headers:', error);
   }
 
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+    [API_ENV_HEADER]: environment,
     ...(accessToken && !skipAuth
       ? { Authorization: `Bearer ${accessToken}` }
       : {}),
@@ -141,17 +255,83 @@ const baseFetch: typeof fetch = async (url, options = {}) => {
           'X-Role': userData.userRole || '',
         }
       : {}),
-    ...(restOptions.headers || {}),
   };
 
-  const response = await fetch(`${API_BASE_URL}${url}`, {
-    headers,
-    ...restOptions,
-    next: {
-      cache: next?.cache || 'no-store',
-      ...next,
-    },
-  });
+  if (requestHeaders instanceof Headers) {
+    requestHeaders.forEach((value, key) => {
+      headers[key] = value;
+    });
+  } else if (Array.isArray(requestHeaders)) {
+    for (const [key, value] of requestHeaders) {
+      headers[key] = value;
+    }
+  } else if (requestHeaders) {
+    Object.assign(headers, requestHeaders);
+  }
+
+  const method = (fetchOptions.method || 'GET').toUpperCase();
+  const urlString = typeof url === 'string' ? url : url.toString();
+  const requestPath = getPathnameFromUrl(url);
+  const shouldSkipConfirm =
+    skipConfirm || NON_GET_CONFIRM_SKIP_PATHS.has(requestPath);
+
+  if (method !== 'GET' && !shouldSkipConfirm) {
+    if (!('Idempotency-Key' in headers)) {
+      headers['Idempotency-Key'] = createIdempotencyKey();
+    }
+  }
+
+  if (
+    method !== 'GET' &&
+    !shouldSkipConfirm &&
+    isProductionEnvironment(environment)
+  ) {
+    const confirmRequest = nonGetRequestGuard
+      ? nonGetRequestGuard({
+          method,
+          url: `${API_BASE_URL}${urlString}`,
+          environment,
+        })
+      : typeof window !== 'undefined'
+        ? Promise.resolve(
+            window.confirm(
+              `You are about to ${method} ${urlString} in ${environment}. Continue?`,
+            ),
+          )
+        : Promise.resolve(true);
+
+    const isAllowed = await confirmRequest;
+    if (!isAllowed) {
+      await notifyCancelledRequest('Request cancelled.');
+      throw createAbortError('Request cancelled by user');
+    }
+  }
+
+  const requestController = new AbortController();
+  registerInFlightController(requestController);
+  attachAbortSignal(requestController, fetchOptions.signal);
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${url}`, {
+      headers,
+      ...fetchOptions,
+      signal: requestController.signal,
+      next: {
+        cache: next?.cache || 'no-store',
+        ...next,
+      },
+    });
+  } catch (error) {
+    if ((error as Error)?.name === 'AbortError') {
+      await notifyCancelledRequest(
+        'Request cancelled due to environment change.',
+      );
+    }
+    throw error;
+  } finally {
+    inFlightControllers.delete(requestController);
+  }
 
   if (
     response.status === 401 &&
