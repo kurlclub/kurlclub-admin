@@ -120,7 +120,7 @@ export function OnboardingStep1() {
               name="email"
               label="Email Address"
               placeholder="owner@kurlclub.com"
-              mandetory
+              mandatory
               value={email}
               onChange={handleInputChange}
               className="bg-secondary-blue-500/50 border-secondary-blue-400 focus:border-primary-green-400 transition-all font-medium"
@@ -129,7 +129,7 @@ export function OnboardingStep1() {
               name="phoneNumber"
               label="Phone Number"
               placeholder="+91 99000 00000"
-              mandetory
+              mandatory
               value={phoneNumber}
               onChange={handleInputChange}
               className="bg-secondary-blue-500/50 border-secondary-blue-400 focus:border-primary-green-400 transition-all font-medium"

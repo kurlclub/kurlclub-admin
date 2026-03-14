@@ -1,15 +1,29 @@
-import type { NavItem } from '@kurlclub/ui-components';
-import { Home, Users } from 'lucide-react';
+import { CreditCard, Home, Users } from 'lucide-react';
 
-export const navItems: NavItem[] = [
+export const navGroups = [
   {
-    title: 'Dashboard',
-    url: '/dashboard',
-    icon: Home,
+    label: 'GENERAL',
+    items: [
+      {
+        title: 'Dashboard',
+        url: '/dashboard',
+        icon: Home,
+      },
+      {
+        title: 'Client Onboarding',
+        url: '/client-onboarding',
+        icon: Users,
+      },
+    ],
   },
   {
-    title: 'Client Onboarding',
-    url: '/client-onboarding',
-    icon: Users,
+    label: 'PRODUCT',
+    items: [
+      {
+        title: 'Subscription Plans',
+        url: '/subscription-plans',
+        icon: CreditCard,
+      },
+    ],
   },
 ];
