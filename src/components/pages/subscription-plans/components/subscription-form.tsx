@@ -13,6 +13,7 @@ import {
   InfoBanner,
   KFormField,
   KFormFieldType,
+  ProfileUploader,
   Switch,
 } from '@kurlclub/ui-components';
 import { type FieldPath, useForm } from 'react-hook-form';
@@ -22,11 +23,14 @@ import {
   subscriptionSchema,
 } from '@/schemas/subscription.schema';
 import type {
-  SubscriptionFeatures,
   SubscriptionFormData,
+  SubscriptionFormFeatures,
 } from '@/types/subscription';
 
-import { FEATURE_GROUPS, LIMIT_FIELDS } from '../utils/feature-groups';
+import {
+  FORM_FEATURE_GROUPS,
+  FORM_LIMIT_FIELDS,
+} from '../utils/feature-groups';
 
 interface SubscriptionFormProps {
   defaultValues?: Partial<SubscriptionSchemaInput>;
@@ -38,59 +42,60 @@ interface SubscriptionFormProps {
 }
 
 const DEFAULT_VALUES: SubscriptionSchemaInput = {
-  name: '',
-  subtitle: '',
-  description: '',
-  badge: '',
-  isPopular: false,
-  monthlyPrice: '',
-  sixMonthsPrice: '',
-  yearlyPrice: '',
-  limits: {
-    maxClubs: '',
-    maxMembers: '',
-    maxTrainers: '',
-    maxStaffs: '',
+  Name: '',
+  Subtitle: '',
+  Description: '',
+  Badge: '',
+  IsPopular: false,
+  Photo: null,
+  MonthlyPrice: '',
+  SixMonthsPrice: '',
+  YearlyPrice: '',
+  Limits: {
+    MaxClubs: '',
+    MaxMembers: '',
+    MaxTrainers: '',
+    MaxStaffs: '',
   },
-  features: {
-    emailNotifications: false,
-    whatsAppNotifications: false,
-    realTimeNotifications: false,
-    manualAttendance: false,
-    liveAttendance: false,
-    doorAccessAttendance: false,
-    qrCodeCheckIn: false,
-    memberManagement: false,
-    trainerManagement: false,
-    staffManagement: false,
-    membershipManagement: false,
-    roleBasedAccess: false,
-    paymentTracking: false,
-    paymentRecording: false,
-    invoiceGeneration: false,
-    expenseTracker: false,
-    ptCollections: false,
-    commissionTracking: false,
-    leadManagement: false,
-    offersDiscounts: false,
-    classScheduling: false,
-    basicReports: false,
-    revenueAnalytics: false,
-    advancedAnalytics: false,
-    customReports: false,
-    exportToExcel: false,
-    reportsAnalytics: false,
-    memberPortal: false,
-    trainerPortal: false,
-    mobileAppAccess: false,
-    emailSupport: false,
-    chatSupport: false,
-    phoneSupport: false,
-    prioritySupport: false,
-    prioritySupport24x7: false,
-    devicesPerUserLimit: '',
-    staffLoginLimit: '',
-    trainerLoginLimit: '',
+  Features: {
+    EmailNotifications: false,
+    WhatsAppNotifications: false,
+    RealTimeNotifications: false,
+    ManualAttendance: false,
+    LiveAttendance: false,
+    DoorAccessAttendance: false,
+    QrCodeCheckIn: false,
+    MemberManagement: false,
+    TrainerManagement: false,
+    StaffManagement: false,
+    MembershipManagement: false,
+    RoleBasedAccess: false,
+    PaymentTracking: false,
+    PaymentRecording: false,
+    InvoiceGeneration: false,
+    ExpenseTracker: false,
+    PtCollections: false,
+    CommissionTracking: false,
+    LeadManagement: false,
+    OffersDiscounts: false,
+    ClassScheduling: false,
+    BasicReports: false,
+    RevenueAnalytics: false,
+    AdvancedAnalytics: false,
+    CustomReports: false,
+    ExportToExcel: false,
+    ReportsAnalytics: false,
+    MemberPortal: false,
+    TrainerPortal: false,
+    MobileAppAccess: false,
+    EmailSupport: false,
+    ChatSupport: false,
+    PhoneSupport: false,
+    PrioritySupport: false,
+    PrioritySupport24x7: false,
+    DevicesPerUserLimit: '',
+    StaffLoginLimit: '',
+    TrainerLoginLimit: '',
   },
 };
 
@@ -106,8 +111,8 @@ export function SubscriptionForm({
     resolver: zodResolver(subscriptionSchema),
     defaultValues: defaultValues || DEFAULT_VALUES,
   });
-  const toFeaturePath = (key: keyof SubscriptionFeatures) =>
-    `features.${key}` as FieldPath<SubscriptionFormData>;
+  const toFeaturePath = (key: keyof SubscriptionFormFeatures) =>
+    `Features.${key}` as FieldPath<SubscriptionFormData>;
 
   return (
     <Form {...form}>
@@ -121,7 +126,7 @@ export function SubscriptionForm({
               </h3>
               <FormField
                 control={form.control}
-                name="isPopular"
+                name="IsPopular"
                 render={({ field }) => (
                   <FormItem className="flex items-center gap-3 space-y-0">
                     <FormControl>
@@ -137,10 +142,27 @@ export function SubscriptionForm({
               />
             </div>
             <FieldGrid columns={1} smColumns={2} gap="md">
+              <FieldGridItem smSpan={2}>
+                <KFormField
+                  fieldType={KFormFieldType.SKELETON}
+                  control={form.control}
+                  name="Photo"
+                  renderSkeleton={(field) => (
+                    <ProfileUploader
+                      files={field.value instanceof File ? field.value : null}
+                      existingImageUrl={
+                        typeof field.value === 'string' ? field.value : null
+                      }
+                      onChange={(file) => field.onChange(file)}
+                      showDelete
+                    />
+                  )}
+                />
+              </FieldGridItem>
               <KFormField
                 fieldType={KFormFieldType.INPUT}
                 control={form.control}
-                name="name"
+                name="Name"
                 label="Plan Name"
                 placeholder="e.g., Professional Plan"
                 mandatory
@@ -148,7 +170,7 @@ export function SubscriptionForm({
               <KFormField
                 fieldType={KFormFieldType.INPUT}
                 control={form.control}
-                name="subtitle"
+                name="Subtitle"
                 label="Subtitle"
                 placeholder="e.g., Perfect for growing gyms"
                 mandatory
@@ -157,7 +179,7 @@ export function SubscriptionForm({
                 <KFormField
                   fieldType={KFormFieldType.RICH_TEXT_EDITOR}
                   control={form.control}
-                  name="description"
+                  name="Description"
                   label="Description"
                   placeholder="Detailed plan description..."
                   toolbarPreset="standard"
@@ -166,7 +188,7 @@ export function SubscriptionForm({
               <KFormField
                 fieldType={KFormFieldType.INPUT}
                 control={form.control}
-                name="badge"
+                name="Badge"
                 label="Badge Text"
                 placeholder="e.g., Most Popular"
               />
@@ -189,7 +211,7 @@ export function SubscriptionForm({
               <KFormField
                 fieldType={KFormFieldType.INPUT}
                 control={form.control}
-                name="monthlyPrice"
+                name="MonthlyPrice"
                 label="Monthly Price (₹)"
                 placeholder="299"
                 type="number"
@@ -198,7 +220,7 @@ export function SubscriptionForm({
               <KFormField
                 fieldType={KFormFieldType.INPUT}
                 control={form.control}
-                name="sixMonthsPrice"
+                name="SixMonthsPrice"
                 label="6 Months Price (₹)"
                 type="number"
                 mandatory
@@ -206,7 +228,7 @@ export function SubscriptionForm({
               <KFormField
                 fieldType={KFormFieldType.INPUT}
                 control={form.control}
-                name="yearlyPrice"
+                name="YearlyPrice"
                 label="Yearly Price (₹)"
                 type="number"
                 mandatory
@@ -223,7 +245,7 @@ export function SubscriptionForm({
               <KFormField
                 fieldType={KFormFieldType.INPUT}
                 control={form.control}
-                name="limits.maxClubs"
+                name="Limits.MaxClubs"
                 label="Max Clubs"
                 type="number"
                 mandatory
@@ -231,7 +253,7 @@ export function SubscriptionForm({
               <KFormField
                 fieldType={KFormFieldType.INPUT}
                 control={form.control}
-                name="limits.maxMembers"
+                name="Limits.MaxMembers"
                 label="Max Members"
                 type="number"
                 mandatory
@@ -239,7 +261,7 @@ export function SubscriptionForm({
               <KFormField
                 fieldType={KFormFieldType.INPUT}
                 control={form.control}
-                name="limits.maxTrainers"
+                name="Limits.MaxTrainers"
                 label="Max Trainers"
                 type="number"
                 mandatory
@@ -247,7 +269,7 @@ export function SubscriptionForm({
               <KFormField
                 fieldType={KFormFieldType.INPUT}
                 control={form.control}
-                name="limits.maxStaffs"
+                name="Limits.MaxStaffs"
                 label="Max Staff"
                 type="number"
                 mandatory
@@ -261,7 +283,7 @@ export function SubscriptionForm({
               Features
             </h3>
             <FieldStack gap="lg">
-              {Object.entries(FEATURE_GROUPS).map(([groupKey, group]) => (
+              {Object.entries(FORM_FEATURE_GROUPS).map(([groupKey, group]) => (
                 <div key={groupKey} className="space-y-3">
                   <h4 className="text-xs font-semibold text-primary-green-400 uppercase tracking-wider">
                     {group.title}
@@ -295,7 +317,7 @@ export function SubscriptionForm({
                   Additional Limits
                 </h4>
                 <FieldGrid columns={1} smColumns={2} mdColumns={3} gap="md">
-                  {LIMIT_FIELDS.map((field) => (
+                  {FORM_LIMIT_FIELDS.map((field) => (
                     <KFormField
                       key={field.key}
                       fieldType={KFormFieldType.INPUT}

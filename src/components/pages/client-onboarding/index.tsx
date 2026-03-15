@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 
-import { Button, InfoCard, Sheet } from '@kurlclub/ui-components';
+import { Button, InfoCard } from '@kurlclub/ui-components';
+import { Sheet } from '@kurlclub/ui-components';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   CheckCircle,

@@ -23,11 +23,51 @@ export const fetchSubscriptionById = async (id: number) => {
   return response.data;
 };
 
+const buildSubscriptionFormData = (data: SubscriptionFormData) => {
+  const formData = new FormData();
+  const isFile = (value: unknown): value is File =>
+    typeof File !== 'undefined' && value instanceof File;
+  const appendValue = (key: string, value: unknown) => {
+    if (value === null || value === undefined || value === '') return;
+
+    if (key === 'Photo') {
+      if (isFile(value)) {
+        formData.append('photo', value);
+      }
+      return;
+    }
+
+    if (isFile(value)) {
+      formData.append(key, value);
+      return;
+    }
+
+    if (Array.isArray(value)) {
+      value.forEach((item) => appendValue(key, item));
+      return;
+    }
+
+    if (typeof value === 'object') {
+      Object.entries(value).forEach(([childKey, childValue]) => {
+        appendValue(`${key}.${childKey}`, childValue);
+      });
+      return;
+    }
+
+    formData.append(key, String(value));
+  };
+
+  Object.entries(data).forEach(([key, value]) => appendValue(key, value));
+
+  return formData;
+};
+
 // Create subscription
 export const createSubscription = async (data: SubscriptionFormData) => {
+  const formData = buildSubscriptionFormData(data);
   const response = await api.post<ApiResponse<Subscription>>(
     '/Subscription',
-    data,
+    formData,
   );
   return response.data;
 };
@@ -37,9 +77,10 @@ export const updateSubscription = async (
   id: number,
   data: SubscriptionFormData,
 ) => {
+  const formData = buildSubscriptionFormData(data);
   const response = await api.put<ApiResponse<Subscription>>(
     `/Subscription/${id}`,
-    data,
+    formData,
   );
   return response.data;
 };

@@ -73,19 +73,88 @@ export interface Subscription {
   yearlyPrice: number;
   isPopular: boolean;
   badge?: string;
+  photoPath?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
   limits: SubscriptionLimits;
   features: SubscriptionFeatures;
 }
 
+export interface SubscriptionFormLimits {
+  MaxClubs: number;
+  MaxMembers: number;
+  MaxTrainers: number;
+  MaxStaffs: number;
+}
+
+export interface SubscriptionFormFeatures {
+  // Notifications
+  EmailNotifications: boolean;
+  WhatsAppNotifications: boolean;
+  RealTimeNotifications: boolean;
+
+  // Attendance
+  ManualAttendance: boolean;
+  LiveAttendance: boolean;
+  DoorAccessAttendance: boolean;
+  QrCodeCheckIn: boolean;
+
+  // Management
+  MemberManagement: boolean;
+  TrainerManagement: boolean;
+  StaffManagement: boolean;
+  MembershipManagement: boolean;
+  RoleBasedAccess: boolean;
+
+  // Finance
+  PaymentTracking: boolean;
+  PaymentRecording: boolean;
+  InvoiceGeneration: boolean;
+  ExpenseTracker: boolean;
+  PtCollections: boolean;
+  CommissionTracking: boolean;
+
+  // Business Tools
+  LeadManagement: boolean;
+  OffersDiscounts: boolean;
+  ClassScheduling: boolean;
+
+  // Analytics
+  BasicReports: boolean;
+  RevenueAnalytics: boolean;
+  AdvancedAnalytics: boolean;
+  CustomReports: boolean;
+  ExportToExcel: boolean;
+  ReportsAnalytics: boolean;
+
+  // Portals
+  MemberPortal: boolean;
+  TrainerPortal: boolean;
+  MobileAppAccess: boolean;
+
+  // Support
+  EmailSupport: boolean;
+  ChatSupport: boolean;
+  PhoneSupport: boolean;
+  PrioritySupport: boolean;
+  PrioritySupport24x7: boolean;
+
+  // Limits
+  DevicesPerUserLimit: number;
+  StaffLoginLimit: number;
+  TrainerLoginLimit: number;
+}
+
 export interface SubscriptionFormData {
-  name: string;
-  subtitle: string;
-  description: string;
-  badge?: string;
-  isPopular: boolean;
-  monthlyPrice: number;
-  sixMonthsPrice: number;
-  yearlyPrice: number;
-  limits: SubscriptionLimits;
-  features: SubscriptionFeatures;
+  Name: string;
+  Subtitle: string;
+  Description: string;
+  Badge?: string;
+  IsPopular: boolean;
+  MonthlyPrice: number;
+  SixMonthsPrice: number;
+  YearlyPrice: number;
+  Photo?: File | string | null;
+  Limits: SubscriptionFormLimits;
+  Features: SubscriptionFormFeatures;
 }
