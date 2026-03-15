@@ -37,7 +37,11 @@ export function AppLayout({ children }: AppLayoutProps) {
           currentPath={pathname}
           onNavigate={(url) => router.push(url)}
           header={
-            <TeamSwitcher brandLogoVariant="admin" alt="KurlClub Admin Logo" />
+            <TeamSwitcher
+              brandLogoVariant="admin"
+              alt="KurlClub Admin Logo"
+              collapsedLogo="/assets/png/logo-icon.png"
+            />
           }
           footer={<NavUser />}
         />

@@ -8,9 +8,9 @@ import {
   Button,
   DataTable,
   DataTableToolbar,
-  Sheet,
   Spinner,
 } from '@kurlclub/ui-components';
+import { Sheet } from '@kurlclub/ui-components';
 import { Plus } from 'lucide-react';
 
 import {

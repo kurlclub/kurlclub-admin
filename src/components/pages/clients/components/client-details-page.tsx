@@ -9,9 +9,9 @@ import {
   Button,
   DataTable,
   DataTableToolbar,
-  Sheet,
   Spinner,
 } from '@kurlclub/ui-components';
+import { Sheet } from '@kurlclub/ui-components';
 import { ChevronLeft } from 'lucide-react';
 
 import { createClientGymsColumns } from '@/components/pages/clients/table/client-gyms-columns';
