@@ -1,168 +1,215 @@
 'use client';
 
-import { Input } from '@kurlclub/ui-components';
+import { useEffect, useMemo } from 'react';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  Form,
+  KFormField,
+  KFormFieldType,
+  Spinner,
+} from '@kurlclub/ui-components';
+import { CreditCard } from 'lucide-react';
+import { useForm, useWatch } from 'react-hook-form';
+
+import { subscriptionSetupSchema } from '@/schemas/onboarding.schema';
+import { useSubscriptions } from '@/services/subscription';
+import type { Subscription } from '@/types/subscription';
 
 import { useOnboardingContext } from '../../hooks';
-import { useOnboardingForm } from '../../hooks';
-import type { SubscriptionData, SubscriptionTier } from '../../types';
-import { getSubscriptionPlans } from '../../utils';
-import { validateSubscription } from '../../utils';
+import type { SubscriptionSetupData } from '../../types';
 import { StepWrapper } from '../stepper-wrapper';
 
+const resolveSubscriptions = (
+  payload: Subscription[] | { data?: Subscription[] } | undefined | null,
+): Subscription[] => {
+  if (!payload) return [];
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload.data)) return payload.data;
+  return [];
+};
+
+const isSubscriptionEqual = (
+  a: SubscriptionSetupData,
+  b: SubscriptionSetupData,
+) =>
+  a.subscriptionId === b.subscriptionId &&
+  a.subscriptionDate === b.subscriptionDate;
+
+const normalizeSubscriptionDate = (value: string) => {
+  if (!value) return '';
+  if (/^\\d{4}-\\d{2}-\\d{2}$/.test(value)) {
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toISOString();
+    }
+  }
+  return value;
+};
+
 export function OnboardingStep3() {
-  const { formData, setFormData, setSelectedTier } = useOnboardingContext();
-  const { data, handleFieldChange, errors } =
-    useOnboardingForm<SubscriptionData>(formData.subscription, {
-      onValidate: validateSubscription,
+  const { formData, setFormData, registerStepValidator } =
+    useOnboardingContext();
+  const { subscription } = formData;
+  const form = useForm<SubscriptionSetupData>({
+    resolver: zodResolver(subscriptionSetupSchema),
+    mode: 'onTouched',
+    reValidateMode: 'onChange',
+    defaultValues: subscription,
+  });
+  const watchedSubscription = useWatch({ control: form.control });
+  const { data: subscriptionResponse, isLoading } = useSubscriptions();
+
+  const subscriptions = useMemo(
+    () => resolveSubscriptions(subscriptionResponse),
+    [subscriptionResponse],
+  );
+
+  useEffect(() => {
+    const currentValues = form.getValues();
+    if (!isSubscriptionEqual(currentValues, subscription)) {
+      form.reset(subscription);
+    }
+  }, [form, subscription]);
+
+  useEffect(() => {
+    if (!watchedSubscription) return;
+    const nextSubscription: SubscriptionSetupData = {
+      ...subscription,
+      ...watchedSubscription,
+      subscriptionDate: normalizeSubscriptionDate(
+        watchedSubscription.subscriptionDate ?? '',
+      ),
+    };
+
+    if (isSubscriptionEqual(nextSubscription, subscription)) return;
+
+    setFormData({
+      ...formData,
+      subscription: nextSubscription,
     });
+  }, [formData, setFormData, subscription, watchedSubscription]);
 
-  const handleTierChange = (tier: SubscriptionTier) => {
-    const newData = { ...data, tier };
-    handleFieldChange('tier', tier);
-    setFormData({ ...formData, subscription: newData });
-    setSelectedTier(tier);
-  };
-
-  const handleBillingChange = (cycle: 'monthly' | 'annual') => {
-    const newData = { ...data, billingCycle: cycle };
-    handleFieldChange('billingCycle', cycle);
-    setFormData({ ...formData, subscription: newData });
-  };
-
-  const plans = getSubscriptionPlans();
+  useEffect(() => {
+    const unregister = registerStepValidator(3, () =>
+      form.trigger(undefined, { shouldFocus: true }),
+    );
+    return unregister;
+  }, [form, registerStepValidator]);
 
   return (
-    <div className="flex flex-col gap-8 max-w-[1040px] mx-auto">
-      <StepWrapper
-        title="Active Onboarding Queue"
-        description="Enter the basic details about the gym client you're onboarding."
-        errors={errors}
-        cardWrapper="p-0! border-none"
-      >
-        <div className="grid grid-cols-3 gap-4">
-          {plans.map((plan) => (
-            <div
-              key={plan.id}
-              onClick={() => handleTierChange(plan.id)}
-              className={`rounded-lg border cursor-pointer transition-all overflow-hidden hover:border-primary-green-500 k-transition
-              ${
-                data.tier === plan.id
-                  ? 'border-primary-green-500 bg-secondary-blue-400 scale-[1.01]'
-                  : ''
-              }
-              `}
-            >
-              <div className="flex flex-col gap-4 p-5 bg-secondary-blue-500">
-                <h4 className="font-medium text-[24px] leading-[109%]">
-                  {plan.name}
-                </h4>
-                <span className="text-primary-green-200 font-medium text-[32px] leading-[109%]">
-                  ₹299
-                  <span className="text-primary-blue-50 text-base leading-[109%]">
-                    /month
-                  </span>
-                </span>
-              </div>
-              <div className="flex flex-col gap-5 m-5 mt-6">
-                {plan.features.map((feature, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center gap-2 text-sm text-foreground font-medium leading-[130%]"
-                  >
-                    <span className="w-3.5 h-3.5 rounded-full border-3 border-primary-green-100" />
-                    {feature}
+    <StepWrapper
+      title="Subscription Assignment"
+      description="Pick the plan and activation date."
+      className="max-w-225 mx-auto"
+    >
+      <Form {...form}>
+        <form className="space-y-6 animate-in slide-in-from-bottom-2 duration-500">
+          <div className="flex items-center gap-3 text-secondary-blue-200">
+            <CreditCard className="w-4 h-4" />
+            <span className="text-[11px] font-bold uppercase tracking-[0.2em]">
+              Subscription Plans
+            </span>
+          </div>
+
+          <KFormField
+            fieldType={KFormFieldType.SKELETON}
+            control={form.control}
+            name="subscriptionId"
+            renderSkeleton={(field) => {
+              const selectedId = field.value ? Number(field.value) : null;
+              if (isLoading) {
+                return (
+                  <div className="flex items-center justify-center py-12">
+                    <Spinner />
                   </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </StepWrapper>
-      {/* TODO: radio component missing in Library */}
-      <div className="flex flex-col gap-5 w-fit">
-        <label className="block text-base font-semibold leading-[109%] text-white">
-          Billing Cycle
-        </label>
+                );
+              }
 
-        <div className="flex gap-[22px] items-center">
-          {/* Monthly */}
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <input
-              type="radio"
-              name="billing"
-              checked={data.billingCycle === 'monthly'}
-              onChange={() => handleBillingChange('monthly')}
-              className="hidden"
+              if (subscriptions.length === 0) {
+                return (
+                  <div className="rounded-2xl border border-secondary-blue-400 bg-secondary-blue-600/40 p-6 text-sm text-secondary-blue-200">
+                    No subscription plans available.
+                  </div>
+                );
+              }
+
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {subscriptions.map((plan) => {
+                    const isSelected = selectedId === plan.id;
+                    return (
+                      <button
+                        key={plan.id}
+                        type="button"
+                        onClick={() => field.onChange(String(plan.id))}
+                        className={`group w-full text-left rounded-2xl border px-4 py-3 transition-all ${
+                          isSelected
+                            ? 'border-primary-green-400 bg-primary-green-500/10 shadow-[0_0_0_1px_rgba(211,247,2,0.25)]'
+                            : 'border-secondary-blue-400 bg-secondary-blue-600/40 hover:border-primary-green-400/50 hover:bg-secondary-blue-600'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-semibold text-white">
+                                {plan.name}
+                              </p>
+                              {plan.badge ? (
+                                <span className="rounded-full border border-primary-green-500/30 px-2 py-0.5 text-[10px] font-semibold text-primary-green-300">
+                                  {plan.badge}
+                                </span>
+                              ) : null}
+                            </div>
+                            {plan.subtitle ? (
+                              <p className="text-[11px] text-secondary-blue-200 mt-0.5 line-clamp-1">
+                                {plan.subtitle}
+                              </p>
+                            ) : null}
+                          </div>
+                          <div className="text-right">
+                            <p className="text-lg font-bold text-primary-green-400 leading-none">
+                              ₹{plan.monthlyPrice}
+                            </p>
+                            <p className="text-[10px] text-secondary-blue-300 uppercase tracking-[0.2em] mt-1">
+                              Monthly
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="mt-3 flex flex-wrap gap-2 text-[10px] text-secondary-blue-300">
+                          <span className="rounded-full bg-secondary-blue-500/60 px-2 py-0.5">
+                            Clubs {plan.limits.maxClubs}
+                          </span>
+                          <span className="rounded-full bg-secondary-blue-500/60 px-2 py-0.5">
+                            Members {plan.limits.maxMembers}
+                          </span>
+                          <span className="rounded-full bg-secondary-blue-500/60 px-2 py-0.5">
+                            Staff {plan.limits.maxStaffs}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            }}
+          />
+
+          <div className="rounded-2xl border border-secondary-blue-400 bg-secondary-blue-600/40 p-4">
+            <KFormField
+              fieldType={KFormFieldType.DATE_PICKER}
+              control={form.control}
+              name="subscriptionDate"
+              label="Subscription Date"
+              mode="single"
+              floating
+              showYearSelector
+              showPresets={false}
             />
-            <span
-              className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors
-        ${
-          data.billingCycle === 'monthly'
-            ? 'border-primary-green-500'
-            : 'border-[#5A5F73]'
-        }
-        group-hover:border-primary-green-500
-      `}
-            >
-              {data.billingCycle === 'monthly' && (
-                <span className="h-2.5 w-2.5 rounded-full bg-primary-green-500"></span>
-              )}
-            </span>
-            <span className="text-white font-base leading-[109%]">Monthly</span>
-          </label>
-
-          {/* Annual */}
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <input
-              type="radio"
-              name="billing"
-              checked={data.billingCycle === 'annual'}
-              onChange={() => handleBillingChange('annual')}
-              className="hidden"
-            />
-            <span
-              className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors
-        ${
-          data.billingCycle === 'annual'
-            ? 'border-primary-green-500'
-            : 'border-[#5A5F73]'
-        }
-        group-hover:border-primary-green-500
-      `}
-            >
-              {data.billingCycle === 'annual' && (
-                <span className="h-2.5 w-2.5 rounded-full bg-primary-green-500"></span>
-              )}
-            </span>
-            <span className="text-white font-base leading-[109%]">Annual</span>
-          </label>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-6 w-full max-w-[600px]">
-        <Input
-          type="number"
-          label="Setup Fee (₹)"
-          placeholder="e.g. 5000"
-          value={data.setupFee}
-          onChange={(e) => {
-            const newData = { ...data, setupFee: e.target.value };
-            handleFieldChange('setupFee', e.target.value);
-            setFormData({ ...formData, subscription: newData });
-          }}
-        />
-        <Input
-          type="number"
-          label="Monthly Studio Fee (₹)"
-          placeholder="e.g. 299"
-          value={data.monthlyStudioFee}
-          onChange={(e) => {
-            const newData = { ...data, monthlyStudioFee: e.target.value };
-            handleFieldChange('monthlyStudioFee', e.target.value);
-            setFormData({ ...formData, subscription: newData });
-          }}
-        />
-      </div>
-    </div>
+          </div>
+        </form>
+      </Form>
+    </StepWrapper>
   );
 }

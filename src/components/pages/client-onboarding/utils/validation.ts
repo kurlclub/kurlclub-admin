@@ -3,43 +3,62 @@
  * Centralized validation logic with type-safe error handling
  */
 import type {
-  AccountCreationData,
-  ClientInfoData,
-  GymLocation,
-  SubscriptionData,
+  AccountSetupData,
+  GymDraft,
+  LeadDraftData,
+  SubscriptionSetupData,
   ValidationError,
 } from '../types';
 
-export const validateClientInfo = (data: ClientInfoData): ValidationError[] => {
+export const validateLeadDraft = (data: LeadDraftData): ValidationError[] => {
   const errors: ValidationError[] = [];
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!data.email || !emailRegex.test(data.email)) {
-    errors.push({ field: 'email', message: 'Valid owner email is required' });
+  if (data.email && !emailRegex.test(data.email)) {
+    errors.push({ field: 'email', message: 'Valid email is required' });
+  }
+
+  if (!data.contactName?.trim()) {
+    errors.push({ field: 'contactName', message: 'Contact name is required' });
   }
 
   if (!data.phoneNumber?.trim()) {
+    errors.push({ field: 'phoneNumber', message: 'Phone number is required' });
+  }
+
+  if (!data.leadData.gymName?.trim()) {
+    errors.push({ field: 'gymName', message: 'Gym name is required' });
+  }
+
+  if (!data.leadData.gymContactNumber?.trim()) {
     errors.push({
-      field: 'phoneNumber',
-      message: 'Owner phone number is required',
+      field: 'gymContactNumber',
+      message: 'Club contact number is required',
     });
+  }
+
+  if (!data.leadData.gymLocation?.trim()) {
+    errors.push({ field: 'gymLocation', message: 'Gym location is required' });
+  }
+
+  if (!data.leadData.country?.trim()) {
+    errors.push({ field: 'country', message: 'Country is required' });
+  }
+
+  if (!data.leadData.region?.trim()) {
+    errors.push({ field: 'region', message: 'Region is required' });
   }
 
   return errors;
 };
 
-export const validateAccountCreation = (
-  data: AccountCreationData,
+export const validateAccountSetup = (
+  data: AccountSetupData,
 ): ValidationError[] => {
   const errors: ValidationError[] = [];
 
   if (!data.userName?.trim()) {
     errors.push({ field: 'userName', message: 'Username is required' });
-  } else if (data.userName.length < 3) {
-    errors.push({
-      field: 'userName',
-      message: 'Username must be at least 3 characters',
-    });
   }
 
   if (!data.password?.trim()) {
@@ -55,28 +74,21 @@ export const validateAccountCreation = (
 };
 
 export const validateSubscription = (
-  data: SubscriptionData,
+  data: SubscriptionSetupData,
 ): ValidationError[] => {
   const errors: ValidationError[] = [];
 
-  if (!data.tier) {
-    errors.push({ field: 'tier', message: 'Subscription tier is required' });
-  }
-
-  if (!data.billingCycle) {
+  if (!data.subscriptionId?.trim()) {
     errors.push({
-      field: 'billingCycle',
-      message: 'Billing cycle is required',
+      field: 'subscriptionId',
+      message: 'Subscription ID is required',
     });
   }
 
   return errors;
 };
 
-export const validateSubGyms = (
-  gyms: GymLocation[],
-  maxAllowed: number,
-): ValidationError[] => {
+export const validateGyms = (gyms: GymDraft[]): ValidationError[] => {
   const errors: ValidationError[] = [];
 
   if (!gyms || gyms.length === 0) {
@@ -86,48 +98,38 @@ export const validateSubGyms = (
     });
   }
 
-  if (gyms.length > maxAllowed) {
-    errors.push({
-      field: 'gyms',
-      message: `Maximum ${maxAllowed} locations allowed`,
-    });
-  }
-
   gyms.forEach((gym, idx) => {
-    if (!gym.GymName?.trim()) {
+    if (!gym.gymName?.trim()) {
       errors.push({
-        field: `gyms.${idx}.GymName`,
+        field: `gyms.${idx}.gymName`,
         message: 'Gym name is required',
       });
     }
-    if (!gym.Location?.trim()) {
+    if (!gym.gymLocation?.trim()) {
       errors.push({
-        field: `gyms.${idx}.Location`,
-        message: 'Location is required',
+        field: `gyms.${idx}.gymLocation`,
+        message: 'Gym location is required',
       });
     }
-    if (!gym.Email?.trim()) {
+    if (!gym.gymContactNumber?.trim()) {
       errors.push({
-        field: `gyms.${idx}.Email`,
-        message: 'Gym email is required',
+        field: `gyms.${idx}.gymContactNumber`,
+        message: 'Club contact number is required',
+      });
+    }
+    if (!gym.country?.trim()) {
+      errors.push({
+        field: `gyms.${idx}.country`,
+        message: 'Country is required',
+      });
+    }
+    if (!gym.region?.trim()) {
+      errors.push({
+        field: `gyms.${idx}.region`,
+        message: 'Region is required',
       });
     }
   });
 
   return errors;
-};
-
-export const validateOnboardingData = (
-  clientInfo: ClientInfoData,
-  accountCreation: AccountCreationData,
-  subscription: SubscriptionData,
-  gyms: GymLocation[],
-  maxGyms: number,
-): ValidationError[] => {
-  return [
-    ...validateClientInfo(clientInfo),
-    ...validateAccountCreation(accountCreation),
-    ...validateSubscription(subscription),
-    ...validateSubGyms(gyms, maxGyms),
-  ];
 };

@@ -1,76 +1,204 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { Button, Input } from '@kurlclub/ui-components';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  Button,
+  FieldGrid,
+  Form,
+  KFormField,
+  KFormFieldType,
+  ProfileUploader,
+} from '@kurlclub/ui-components';
+import { Country, State } from 'country-state-city';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Briefcase,
   Building2,
-  Globe,
   MapPin,
+  Phone,
   Plus,
   Trash2,
   X,
 } from 'lucide-react';
+import { useForm, useWatch } from 'react-hook-form';
+
+import { gymDraftSchema, gymListSchema } from '@/schemas/onboarding.schema';
 
 import { useOnboardingContext } from '../../hooks';
-import type { GymLocation } from '../../types';
-import { getGymLimitByTier } from '../../utils';
+import type { GymDraft } from '../../types';
 import { StepWrapper } from '../stepper-wrapper';
 
+const INITIAL_GYM_STATE: GymDraft = {
+  gymName: '',
+  gymEmail: '',
+  gymLocation: '',
+  gymContactNumber: '',
+  country: '',
+  region: '',
+  gymPhotoFile: null,
+  gymPhotoPreview: '',
+};
+
 export function OnboardingStep4() {
-  const { formData, setFormData, selectedTier } = useOnboardingContext();
+  const { formData, setFormData, registerStepValidator } =
+    useOnboardingContext();
   const [showForm, setShowForm] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [listError, setListError] = useState<string | null>(null);
 
-  const initialGymState: GymLocation = {
-    GymName: '',
-    Location: '',
-    ContactNumber1: '',
-    ContactNumber2: '',
-    Email: '',
-    Status: 'Active',
-    SocialLinks: ['', '', ''], // [Insta, FB, Twitter/Web]
-  };
+  const gymForm = useForm<GymDraft>({
+    resolver: zodResolver(gymDraftSchema),
+    mode: 'onTouched',
+    reValidateMode: 'onChange',
+    defaultValues: INITIAL_GYM_STATE,
+  });
+  const currentGym =
+    useWatch({
+      control: gymForm.control,
+    }) ?? INITIAL_GYM_STATE;
+  const preview = useWatch({
+    control: gymForm.control,
+    name: 'gymPhotoPreview',
+  });
+  const previousCountryRef = useRef<string | null>(null);
+  const { lead } = formData;
+  const gyms = formData.gyms.gyms;
 
-  const [currentGym, setCurrentGym] = useState<GymLocation>(initialGymState);
+  const countries = useMemo(() => Country.getAllCountries(), []);
+  const countryOptions = useMemo(
+    () =>
+      [...countries]
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map((country) => ({
+          label: country.name,
+          value: country.name,
+        })),
+    [countries],
+  );
+  const selectedCountry = useMemo(
+    () =>
+      countries.find((country) => country.name === currentGym.country) ?? null,
+    [countries, currentGym.country],
+  );
+  const regionOptions = useMemo(() => {
+    if (!selectedCountry) return [];
+    return State.getStatesOfCountry(selectedCountry.isoCode)
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((region) => ({
+        label: region.name,
+        value: region.name,
+      }));
+  }, [selectedCountry]);
+  const regionDisabled = !currentGym.country || regionOptions.length === 0;
 
-  const maxGyms = getGymLimitByTier(selectedTier);
-  const gyms = formData.subGyms.gyms;
-  const canAddMore = gyms.length < maxGyms;
+  useEffect(() => {
+    if (!showForm || editingIndex !== null) return;
+    gymForm.reset(INITIAL_GYM_STATE);
+    previousCountryRef.current = null;
+  }, [editingIndex, gymForm, showForm]);
 
-  const handleInputChange = (field: keyof GymLocation, value: string) => {
-    setCurrentGym({ ...currentGym, [field]: value });
-  };
+  useEffect(() => {
+    const country = currentGym.country ?? '';
+    if (previousCountryRef.current === null) {
+      previousCountryRef.current = country;
+      return;
+    }
+    if (previousCountryRef.current !== country) {
+      gymForm.setValue('region', '');
+      previousCountryRef.current = country;
+    }
+  }, [currentGym.country, gymForm]);
 
-  const handleSocialChange = (index: number, value: string) => {
-    const updatedLinks = [...currentGym.SocialLinks];
-    updatedLinks[index] = value;
-    setCurrentGym({ ...currentGym, SocialLinks: updatedLinks });
-  };
+  const validateGymList = useCallback(async () => {
+    const result = gymListSchema.safeParse(gyms);
+    if (!result.success) {
+      setListError(result.error.issues[0]?.message ?? 'Validation error');
+      return false;
+    }
+    setListError(null);
+    return true;
+  }, [gyms]);
 
-  const saveGym = () => {
-    if (!currentGym.GymName || !currentGym.Location || !currentGym.Email)
+  useEffect(() => {
+    const unregister = registerStepValidator(4, validateGymList);
+    return unregister;
+  }, [registerStepValidator, validateGymList]);
+
+  useEffect(() => {
+    const leadGym: GymDraft = {
+      gymName: lead.leadData.gymName.trim(),
+      gymEmail: '',
+      gymLocation: lead.leadData.gymLocation.trim(),
+      gymContactNumber: lead.leadData.gymContactNumber.trim(),
+      country: lead.leadData.country.trim(),
+      region: lead.leadData.region.trim(),
+      gymPhotoFile: null,
+      gymPhotoPreview: '',
+    };
+    const hasLeadValues = [
+      leadGym.gymName,
+      leadGym.gymEmail,
+      leadGym.gymLocation,
+      leadGym.gymContactNumber,
+      leadGym.country,
+      leadGym.region,
+    ].some((value) => value !== '');
+    if (!hasLeadValues) return;
+
+    const alreadyAdded = gyms.some(
+      (gym) =>
+        gym.gymName === leadGym.gymName &&
+        gym.gymEmail === leadGym.gymEmail &&
+        gym.gymLocation === leadGym.gymLocation &&
+        gym.gymContactNumber === leadGym.gymContactNumber &&
+        gym.country === leadGym.country &&
+        gym.region === leadGym.region,
+    );
+    if (alreadyAdded) return;
+
+    setFormData({
+      ...formData,
+      gyms: {
+        ...formData.gyms,
+        gyms: [leadGym, ...gyms],
+      },
+    });
+  }, [formData, gyms, lead.leadData, setFormData]);
+
+  const saveGym = async () => {
+    const isValid = await gymForm.trigger();
+    if (!isValid) return;
+
+    const gymValues = gymForm.getValues();
+    if (
+      !gymValues.gymName ||
+      !gymValues.gymLocation ||
+      !gymValues.gymContactNumber ||
+      !gymValues.country ||
+      !gymValues.region
+    )
       return;
 
     const updatedGyms = [...gyms];
     if (editingIndex !== null) {
-      updatedGyms[editingIndex] = currentGym;
+      updatedGyms[editingIndex] = gymValues;
     } else {
-      updatedGyms.push(currentGym);
+      updatedGyms.push(gymValues);
     }
 
     setFormData({
       ...formData,
-      subGyms: { gyms: updatedGyms },
+      gyms: { ...formData.gyms, gyms: updatedGyms },
     });
 
     closeForm();
   };
 
   const editGym = (index: number) => {
-    setCurrentGym(gyms[index]);
+    gymForm.reset(gyms[index]);
+    previousCountryRef.current = gyms[index]?.country ?? '';
     setEditingIndex(index);
     setShowForm(true);
   };
@@ -79,30 +207,36 @@ export function OnboardingStep4() {
     const updatedGyms = gyms.filter((_, i) => i !== index);
     setFormData({
       ...formData,
-      subGyms: { gyms: updatedGyms },
+      gyms: { ...formData.gyms, gyms: updatedGyms },
     });
   };
 
   const closeForm = () => {
     setShowForm(false);
     setEditingIndex(null);
-    setCurrentGym(initialGymState);
+    gymForm.reset(INITIAL_GYM_STATE);
+    previousCountryRef.current = null;
   };
 
   return (
     <StepWrapper
-      title="Gym Management"
-      description={`Add and manage the gym locations for this client. Your ${selectedTier} plan allows up to ${maxGyms} locations.`}
-      className="max-w-[800px] mx-auto"
-      gymCount={`${gyms.length}/${maxGyms}`}
+      title="Club Locations"
+      description="Add club locations and contact details."
+      className="max-w-225 mx-auto"
+      gymCount={`${gyms.length} locations`}
     >
       <div className="space-y-6">
+        {listError ? (
+          <div className="rounded-2xl border border-alert-red-400/40 bg-alert-red-400/10 px-4 py-3 text-sm text-alert-red-200">
+            {listError}
+          </div>
+        ) : null}
         {/* Gym List */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <AnimatePresence mode="popLayout">
             {gyms.map((gym, idx) => (
               <motion.div
-                key={`${gym.GymName}-${idx}`}
+                key={`${gym.gymName}-${idx}`}
                 layout
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -118,57 +252,57 @@ export function OnboardingStep4() {
                       <button
                         onClick={() => editGym(idx)}
                         className="p-1.5 rounded-lg bg-secondary-blue-400 text-white hover:bg-secondary-blue-300 transition-colors"
+                        type="button"
                       >
                         <Briefcase className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => removeGym(idx)}
                         className="p-1.5 rounded-lg bg-alert-red-400/20 text-alert-red-400 hover:bg-alert-red-400 hover:text-white transition-colors"
+                        type="button"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
                   <h4 className="font-bold text-white text-base truncate">
-                    {gym.GymName}
+                    {gym.gymName}
                   </h4>
                   <div className="flex items-center gap-2 mt-1 text-secondary-blue-300">
                     <MapPin className="w-3 h-3" />
-                    <span className="text-xs truncate">{gym.Location}</span>
+                    <span className="text-xs truncate">{gym.gymLocation}</span>
                   </div>
-                </div>
-
-                <div className="mt-5 flex items-center justify-between border-t border-secondary-blue-400 pt-4">
-                  <div className="flex -space-x-2">
-                    {gym.SocialLinks.filter((l) => l).map((_, i) => (
-                      <div
-                        key={i}
-                        className="w-6 h-6 rounded-full bg-secondary-blue-400 border border-secondary-blue-500 flex items-center justify-center"
-                      >
-                        <Globe className="w-2.5 h-2.5 text-secondary-blue-200" />
-                      </div>
-                    ))}
-                  </div>
-                  <span className="text-[10px] font-bold text-primary-green-400 uppercase bg-primary-green-500/10 px-2 py-0.5 rounded-full">
-                    {gym.Status}
-                  </span>
+                  {gym.gymContactNumber ? (
+                    <div className="flex items-center gap-2 mt-1 text-secondary-blue-300">
+                      <Phone className="w-3 h-3" />
+                      <span className="text-xs truncate">
+                        {gym.gymContactNumber}
+                      </span>
+                    </div>
+                  ) : null}
+                  {(gym.country || gym.region) && (
+                    <div className="text-[10px] text-secondary-blue-400 mt-1">
+                      {[gym.country, gym.region].filter(Boolean).join(' · ')}
+                    </div>
+                  )}
                 </div>
               </motion.div>
             ))}
           </AnimatePresence>
 
-          {canAddMore && !showForm && (
+          {!showForm && (
             <button
               onClick={() => setShowForm(true)}
-              className="h-full min-h-[160px] rounded-3xl border-2 border-dashed border-secondary-blue-400 hover:border-primary-green-400 hover:bg-primary-green-500/5 transition-all flex flex-col items-center justify-center gap-3 group px-6 text-center"
+              className="h-full min-h-40 rounded-3xl border-2 border-dashed border-secondary-blue-400 hover:border-primary-green-400 hover:bg-primary-green-500/5 transition-all flex flex-col items-center justify-center gap-3 group px-6 text-center"
+              type="button"
             >
               <div className="w-12 h-12 rounded-2xl bg-secondary-blue-500 border border-secondary-blue-400 flex items-center justify-center text-secondary-blue-300 group-hover:text-primary-green-400 group-hover:scale-110 transition-all">
                 <Plus className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-sm font-bold text-white">Add Location</p>
+                <p className="text-sm font-bold text-white">Add Club</p>
                 <p className="text-[10px] text-secondary-blue-300 mt-1">
-                  Register another facility
+                  Register another club
                 </p>
               </div>
             </button>
@@ -182,7 +316,7 @@ export function OnboardingStep4() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
-              className="bg-secondary-blue-600 rounded-3xl p-8 border border-secondary-blue-400 shadow-2xl relative"
+              className="bg-secondary-blue-600/20 rounded-2xl p-5 border border-secondary-blue-400/50 shadow-2xl relative"
             >
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
@@ -190,106 +324,123 @@ export function OnboardingStep4() {
                     <Plus className="w-5 h-5" />
                   </div>
                   <h3 className="text-lg font-bold text-white">
-                    {editingIndex !== null ? 'Edit Gym' : 'Add New Gym'}
+                    {editingIndex !== null ? 'Edit Club' : 'Add New Club'}
                   </h3>
                 </div>
                 <button
                   onClick={closeForm}
                   className="p-2 text-secondary-blue-200 hover:text-white"
+                  type="button"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="md:col-span-2">
-                  <Input
-                    label="Facility Name"
-                    placeholder="e.g. Iron Paradise Downtown"
-                    mandatory
-                    value={currentGym.GymName}
-                    onChange={(e) =>
-                      handleInputChange('GymName', e.target.value)
-                    }
-                    className="bg-secondary-blue-500/50"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <Input
-                    label="Full Address / Location"
-                    placeholder="No. 123, Fitness Street, NYC, NY 10001"
-                    mandatory
-                    value={currentGym.Location}
-                    onChange={(e) =>
-                      handleInputChange('Location', e.target.value)
-                    }
-                    className="bg-secondary-blue-500/50"
-                  />
-                </div>
-                <Input
-                  label="Contact Number 1"
-                  placeholder="+1 555-0101"
-                  mandatory
-                  value={currentGym.ContactNumber1}
-                  onChange={(e) =>
-                    handleInputChange('ContactNumber1', e.target.value)
-                  }
-                  className="bg-secondary-blue-500/50"
-                />
-                <Input
-                  label="Contact Number 2"
-                  placeholder="+1 555-0102"
-                  value={currentGym.ContactNumber2}
-                  onChange={(e) =>
-                    handleInputChange('ContactNumber2', e.target.value)
-                  }
-                  className="bg-secondary-blue-500/50"
-                />
-                <Input
-                  label="Business Email"
-                  placeholder="contact@gym.com"
-                  mandatory
-                  value={currentGym.Email}
-                  onChange={(e) => handleInputChange('Email', e.target.value)}
-                  className="bg-secondary-blue-500/50"
-                />
-                <Input
-                  label="Status"
-                  value={currentGym.Status}
-                  onChange={(e) => handleInputChange('Status', e.target.value)}
-                  className="bg-secondary-blue-500/50"
-                />
+              <Form {...gymForm}>
+                <form>
+                  <div className="flex flex-col items-center justify-center space-y-4 py-2">
+                    <div className="flex items-center gap-2 text-secondary-blue-200">
+                      <Briefcase className="w-4 h-4" />
+                      <span className="text-[11px] font-bold uppercase tracking-[0.2em]">
+                        Club Profile
+                      </span>
+                    </div>
+                    <KFormField
+                      fieldType={KFormFieldType.SKELETON}
+                      control={gymForm.control}
+                      name="gymPhotoFile"
+                      renderSkeleton={(field) => (
+                        <ProfileUploader
+                          files={
+                            field.value instanceof File ? field.value : null
+                          }
+                          existingImageUrl={
+                            typeof preview === 'string' && preview
+                              ? preview
+                              : null
+                          }
+                          onChange={(file) => {
+                            if (!file) {
+                              field.onChange(null);
+                              gymForm.setValue('gymPhotoPreview', '');
+                              return;
+                            }
 
-                <div className="md:col-span-2 space-y-4 pt-4 border-t border-secondary-blue-400">
-                  <p className="text-xs font-bold text-secondary-blue-200 uppercase tracking-widest">
-                    Social Links
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    {['Instagram', 'Facebook', 'Twitter'].map((tag, i) => (
-                      <Input
-                        key={tag}
-                        label={tag}
-                        placeholder={tag}
-                        value={currentGym.SocialLinks[i]}
-                        onChange={(e) => handleSocialChange(i, e.target.value)}
-                        className="bg-secondary-blue-500/50 text-xs"
-                      />
-                    ))}
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              gymForm.setValue(
+                                'gymPhotoPreview',
+                                typeof reader.result === 'string'
+                                  ? reader.result
+                                  : '',
+                                {
+                                  shouldDirty: true,
+                                },
+                              );
+                            };
+                            reader.readAsDataURL(file);
+                            field.onChange(file);
+                          }}
+                        />
+                      )}
+                    />
                   </div>
-                </div>
-              </div>
+                  <FieldGrid columns={1} mdColumns={2} gap="md">
+                    <KFormField
+                      fieldType={KFormFieldType.INPUT}
+                      control={gymForm.control}
+                      name="gymName"
+                      label="Club Name"
+                      mandatory
+                    />
+                    <KFormField
+                      fieldType={KFormFieldType.PHONE_INPUT}
+                      control={gymForm.control}
+                      name="gymContactNumber"
+                      label="Club Contact Number"
+                      mandatory
+                    />
+                    <KFormField
+                      fieldType={KFormFieldType.INPUT}
+                      control={gymForm.control}
+                      name="gymEmail"
+                      label="Email (Optional)"
+                      type="email"
+                    />
+                    <KFormField
+                      fieldType={KFormFieldType.INPUT}
+                      control={gymForm.control}
+                      name="gymLocation"
+                      label="Club Location"
+                      mandatory
+                    />
+                    <KFormField
+                      fieldType={KFormFieldType.SELECT}
+                      control={gymForm.control}
+                      name="country"
+                      label="Country"
+                      options={countryOptions}
+                    />
+                    <KFormField
+                      fieldType={KFormFieldType.SELECT}
+                      control={gymForm.control}
+                      name="region"
+                      label="Region / State / Province"
+                      options={regionOptions}
+                      disabled={regionDisabled}
+                    />
+                  </FieldGrid>
+                </form>
+              </Form>
 
               <div className="flex gap-3 mt-10">
-                <Button
-                  onClick={saveGym}
-                  className="flex-1 h-12 shadow-xl shadow-primary-green-500/20"
-                >
-                  {editingIndex !== null ? 'Update Gym' : 'Add to Account'}
+                <Button onClick={saveGym} className="flex-1 h-10">
+                  {editingIndex !== null ? 'Update Club' : 'Add Club'}
                 </Button>
                 <Button
                   variant="outline"
                   onClick={closeForm}
-                  className="h-12 border-white/10 hover:bg-white/5"
+                  className="h-10 border-white/10 hover:bg-white/5"
                 >
                   Cancel
                 </Button>
@@ -297,28 +448,6 @@ export function OnboardingStep4() {
             </motion.div>
           )}
         </AnimatePresence>
-
-        {gyms.length === 0 && !showForm && (
-          <div className="py-20 flex flex-col items-center justify-center text-center space-y-4 rounded-[40px] border-2 border-dashed border-secondary-blue-400/50 bg-secondary-blue-500/10">
-            <div className="p-6 rounded-full bg-secondary-blue-500 text-secondary-blue-300">
-              <Building2 className="w-12 h-12 opacity-30" />
-            </div>
-            <div>
-              <p className="text-white font-bold">No locations added</p>
-              <p className="text-xs text-secondary-blue-300 mt-1">
-                Start by adding your primary gym facility.
-              </p>
-            </div>
-            <Button
-              onClick={() => setShowForm(true)}
-              variant="outline"
-              className="mt-4 gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Add First Location
-            </Button>
-          </div>
-        )}
       </div>
     </StepWrapper>
   );

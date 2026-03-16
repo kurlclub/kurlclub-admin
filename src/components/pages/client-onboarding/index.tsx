@@ -1,239 +1,158 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
-import { Button, InfoCard } from '@kurlclub/ui-components';
-import { Sheet } from '@kurlclub/ui-components';
+import { Button, InfoCard, Sheet, Spinner } from '@kurlclub/ui-components';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   CheckCircle,
   Clock,
   ExternalLink,
+  PauseCircle,
   Play,
   Plus,
-  ShieldCheck,
   Users,
 } from 'lucide-react';
 
 import { StudioLayout } from '@/components/shared/layout';
+import {
+  flattenBoard,
+  useOnboardingBoard,
+  useOnboardingRecord,
+  useUpdateOnboardingStatus,
+} from '@/services/client-onboarding';
 
 import { OnboardingDetails, OnboardingWizard } from './components';
 import { KanbanBoard } from './components/kanban-board';
 import { OnboardingProvider } from './contexts';
-import type { OnboardingClient } from './types';
-
-/* ── Shared helpers ──────────────────────────────────── */
-
-function getStatusVariant(
-  status: string,
-): 'success' | 'warning' | 'info' | 'error' {
-  switch (status) {
-    case 'Completed':
-      return 'success';
-    case 'Pending Activation':
-      return 'warning';
-    case 'In Progress':
-      return 'info';
-    default:
-      return 'error';
-  }
-}
-
-/* ── Sample data ─────────────────────────────────────── */
-
-const MOCK_CLIENTS: OnboardingClient[] = [
-  {
-    id: 1,
-    name: 'CrossFit Elite',
-    owner: 'Marcus Thompson',
-    email: 'marcus@crossfitelite.com',
-    phone: '+1-555-0101',
-    address: '123 Main St',
-    city: 'New York',
-    state: 'NY',
-    status: 'In Progress',
-    step: 3,
-    totalSteps: 5,
-    createdAt: '2024-01-15',
-    subscriptionTier: 'Professional',
-    subGyms: 2,
-    contactNumber: '+1-555-0101',
-    username: 'crossfit_elite',
-    tempPassword: 'TempPass123!@#',
-  },
-  {
-    id: 2,
-    name: 'Yoga Studios Co',
-    owner: 'Priya Sharma',
-    email: 'priya@yogastudios.com',
-    phone: '+1-555-0102',
-    address: '456 Oak Ave',
-    city: 'Los Angeles',
-    state: 'CA',
-    status: 'Pending Activation',
-    step: 4,
-    totalSteps: 5,
-    createdAt: '2024-01-14',
-    subscriptionTier: 'Starter',
-    subGyms: 1,
-    contactNumber: '+1-555-0102',
-  },
-  {
-    id: 3,
-    name: 'PowerGym Network',
-    owner: 'James Wilson',
-    email: 'james@powergym.com',
-    phone: '+1-555-0103',
-    address: '789 Pine Rd',
-    city: 'Chicago',
-    state: 'IL',
-    status: 'Completed',
-    step: 5,
-    totalSteps: 5,
-    createdAt: '2024-01-10',
-    subscriptionTier: 'Enterprise',
-    subGyms: 5,
-    contactNumber: '+1-555-0103',
-  },
-  {
-    id: 4,
-    name: 'Iron Will Fitness',
-    owner: 'Sarah Chen',
-    email: 'sarah@ironwill.com',
-    phone: '+1-555-0104',
-    address: '100 Fitness Ave',
-    city: 'Austin',
-    state: 'TX',
-    status: 'In Progress',
-    step: 1,
-    totalSteps: 5,
-    createdAt: '2024-01-20',
-    subscriptionTier: 'Starter',
-    subGyms: 0,
-    contactNumber: '+1-555-0104',
-  },
-  {
-    id: 5,
-    name: 'FlexZone Gyms',
-    owner: 'David Okonkwo',
-    email: 'david@flexzone.com',
-    phone: '+1-555-0105',
-    address: '22 Liberty Blvd',
-    city: 'Houston',
-    state: 'TX',
-    status: 'Pending Activation',
-    step: 4,
-    totalSteps: 5,
-    createdAt: '2024-01-22',
-    subscriptionTier: 'Professional',
-    subGyms: 3,
-    contactNumber: '+1-555-0105',
-  },
-  {
-    id: 6,
-    name: 'Peak Performance',
-    owner: 'Aisha Rahman',
-    email: 'aisha@peakperf.com',
-    phone: '+1-555-0106',
-    address: '8 Summit Way',
-    city: 'Seattle',
-    state: 'WA',
-    status: 'Completed',
-    step: 5,
-    totalSteps: 5,
-    createdAt: '2024-01-08',
-    subscriptionTier: 'Enterprise',
-    subGyms: 8,
-    contactNumber: '+1-555-0106',
-  },
-];
+import type { OnboardingRecord, OnboardingStatus } from './types';
+import { formatOnboardingDate, getStatusLabel } from './utils';
 
 /* ── Root Module ─────────────────────────────────────── */
 
 export function OnboardingModule() {
-  const [selectedClient, setSelectedClient] = useState<OnboardingClient | null>(
+  const [selectedClient, setSelectedClient] = useState<OnboardingRecord | null>(
     null,
   );
   const [wizardOpen, setWizardOpen] = useState(false);
-  const [resumeClient, setResumeClient] = useState<OnboardingClient | null>(
+  const [resumeClient, setResumeClient] = useState<OnboardingRecord | null>(
     null,
   );
+
+  const { data: board, isLoading, isError, refetch } = useOnboardingBoard();
+  const { data: selectedDetails, isLoading: isDetailLoading } =
+    useOnboardingRecord(selectedClient?.id ?? null);
+  const updateStatusMutation = useUpdateOnboardingStatus();
+
+  const clients = useMemo(() => (board ? flattenBoard(board) : null), [board]);
 
   const openNewWizard = () => {
     setResumeClient(null);
     setWizardOpen(true);
   };
-  const openResumeWizard = (c: OnboardingClient) => {
+  const openResumeWizard = (c: OnboardingRecord) => {
     setResumeClient(c);
     setWizardOpen(true);
   };
   const closeWizard = () => {
     setWizardOpen(false);
     setResumeClient(null);
+    refetch();
   };
 
-  const totalInProgress = MOCK_CLIENTS.filter(
-    (c) => c.status === 'In Progress',
-  ).length;
-  const totalPending = MOCK_CLIENTS.filter(
-    (c) => c.status === 'Pending Activation',
-  ).length;
-  const totalCompleted = MOCK_CLIENTS.filter(
-    (c) => c.status === 'Completed',
-  ).length;
-  const completionRate = Math.round(
-    (totalCompleted / MOCK_CLIENTS.length) * 100,
-  );
+  const totals = useMemo(() => {
+    if (!board || !clients) return null;
+    const totalLeads = board.lead.length;
+    const totalInProgress = board.inProgress.length;
+    const totalPendingReview = board.pendingReview.length;
+    const totalCompleted = board.completed.length;
+    const completionRate = clients.length
+      ? Math.round((totalCompleted / clients.length) * 100)
+      : 0;
+    return {
+      totalLeads,
+      totalInProgress,
+      totalPendingReview,
+      completionRate,
+    };
+  }, [board, clients]);
+
+  const detailClient = selectedDetails ?? null;
+  const detailCreatedAt = detailClient
+    ? formatOnboardingDate(detailClient.createdAt)
+    : '';
+  const detailDescription = detailClient
+    ? [
+        getStatusLabel(detailClient.status),
+        detailCreatedAt ? `Created ${detailCreatedAt}` : '',
+      ]
+        .filter(Boolean)
+        .join(' · ')
+    : '';
+
+  const handleStatusChange = (
+    client: OnboardingRecord,
+    status: OnboardingStatus,
+  ) => {
+    const payload: { status: OnboardingStatus; notes?: string } = { status };
+    if (client.notes) payload.notes = client.notes;
+    updateStatusMutation.mutate({
+      id: client.id,
+      payload,
+    });
+  };
 
   return (
     <>
       <StudioLayout>
         <>
           {/* ── KPIs ──────────────────────────────────── */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <InfoCard
-              item={{
-                id: '1',
-                icon: <Clock className="w-5 h-5" />,
-                color: 'semantic-blue-500',
-                title: 'In Progress',
-                count: totalInProgress,
-              }}
-            />
-            <InfoCard
-              item={{
-                id: '2',
-                icon: <ShieldCheck className="w-5 h-5" />,
-                color: 'secondary-pink-500',
-                title: 'Pending Activation',
-                count: totalPending,
-              }}
-            />
-            <InfoCard
-              item={{
-                id: '3',
-                icon: <Users className="w-5 h-5" />,
-                color: 'primary-green-500',
-                title: 'Total Clients',
-                count: MOCK_CLIENTS.length,
-              }}
-            />
-            <InfoCard
-              item={{
-                id: '4',
-                icon: <CheckCircle className="w-5 h-5" />,
-                color: 'alert-red-400',
-                title: 'Completion Rate',
-                count: `${completionRate}%`,
-              }}
-            />
-          </div>
+          {totals && (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              <InfoCard
+                item={{
+                  id: '1',
+                  icon: <Users className="w-5 h-5" />,
+                  color: 'semantic-blue-500',
+                  title: 'Leads',
+                  count: totals.totalLeads,
+                }}
+              />
+              <InfoCard
+                item={{
+                  id: '2',
+                  icon: <Clock className="w-5 h-5" />,
+                  color: 'secondary-pink-500',
+                  title: 'In Progress',
+                  count: totals.totalInProgress,
+                }}
+              />
+              <InfoCard
+                item={{
+                  id: '3',
+                  icon: <PauseCircle className="w-5 h-5" />,
+                  color: 'alert-red-400',
+                  title: 'Pending Review',
+                  count: totals.totalPendingReview,
+                }}
+              />
+              <InfoCard
+                item={{
+                  id: '4',
+                  icon: <CheckCircle className="w-5 h-5" />,
+                  color: 'primary-green-500',
+                  title: 'Completion Rate',
+                  count: `${totals.completionRate}%`,
+                }}
+              />
+            </div>
+          )}
 
           {/* ── Board header ──────────────────────────── */}
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-xl font-semibold text-white">
-                Onboarding Board
+                Client Onboarding Board
               </h2>
               <p className="text-sm text-secondary-blue-200 mt-0.5">
                 Drag cards between columns to update status
@@ -241,17 +160,27 @@ export function OnboardingModule() {
             </div>
             <Button onClick={openNewWizard} className="gap-2">
               <Plus className="w-4 h-4" />
-              Add new client
+              Add new lead
             </Button>
           </div>
 
           {/* ── Kanban board ──────────────────────────── */}
-          <KanbanBoard
-            clients={MOCK_CLIENTS}
-            onSelectClient={setSelectedClient}
-            onResumeClient={openResumeWizard}
-            getStatusVariant={getStatusVariant}
-          />
+          {isLoading ? (
+            <div className="flex justify-center py-16">
+              <Spinner />
+            </div>
+          ) : isError ? (
+            <div className="rounded-2xl border border-alert-red-400/40 bg-alert-red-400/10 p-6 text-sm text-alert-red-200">
+              Failed to load onboarding board. Please try again.
+            </div>
+          ) : board && clients ? (
+            <KanbanBoard
+              clients={clients}
+              onSelectClient={setSelectedClient}
+              onResumeClient={openResumeWizard}
+              onStatusChange={handleStatusChange}
+            />
+          ) : null}
         </>
       </StudioLayout>
 
@@ -260,27 +189,38 @@ export function OnboardingModule() {
         isOpen={!!selectedClient}
         onClose={(open: boolean) => !open && setSelectedClient(null)}
         width="lg"
-        title={selectedClient?.name}
-        description={`Created ${selectedClient ? new Date(selectedClient.createdAt).toLocaleDateString() : ''} · ${selectedClient?.owner || ''}`}
+        title={detailClient?.data?.gymName || detailClient?.contactName || ''}
+        description={detailDescription}
         footer={
-          selectedClient &&
-          (selectedClient.status !== 'Completed' ? (
-            <Button
-              onClick={() => openResumeWizard(selectedClient)}
-              className="gap-2"
-            >
-              <Play className="w-4 h-4" />
-              Resume Onboarding
-            </Button>
-          ) : (
-            <Button variant="outline" className="gap-2">
-              <ExternalLink className="w-4 h-4" />
-              Open Portal
-            </Button>
-          ))
+          detailClient ? (
+            detailClient.status === 'completed' ? (
+              <Button variant="outline" className="gap-2">
+                <ExternalLink className="w-4 h-4" />
+                Open Portal
+              </Button>
+            ) : detailClient.status === 'cancelled' ? (
+              <Button variant="outline" disabled className="gap-2 opacity-70">
+                Cancelled
+              </Button>
+            ) : (
+              <Button
+                onClick={() => openResumeWizard(detailClient)}
+                className="gap-2"
+              >
+                <Play className="w-4 h-4" />
+                Resume Onboarding
+              </Button>
+            )
+          ) : null
         }
       >
-        {selectedClient && <OnboardingDetails client={selectedClient} />}
+        {detailClient ? (
+          <OnboardingDetails client={detailClient} />
+        ) : isDetailLoading ? (
+          <div className="flex justify-center py-16">
+            <Spinner />
+          </div>
+        ) : null}
       </Sheet>
 
       {/* ── Wizard Modal ──────────────────────────── */}

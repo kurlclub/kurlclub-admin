@@ -1,34 +1,61 @@
 'use client';
 
 import type React from 'react';
-import { createContext, useCallback, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+
+import { useAuth } from '@/providers/auth-provider';
+import {
+  completeOnboarding,
+  createOnboardingDraft,
+  updateOnboardingDraft,
+  updateOnboardingStatus,
+} from '@/services/client-onboarding';
 
 import type {
-  OnboardingClient,
   OnboardingContextType,
   OnboardingFormData,
-  SubscriptionTier,
+  OnboardingRecord,
+  OnboardingStatus,
   ValidationError,
 } from '../types';
 
-const initialFormData: OnboardingFormData = {
-  clientInfo: {
+const emptyLeadData = {
+  gymName: '',
+  gymLocation: '',
+  gymContactNumber: '',
+  country: '',
+  region: '',
+};
+
+const baseFormData: OnboardingFormData = {
+  lead: {
     email: '',
+    contactName: '',
     phoneNumber: '',
-    profilePhotoFile: null,
-    profilePhotoPreview: '',
+    notes: '',
+    assignedAdminId: null,
+    leadData: emptyLeadData,
   },
-  accountCreation: {
+  account: {
     userName: '',
     password: '',
+    email: '',
+    phoneNumber: '',
+    userPhotoFile: null,
+    userPhotoPreview: '',
   },
   subscription: {
-    tier: 'Professional',
-    billingCycle: 'monthly',
-    setupFee: '',
-    monthlyStudioFee: '',
+    subscriptionId: '',
+    subscriptionDate: '',
   },
-  subGyms: {
+  gyms: {
     gyms: [],
   },
 };
@@ -42,98 +69,227 @@ export function OnboardingProvider({
   initialClient,
 }: {
   children: React.ReactNode;
-  initialClient?: OnboardingClient | null;
+  initialClient?: OnboardingRecord | null;
 }) {
-  const [formData, setFormData] = useState<OnboardingFormData>(
-    initialClient
-      ? {
-          ...initialFormData,
-          clientInfo: {
-            email: initialClient.email || '',
-            phoneNumber: initialClient.phone || '',
-            profilePhotoFile: null,
-            profilePhotoPreview: '',
-          },
-          accountCreation: {
-            userName: initialClient.username || '',
-            password: '',
-          },
-          subscription: {
-            ...initialFormData.subscription,
-            tier: initialClient.subscriptionTier || 'Professional',
-            setupFee: '',
-            monthlyStudioFee: '',
-          },
-          // For existing clients, we might fetch their gyms separately or initialize if available
-          subGyms: {
-            gyms: [],
-          },
-        }
-      : initialFormData,
+  const { user } = useAuth();
+
+  const assignedAdminId = useMemo(
+    () => initialClient?.assignedAdminId ?? user?.userId ?? null,
+    [initialClient?.assignedAdminId, user?.userId],
   );
 
+  const getStepFromStatus = (status?: OnboardingStatus | null) => {
+    switch (status) {
+      case 'lead':
+        return 1;
+      case 'in_progress':
+        return 2;
+      case 'pending_review':
+        return 4;
+      case 'on_hold':
+        return 2;
+      case 'completed':
+      case 'cancelled':
+        return 5;
+      default:
+        return 1;
+    }
+  };
+
+  const [formData, setFormData] = useState<OnboardingFormData>(() => {
+    if (!initialClient) {
+      return {
+        ...baseFormData,
+        lead: {
+          ...baseFormData.lead,
+          assignedAdminId,
+        },
+      };
+    }
+
+    return {
+      ...baseFormData,
+      lead: {
+        email: initialClient.email || '',
+        contactName: initialClient.contactName || '',
+        phoneNumber: initialClient.phoneNumber || '',
+        notes: initialClient.notes || '',
+        assignedAdminId,
+        leadData: {
+          gymName: initialClient.data?.gymName || '',
+          gymLocation: initialClient.data?.gymLocation || '',
+          gymContactNumber: initialClient.data?.gymContactNumber || '',
+          country: initialClient.data?.country || '',
+          region: initialClient.data?.region || '',
+        },
+      },
+      account: {
+        ...baseFormData.account,
+        email: initialClient.email || '',
+        phoneNumber: initialClient.phoneNumber || '',
+        userName: initialClient.portalUsername || '',
+      },
+    };
+  });
+
   const [currentStep, setCurrentStep] = useState(
-    initialClient ? initialClient.step : 1,
+    getStepFromStatus(initialClient?.status),
   );
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
-  const [selectedTier, setSelectedTier] =
-    useState<SubscriptionTier>('Professional');
   const [errors, setErrors] = useState<ValidationError[]>([]);
+  const [recordId, setRecordId] = useState<number | null>(
+    initialClient?.id ?? null,
+  );
+  const [recordStatus, setRecordStatus] = useState<OnboardingStatus | null>(
+    initialClient?.status ?? null,
+  );
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const stepValidatorsRef = useRef<Record<number, () => Promise<boolean>>>({});
+
+  useEffect(() => {
+    if (assignedAdminId && !formData.lead.assignedAdminId) {
+      setFormData((prev) => ({
+        ...prev,
+        lead: {
+          ...prev.lead,
+          assignedAdminId,
+        },
+      }));
+    }
+  }, [assignedAdminId, formData.lead.assignedAdminId]);
 
   const completeStep = useCallback((step: number) => {
     setCompletedSteps((prev) => (prev.includes(step) ? prev : [...prev, step]));
   }, []);
 
   const resetForm = useCallback(() => {
-    setFormData(initialFormData);
+    setFormData({
+      ...baseFormData,
+      lead: {
+        ...baseFormData.lead,
+        assignedAdminId,
+      },
+    });
     setCurrentStep(1);
     setCompletedSteps([]);
     setErrors([]);
+    setRecordId(null);
+    setRecordStatus(null);
+  }, [assignedAdminId]);
+
+  const registerStepValidator = useCallback(
+    (step: number, validator: () => Promise<boolean>) => {
+      stepValidatorsRef.current[step] = validator;
+      return () => {
+        if (stepValidatorsRef.current[step] === validator) {
+          delete stepValidatorsRef.current[step];
+        }
+      };
+    },
+    [],
+  );
+
+  const validateStep = useCallback(async (step: number) => {
+    const validator = stepValidatorsRef.current[step];
+    if (!validator) return true;
+    try {
+      return await validator();
+    } catch (error) {
+      console.warn('Validation failed:', error);
+      return false;
+    }
   }, []);
+
+  const saveDraft = useCallback(async (): Promise<boolean> => {
+    setIsSavingDraft(true);
+    try {
+      const { lead } = formData;
+      const payload = {
+        email: lead.email,
+        contactName: lead.contactName,
+        phoneNumber: lead.phoneNumber,
+        notes: lead.notes,
+        assignedAdminId: lead.assignedAdminId,
+        data: lead.leadData
+          ? {
+              gymName: lead.leadData.gymName,
+              gymLocation: lead.leadData.gymLocation,
+              gymContactNumber: lead.leadData.gymContactNumber,
+              country: lead.leadData.country,
+              region: lead.leadData.region,
+            }
+          : null,
+      };
+
+      let saved: OnboardingRecord;
+      if (recordId) {
+        saved = await updateOnboardingDraft(recordId, payload);
+      } else {
+        saved = await createOnboardingDraft(payload);
+      }
+
+      setRecordId(saved.id);
+      setRecordStatus(saved.status);
+
+      setFormData((prev) => ({
+        ...prev,
+        lead: {
+          ...prev.lead,
+          email: saved.email || prev.lead.email,
+          contactName: saved.contactName || prev.lead.contactName,
+          phoneNumber: saved.phoneNumber || prev.lead.phoneNumber,
+          notes: saved.notes ?? prev.lead.notes,
+          assignedAdminId: saved.assignedAdminId ?? prev.lead.assignedAdminId,
+          leadData: {
+            gymName: saved.data?.gymName || prev.lead.leadData.gymName,
+            gymLocation:
+              saved.data?.gymLocation || prev.lead.leadData.gymLocation,
+            gymContactNumber:
+              saved.data?.gymContactNumber ||
+              prev.lead.leadData.gymContactNumber,
+            country: saved.data?.country || prev.lead.leadData.country,
+            region: saved.data?.region || prev.lead.leadData.region,
+          },
+        },
+        account: {
+          ...prev.account,
+          email: saved.email || prev.account.email,
+          phoneNumber: saved.phoneNumber || prev.account.phoneNumber,
+        },
+      }));
+
+      if (saved.status === 'lead') {
+        try {
+          const statusPayload: {
+            status: OnboardingStatus;
+            notes?: string;
+          } = { status: 'in_progress' };
+          if (lead.notes) statusPayload.notes = lead.notes;
+          const updated = await updateOnboardingStatus(saved.id, statusPayload);
+          setRecordStatus(updated.status);
+        } catch (statusError) {
+          console.warn('Status update failed:', statusError);
+        }
+      }
+
+      return true;
+    } catch (err) {
+      console.error('Draft save error:', err);
+      return false;
+    } finally {
+      setIsSavingDraft(false);
+    }
+  }, [formData, recordId]);
 
   const submitForm = useCallback(async (): Promise<boolean> => {
     setIsSubmitting(true);
     try {
-      const { clientInfo, accountCreation, subGyms } = formData;
-
-      const payload = new FormData();
-      payload.append('Email', clientInfo.email);
-      payload.append('UserName', accountCreation.userName);
-      payload.append('Password', accountCreation.password || '');
-      payload.append('PhoneNumber', clientInfo.phoneNumber);
-
-      if (clientInfo.profilePhotoFile) {
-        payload.append('ProfilePhoto', clientInfo.profilePhotoFile);
+      if (!recordId) {
+        throw new Error('Draft must be created before completion.');
       }
 
-      // Format gyms as per API: GymName, Location, ContactNumber1, ContactNumber2, Email, Status, SocialLinks
-      const gymsJson = subGyms.gyms.map((gym) => ({
-        GymName: gym.GymName,
-        Location: gym.Location,
-        ContactNumber1: gym.ContactNumber1,
-        ContactNumber2: gym.ContactNumber2,
-        Email: gym.Email,
-        Status: gym.Status,
-        SocialLinks: gym.SocialLinks.filter((link) => link.trim() !== ''),
-      }));
-
-      payload.append('GymsJson', JSON.stringify(gymsJson));
-
-      const response = await fetch(
-        'https://kurlclubcore.onrender.com/api/User/ClientOnboarding',
-        {
-          method: 'POST',
-          headers: {
-            accept: '*/*',
-          },
-          body: payload,
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error('Onboarding activation failed');
-      }
+      await completeOnboarding(recordId, formData);
 
       return true;
     } catch (err) {
@@ -142,22 +298,26 @@ export function OnboardingProvider({
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData]);
+  }, [formData, recordId]);
 
   const value: OnboardingContextType = {
     formData,
     currentStep,
     completedSteps,
-    selectedTier,
     errors,
     isSubmitting,
+    isSavingDraft,
+    recordId,
+    recordStatus,
     setFormData,
     setCurrentStep,
     completeStep,
-    setSelectedTier,
     setErrors,
     resetForm,
+    saveDraft,
     submitForm,
+    registerStepValidator,
+    validateStep,
   };
 
   return (
