@@ -154,7 +154,6 @@ export function SubscriptionForm({
                         typeof field.value === 'string' ? field.value : null
                       }
                       onChange={(file) => field.onChange(file)}
-                      showDelete
                     />
                   )}
                 />

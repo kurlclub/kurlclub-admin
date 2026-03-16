@@ -1,90 +1,186 @@
 'use client';
 
-import { Input } from '@kurlclub/ui-components';
+import { useEffect } from 'react';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  Button,
+  FieldGrid,
+  Form,
+  KFormField,
+  KFormFieldType,
+  ProfileUploader,
+} from '@kurlclub/ui-components';
 import { ShieldCheck } from 'lucide-react';
+import { useForm, useWatch } from 'react-hook-form';
+
+import { accountSetupSchema } from '@/schemas/onboarding.schema';
 
 import { useOnboardingContext } from '../../hooks';
+import type { AccountSetupData } from '../../types';
+import { generatePassword } from '../../utils';
 import { StepWrapper } from '../stepper-wrapper';
 
-export function OnboardingStep2() {
-  const { formData, setFormData } = useOnboardingContext();
-  const { userName, password } = formData.accountCreation;
+const isAccountEqual = (a: AccountSetupData, b: AccountSetupData) =>
+  a.userName === b.userName &&
+  a.password === b.password &&
+  a.email === b.email &&
+  a.phoneNumber === b.phoneNumber &&
+  a.userPhotoFile === b.userPhotoFile &&
+  a.userPhotoPreview === b.userPhotoPreview;
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+export function OnboardingStep2() {
+  const { formData, setFormData, registerStepValidator } =
+    useOnboardingContext();
+  const { account } = formData;
+  const form = useForm<AccountSetupData>({
+    resolver: zodResolver(accountSetupSchema),
+    mode: 'onTouched',
+    reValidateMode: 'onChange',
+    defaultValues: account,
+  });
+  const watchedAccount = useWatch({ control: form.control });
+  const preview = useWatch({
+    control: form.control,
+    name: 'userPhotoPreview',
+  });
+
+  useEffect(() => {
+    const currentValues = form.getValues();
+    if (!isAccountEqual(currentValues, account)) {
+      form.reset(account);
+    }
+  }, [account, form]);
+
+  useEffect(() => {
+    if (!watchedAccount) return;
+    const nextAccount: AccountSetupData = {
+      ...account,
+      ...watchedAccount,
+    };
+
+    if (isAccountEqual(nextAccount, account)) return;
+
     setFormData({
       ...formData,
-      accountCreation: {
-        ...formData.accountCreation,
-        [e.target.name]: e.target.value,
-      },
+      account: nextAccount,
+    });
+  }, [account, formData, setFormData, watchedAccount]);
+
+  useEffect(() => {
+    const unregister = registerStepValidator(2, () =>
+      form.trigger(undefined, { shouldFocus: true }),
+    );
+    return unregister;
+  }, [form, registerStepValidator]);
+
+  const applyGeneratedPassword = () => {
+    form.setValue('password', generatePassword(), {
+      shouldDirty: true,
     });
   };
 
   return (
     <StepWrapper
-      title="Secure Credentials"
-      description="Create the primary credentials for the client to access their KurlClub dashboard."
-      className="max-w-[635px] mx-auto"
+      title="Account Setup"
+      description="Create the client portal credentials and attach a profile photo."
+      className="max-w-180 mx-auto"
     >
-      <div className="space-y-8 animate-in slide-in-from-bottom-2 duration-500">
-        <div className="flex flex-col items-center py-6 text-center">
-          <div className="w-16 h-16 rounded-3xl bg-primary-green-500/10 border border-primary-green-500/20 flex items-center justify-center text-primary-green-400 mb-4 shadow-inner">
-            <ShieldCheck className="w-8 h-8" />
-          </div>
-          <h3 className="text-white font-semibold">Access Security</h3>
-          <p className="text-xs text-secondary-blue-300 mt-1">
-            Ensure the passsword is strong and unique.
-          </p>
-        </div>
+      <Form {...form}>
+        <form className="space-y-8 animate-in slide-in-from-bottom-2 duration-500">
+          <div className="flex flex-col items-center justify-center space-y-4 py-4">
+            <div className="flex items-center gap-3 text-secondary-blue-200">
+              <ShieldCheck className="w-4 h-4" />
+              <span className="text-[11px] font-bold uppercase tracking-[0.2em]">
+                Portal Identity
+              </span>
+            </div>
+            <KFormField
+              fieldType={KFormFieldType.SKELETON}
+              control={form.control}
+              name="userPhotoFile"
+              renderSkeleton={(field) => (
+                <ProfileUploader
+                  files={field.value instanceof File ? field.value : null}
+                  existingImageUrl={
+                    typeof preview === 'string' && preview ? preview : null
+                  }
+                  onChange={(file) => {
+                    if (!file) {
+                      field.onChange(null);
+                      form.setValue('userPhotoPreview', '');
+                      return;
+                    }
 
-        <div className="space-y-6">
-          <SectionHeader title="Account Identity" />
-          <div className="grid grid-cols-1 gap-5">
-            <Input
-              name="userName"
-              label="Username"
-              placeholder="e.g. elite_fitness_admin"
-              mandatory
-              value={userName}
-              onChange={handleInputChange}
-              className="bg-secondary-blue-500/50 border-secondary-blue-400 focus:border-primary-green-400 transition-all font-medium py-6"
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      form.setValue(
+                        'userPhotoPreview',
+                        typeof reader.result === 'string' ? reader.result : '',
+                        {
+                          shouldDirty: true,
+                        },
+                      );
+                    };
+                    reader.readAsDataURL(file);
+                    field.onChange(file);
+                  }}
+                />
+              )}
             />
-
-            <Input
-              name="password"
-              label="Temporary Password"
-              type="password"
-              placeholder="••••••••••••"
-              mandatory
-              value={password || ''}
-              onChange={handleInputChange}
-              className="bg-secondary-blue-500/50 border-secondary-blue-400 focus:border-primary-green-400 transition-all font-medium py-6"
-            />
           </div>
-        </div>
 
-        <div className="p-4 rounded-2xl bg-secondary-blue-500/30 border border-secondary-blue-400 flex gap-3 items-start">
-          <div className="p-1 px-2 rounded-lg bg-primary-green-500/10 text-[10px] font-bold text-primary-green-400 uppercase">
-            Tip
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-secondary-blue-200">
+                Credentials
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={applyGeneratedPassword}
+                  className="h-8 px-3 text-[10px]"
+                >
+                  Generate Password
+                </Button>
+              </div>
+            </div>
+
+            <FieldGrid columns={1} smColumns={2} gap="md">
+              <KFormField
+                fieldType={KFormFieldType.INPUT}
+                control={form.control}
+                name="userName"
+                label="Username"
+                mandatory
+              />
+              <KFormField
+                fieldType={KFormFieldType.PASSWORD}
+                control={form.control}
+                name="password"
+                label="Temporary Password"
+                mandatory
+              />
+              <KFormField
+                fieldType={KFormFieldType.INPUT}
+                control={form.control}
+                name="email"
+                label="Email Address"
+                type="email"
+                mandatory
+              />
+              <KFormField
+                fieldType={KFormFieldType.PHONE_INPUT}
+                control={form.control}
+                name="phoneNumber"
+                label="Phone Number"
+                mandatory
+              />
+            </FieldGrid>
           </div>
-          <p className="text-[11px] text-secondary-blue-200 leading-relaxed">
-            These credentials will be sent to the owner&apos;s email address
-            upon completion of this onboarding flow.
-          </p>
-        </div>
-      </div>
+        </form>
+      </Form>
     </StepWrapper>
-  );
-}
-
-function SectionHeader({ title }: { title: string }) {
-  return (
-    <div className="flex items-center gap-3 w-full">
-      <div className="h-px flex-1 bg-secondary-blue-400/40" />
-      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-secondary-blue-300">
-        {title}
-      </span>
-      <div className="h-px flex-1 bg-secondary-blue-400/40" />
-    </div>
   );
 }

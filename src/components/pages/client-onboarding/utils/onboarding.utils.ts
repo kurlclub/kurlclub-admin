@@ -2,11 +2,7 @@
  * Business logic utilities for onboarding
  * Credential generation, tier management, calculations
  */
-import type {
-  SubscriptionPlan,
-  SubscriptionTier,
-  SubscriptionTierInfo,
-} from '../types';
+import type { OnboardingStatus } from '../types';
 
 export const generateUsername = (gymName: string): string => {
   const sanitized = gymName
@@ -41,124 +37,54 @@ export const generatePassword = (): string => {
     .join('');
 };
 
-export const getGymLimitByTier = (tier: SubscriptionTier): number => {
-  switch (tier) {
-    case 'Starter':
-      return 1;
-    case 'Professional':
-      return 5;
-    case 'Enterprise':
-      return 999;
+export const getStatusLabel = (status: OnboardingStatus): string => {
+  return status
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
+export const getStatusVariant = (
+  status: OnboardingStatus,
+): 'success' | 'warning' | 'info' | 'error' => {
+  switch (status) {
+    case 'completed':
+      return 'success';
+    case 'pending_review':
+    case 'on_hold':
+      return 'warning';
+    case 'in_progress':
+    case 'lead':
+      return 'info';
+    case 'cancelled':
     default:
-      return 1;
+      return 'error';
   }
 };
 
-export const getSubscriptionTierInfo = (
-  tier: SubscriptionTier,
-): SubscriptionTierInfo => {
-  const tiers: Record<SubscriptionTier, SubscriptionTierInfo> = {
-    Starter: {
-      tier: 'Starter',
-      price: 299,
-      maxGyms: 1,
-      features: [
-        'Up to 500 members',
-        '1 location',
-        'Basic reporting',
-        'Email support',
-      ],
-    },
-    Professional: {
-      tier: 'Professional',
-      price: 699,
-      maxGyms: 5,
-      features: [
-        'Up to 2000 members',
-        'Up to 5 locations',
-        'Advanced reporting',
-        'Priority support',
-        'Custom branding',
-      ],
-    },
-    Enterprise: {
-      tier: 'Enterprise',
-      price: 0,
-      maxGyms: 999,
-      features: [
-        'Unlimited members',
-        'Unlimited locations',
-        'Custom integrations',
-        '24/7 dedicated support',
-        'Advanced analytics',
-        'White-label options',
-      ],
-    },
-  };
-  return tiers[tier];
+export const getStatusStep = (
+  status: OnboardingStatus,
+): { step: number; totalSteps: number } => {
+  const totalSteps = 5;
+  switch (status) {
+    case 'lead':
+      return { step: 1, totalSteps };
+    case 'in_progress':
+      return { step: 2, totalSteps };
+    case 'pending_review':
+      return { step: 4, totalSteps };
+    case 'on_hold':
+      return { step: 2, totalSteps };
+    case 'completed':
+    case 'cancelled':
+      return { step: 5, totalSteps };
+    default:
+      return { step: 1, totalSteps };
+  }
 };
 
-export const getSubscriptionPlans = (): SubscriptionPlan[] => {
-  return [
-    {
-      id: 'Starter',
-      name: 'Starter',
-      price: '$299',
-      period: '/month',
-      description: 'Perfect for small gyms',
-      features: [
-        'Up to 500 members',
-        '1 location',
-        'Basic reporting',
-        'Email support',
-      ],
-    },
-    {
-      id: 'Professional',
-      name: 'Professional',
-      price: '$699',
-      period: '/month',
-      description: 'Most popular choice',
-      features: [
-        'Up to 2000 members',
-        'Up to 5 locations',
-        'Advanced reporting',
-        'Priority support',
-        'Custom branding',
-      ],
-      badge: 'Popular',
-    },
-    {
-      id: 'Enterprise',
-      name: 'Enterprise',
-      price: 'Custom',
-      period: 'pricing',
-      description: 'For large networks',
-      features: [
-        'Unlimited members',
-        'Unlimited locations',
-        'Custom integrations',
-        '24/7 dedicated support',
-        'Advanced analytics',
-        'White-label options',
-      ],
-    },
-  ];
-};
-
-export const calculateOnboardingProgress = (
-  currentStep: number,
-  totalSteps: number,
-): number => {
-  return Math.round((currentStep / totalSteps) * 100);
-};
-
-export const getEstimatedTimeRemaining = (
-  currentStep: number,
-  totalSteps: number,
-): string => {
-  const remaining = totalSteps - currentStep;
-  const minutesPerStep = 2.5;
-  const minutes = Math.ceil(remaining * minutesPerStep);
-  return `${minutes}-${minutes + 5} minutes`;
+export const formatOnboardingDate = (value?: string | null): string => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleDateString();
 };

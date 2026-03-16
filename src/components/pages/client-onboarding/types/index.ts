@@ -3,73 +3,100 @@
  * Aligned with backend API structure
  */
 
-export type SubscriptionTier = 'Starter' | 'Professional' | 'Enterprise';
-export type ClientStatus = 'In Progress' | 'Pending Activation' | 'Completed';
+export type OnboardingStatus =
+  | 'lead'
+  | 'in_progress'
+  | 'pending_review'
+  | 'on_hold'
+  | 'completed'
+  | 'cancelled';
 
-/* ── Gym Interface (Matches GymsJson API) ───────────── */
-export interface GymLocation {
-  GymName: string;
-  Location: string;
-  ContactNumber1: string;
-  ContactNumber2: string;
-  Email: string;
-  Status: string;
-  SocialLinks: string[];
+export interface LeadData {
+  gymName: string;
+  gymLocation: string;
+  gymContactNumber: string;
+  country: string;
+  region: string;
 }
 
-export type SubGym = GymLocation; // Alias for backward compatibility if needed
+export interface LeadFormData {
+  gymName: string;
+  gymLocation: string;
+  gymContactNumber: string;
+  country: string;
+  region: string;
+}
 
-export interface OnboardingClient {
+export interface OnboardingRecord {
   id: number;
-  name: string;
-  owner: string;
+  status: OnboardingStatus;
   email: string;
-  phone: string;
-  address: string;
-  city: string;
-  state: string;
-  zipCode?: string;
-  status: ClientStatus;
-  step: number;
-  totalSteps: number;
+  contactName: string;
+  phoneNumber: string;
+  notes: string | null;
+  assignedAdminId: number | null;
+  completedUserId: number | null;
+  portalUsername: string | null;
+  data: LeadData | null;
   createdAt: string;
-  subscriptionTier: SubscriptionTier;
-  subGyms: number;
-  contactNumber: string;
-  tempPassword?: string;
-  username?: string;
+  updatedAt: string;
+  completedAt: string | null;
+}
+
+export interface OnboardingBoardData {
+  lead: OnboardingRecord[];
+  inProgress: OnboardingRecord[];
+  pendingReview: OnboardingRecord[];
+  onHold: OnboardingRecord[];
+  completed: OnboardingRecord[];
+  cancelled: OnboardingRecord[];
 }
 
 /* ── Wizard Data Models ─────────────────────────────── */
 
-export interface ClientInfoData {
-  email: string; // Account Owner Email
-  phoneNumber: string; // Account Owner Phone
-  profilePhotoFile: File | null;
-  profilePhotoPreview?: string;
+export interface LeadDraftData {
+  email: string;
+  contactName: string;
+  phoneNumber: string;
+  notes: string;
+  assignedAdminId: number | null;
+  leadData: LeadFormData;
 }
 
-export interface AccountCreationData {
+export interface AccountSetupData {
   userName: string;
-  password?: string;
+  password: string;
+  email: string;
+  phoneNumber: string;
+  userPhotoFile: File | null;
+  userPhotoPreview: string;
 }
 
-export interface SubscriptionData {
-  tier: SubscriptionTier;
-  billingCycle: 'monthly' | 'annual';
-  setupFee: string;
-  monthlyStudioFee: string;
+export interface SubscriptionSetupData {
+  subscriptionId: string;
+  subscriptionDate: string;
 }
 
-export interface SubGymData {
-  gyms: GymLocation[];
+export interface GymDraft {
+  gymName: string;
+  gymEmail: string;
+  gymLocation: string;
+  gymContactNumber: string;
+  country: string;
+  region: string;
+  gymPhotoFile: File | null;
+  gymPhotoPreview: string;
+}
+
+export interface GymSetupData {
+  gyms: GymDraft[];
 }
 
 export interface OnboardingFormData {
-  clientInfo: ClientInfoData;
-  accountCreation: AccountCreationData;
-  subscription: SubscriptionData;
-  subGyms: SubGymData;
+  lead: LeadDraftData;
+  account: AccountSetupData;
+  subscription: SubscriptionSetupData;
+  gyms: GymSetupData;
 }
 
 /* ── Interfaces ─────────────────────────────────────── */
@@ -83,45 +110,26 @@ export interface OnboardingContextType {
   formData: OnboardingFormData;
   currentStep: number;
   completedSteps: number[];
-  selectedTier: SubscriptionTier;
   errors: ValidationError[];
   isSubmitting: boolean;
+  isSavingDraft: boolean;
+  recordId: number | null;
+  recordStatus: OnboardingStatus | null;
   setFormData: (data: OnboardingFormData) => void;
   setCurrentStep: (step: number) => void;
   completeStep: (step: number) => void;
-  setSelectedTier: (tier: SubscriptionTier) => void;
   setErrors: (errors: ValidationError[]) => void;
   resetForm: () => void;
+  saveDraft: () => Promise<boolean>;
   submitForm: () => Promise<boolean>;
+  registerStepValidator: (
+    step: number,
+    validator: () => Promise<boolean>,
+  ) => () => void;
+  validateStep: (step: number) => Promise<boolean>;
 }
 
 export interface OnboardingWizardProps {
   onClose: () => void;
-  initialClient?: OnboardingClient | null;
-}
-
-export interface ContinueOnboardingProps {
-  clientId: number;
-  clientName: string;
-  currentStep: number;
-  totalSteps: number;
-  subscriptionTier: SubscriptionTier;
-  onComplete: () => void;
-}
-
-export interface SubscriptionPlan {
-  id: SubscriptionTier;
-  name: string;
-  price: string;
-  period: string;
-  description: string;
-  features: string[];
-  badge?: string;
-}
-
-export interface SubscriptionTierInfo {
-  tier: SubscriptionTier;
-  price: number;
-  maxGyms: number;
-  features: string[];
+  initialClient?: OnboardingRecord | null;
 }

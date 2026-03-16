@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   DndContext,
   DragEndEvent,
-  DragOverEvent,
   DragOverlay,
   DragStartEvent,
   PointerSensor,
@@ -29,16 +29,18 @@ import {
   CheckCircle2,
   Clock,
   GripVertical,
-  MapPin,
+  PauseCircle,
   Play,
-  Zap,
+  Users,
+  XCircle,
 } from 'lucide-react';
 
-import type { ClientStatus, OnboardingClient } from '../types';
+import type { OnboardingRecord, OnboardingStatus } from '../types';
+import { getStatusStep } from '../utils';
 
 /* ── Column definitions ─────────────────────────────── */
 interface ColDef {
-  id: ClientStatus;
+  id: OnboardingStatus;
   label: string;
   icon: React.ReactNode;
   countBg: string;
@@ -51,7 +53,18 @@ interface ColDef {
 
 const COLUMNS: ColDef[] = [
   {
-    id: 'In Progress',
+    id: 'lead',
+    label: 'Leads',
+    icon: <Users className="w-3.5 h-3.5" />,
+    countBg: 'bg-sky-500/15',
+    countText: 'text-sky-400',
+    headerBorder: 'border-sky-500/30',
+    dot: 'bg-sky-400',
+    cardAccent: 'hover:border-sky-500/40',
+    progressBar: 'bg-sky-500',
+  },
+  {
+    id: 'in_progress',
     label: 'In Progress',
     icon: <Clock className="w-3.5 h-3.5" />,
     countBg: 'bg-blue-500/15',
@@ -62,9 +75,9 @@ const COLUMNS: ColDef[] = [
     progressBar: 'bg-blue-500',
   },
   {
-    id: 'Pending Activation',
-    label: 'Pending Activation',
-    icon: <Zap className="w-3.5 h-3.5" />,
+    id: 'pending_review',
+    label: 'Pending Review',
+    icon: <PauseCircle className="w-3.5 h-3.5" />,
     countBg: 'bg-amber-500/15',
     countText: 'text-amber-400',
     headerBorder: 'border-amber-500/30',
@@ -73,7 +86,18 @@ const COLUMNS: ColDef[] = [
     progressBar: 'bg-amber-400',
   },
   {
-    id: 'Completed',
+    id: 'on_hold',
+    label: 'On Hold',
+    icon: <PauseCircle className="w-3.5 h-3.5" />,
+    countBg: 'bg-purple-500/15',
+    countText: 'text-purple-400',
+    headerBorder: 'border-purple-500/30',
+    dot: 'bg-purple-400',
+    cardAccent: 'hover:border-purple-500/40',
+    progressBar: 'bg-purple-500',
+  },
+  {
+    id: 'completed',
     label: 'Completed',
     icon: <CheckCircle2 className="w-3.5 h-3.5" />,
     countBg: 'bg-emerald-500/15',
@@ -83,14 +107,25 @@ const COLUMNS: ColDef[] = [
     cardAccent: 'hover:border-emerald-500/40',
     progressBar: 'bg-emerald-500',
   },
+  {
+    id: 'cancelled',
+    label: 'Cancelled',
+    icon: <XCircle className="w-3.5 h-3.5" />,
+    countBg: 'bg-rose-500/15',
+    countText: 'text-rose-400',
+    headerBorder: 'border-rose-500/30',
+    dot: 'bg-rose-400',
+    cardAccent: 'hover:border-rose-500/40',
+    progressBar: 'bg-rose-500',
+  },
 ];
 
 /* ── Props ──────────────────────────────────────────── */
 export interface KanbanBoardProps {
-  clients: OnboardingClient[];
-  onSelectClient: (c: OnboardingClient) => void;
-  onResumeClient: (c: OnboardingClient) => void;
-  getStatusVariant: (s: string) => 'success' | 'warning' | 'info' | 'error';
+  clients: OnboardingRecord[];
+  onSelectClient: (c: OnboardingRecord) => void;
+  onResumeClient: (c: OnboardingRecord) => void;
+  onStatusChange?: (client: OnboardingRecord, status: OnboardingStatus) => void;
 }
 
 /* ── Main Board ─────────────────────────────────────── */
@@ -98,9 +133,14 @@ export function KanbanBoard({
   clients,
   onSelectClient,
   onResumeClient,
+  onStatusChange,
 }: KanbanBoardProps) {
-  const [items, setItems] = useState<OnboardingClient[]>(clients);
+  const [items, setItems] = useState<OnboardingRecord[]>(clients);
   const [activeId, setActiveId] = useState<number | null>(null);
+
+  useEffect(() => {
+    setItems(clients);
+  }, [clients]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -109,47 +149,41 @@ export function KanbanBoard({
   const activeCard =
     activeId !== null ? (items.find((c) => c.id === activeId) ?? null) : null;
 
-  const colItems = (status: ClientStatus) =>
+  const colItems = (status: OnboardingStatus) =>
     items.filter((c) => c.status === status);
-  const colDef = (status: ClientStatus) =>
+  const colDef = (status: OnboardingStatus) =>
     COLUMNS.find((c) => c.id === status)!;
 
   function handleDragStart({ active }: DragStartEvent) {
     setActiveId(active.id as number);
   }
 
-  function handleDragOver({ active, over }: DragOverEvent) {
-    if (!over) return;
-    const activeCard = items.find((c) => c.id === active.id);
-    if (!activeCard) return;
-
-    // Check if over is a column ID directly
-    const overColId = COLUMNS.find((col) => col.id === over.id)?.id;
-
-    if (overColId && overColId !== activeCard.status) {
-      setItems((prev) =>
-        prev.map((c) =>
-          c.id === activeCard.id ? { ...c, status: overColId } : c,
-        ),
-      );
-      return;
-    }
-
-    // Check if over a card
-    const overCard = items.find((c) => c.id === over.id);
-    if (overCard && overCard.status !== activeCard.status) {
-      setItems((prev) =>
-        prev.map((c) =>
-          c.id === activeCard.id ? { ...c, status: overCard.status } : c,
-        ),
-      );
-    }
-  }
-
   function handleDragEnd({ active, over }: DragEndEvent) {
     setActiveId(null);
     if (!over) return;
-    if (active.id !== over.id) {
+
+    const activeCard = items.find((c) => c.id === active.id);
+    if (!activeCard) return;
+
+    const overColumnId = COLUMNS.find((col) => col.id === over.id)?.id;
+    const overCard = items.find((c) => c.id === over.id);
+
+    const nextStatus = overColumnId ?? overCard?.status ?? activeCard.status;
+
+    if (nextStatus !== activeCard.status) {
+      setItems((prev) =>
+        prev.map((c) =>
+          c.id === activeCard.id ? { ...c, status: nextStatus } : c,
+        ),
+      );
+      onStatusChange?.(activeCard, nextStatus);
+    }
+
+    if (
+      overCard &&
+      activeCard.status === overCard.status &&
+      active.id !== over.id
+    ) {
       setItems((prev) => {
         const oldIdx = prev.findIndex((c) => c.id === active.id);
         const newIdx = prev.findIndex((c) => c.id === over.id);
@@ -163,7 +197,6 @@ export function KanbanBoard({
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
       {/* Horizontal scroll container for columns */}
@@ -208,10 +241,10 @@ function KanbanColumn({
   onResumeClient,
 }: {
   col: ColDef;
-  cards: OnboardingClient[];
+  cards: OnboardingRecord[];
   colIdx: number;
-  onSelectClient: (c: OnboardingClient) => void;
-  onResumeClient: (c: OnboardingClient) => void;
+  onSelectClient: (c: OnboardingRecord) => void;
+  onResumeClient: (c: OnboardingRecord) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: col.id,
@@ -301,10 +334,10 @@ function SortableCard({
   onView,
   onResume,
 }: {
-  client: OnboardingClient;
+  client: OnboardingRecord;
   col: ColDef;
-  onView: (c: OnboardingClient) => void;
-  onResume: (c: OnboardingClient) => void;
+  onView: (c: OnboardingRecord) => void;
+  onResume: (c: OnboardingRecord) => void;
   isDragging: boolean;
 }) {
   const {
@@ -348,21 +381,34 @@ function KanbanCard({
   isDragging,
   dragListeners,
 }: {
-  client: OnboardingClient;
+  client: OnboardingRecord;
   col: ColDef;
-  onView: (c: OnboardingClient) => void;
-  onResume: (c: OnboardingClient) => void;
+  onView: (c: OnboardingRecord) => void;
+  onResume: (c: OnboardingRecord) => void;
   isDragging: boolean;
   dragListeners?: ReturnType<typeof useSortable>['listeners'];
 }) {
-  const pct = Math.round((client.step / client.totalSteps) * 100);
-
-  const tierBadge: Record<string, string> = {
-    Starter: 'bg-blue-500/10 text-blue-400 border-blue-500/25',
-    Professional:
-      'bg-primary-green-500/10 text-primary-green-400 border-primary-green-500/25',
-    Enterprise: 'bg-purple-500/10 text-purple-400 border-purple-500/25',
-  };
+  const { step, totalSteps } = getStatusStep(client.status);
+  const pct = Math.round((step / totalSteps) * 100);
+  const metaBadge =
+    'bg-primary-green-500/10 text-primary-green-400 border-primary-green-500/25';
+  const primaryLabel =
+    client.data?.gymName || client.contactName || client.email || '';
+  const secondaryLabel = client.data?.gymName
+    ? client.contactName || client.email || ''
+    : client.contactName
+      ? client.email || ''
+      : '';
+  const createdAt = client.createdAt ? new Date(client.createdAt) : null;
+  const createdLabel =
+    createdAt && !Number.isNaN(createdAt.getTime())
+      ? createdAt.toLocaleDateString(undefined, {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        })
+      : '';
+  const showEmailLine = client.email && client.email !== primaryLabel;
 
   return (
     <motion.div
@@ -381,37 +427,44 @@ function KanbanCard({
         <div
           className={`w-9 h-9 rounded-xl flex items-center justify-center text-[11px] font-bold shrink-0 ${col.countBg} ${col.countText} border ${col.headerBorder}`}
         >
-          {client.name.substring(0, 2).toUpperCase()}
+          {primaryLabel ? primaryLabel.substring(0, 2).toUpperCase() : ''}
         </div>
 
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-white text-sm leading-tight truncate">
-            {client.name}
-          </p>
-          <p className="text-[11px] text-secondary-blue-200 truncate mt-0.5">
-            {client.owner}
-          </p>
+          {primaryLabel ? (
+            <p className="font-semibold text-white text-sm leading-tight truncate">
+              {primaryLabel}
+            </p>
+          ) : null}
+          {secondaryLabel ? (
+            <p className="text-[11px] text-secondary-blue-200 truncate mt-0.5">
+              {secondaryLabel}
+            </p>
+          ) : null}
         </div>
 
         {/* Drag handle */}
         <button
           {...dragListeners}
           className="text-secondary-blue-400 hover:text-secondary-blue-200 cursor-grab active:cursor-grabbing mt-0.5 touch-none"
+          type="button"
         >
           <GripVertical className="w-4 h-4" />
         </button>
       </div>
 
       {/* Email */}
-      <p className="text-[11px] text-secondary-blue-300 mb-3 truncate">
-        {client.email}
-      </p>
+      {showEmailLine ? (
+        <p className="text-[11px] text-secondary-blue-300 mb-3 truncate">
+          {client.email}
+        </p>
+      ) : null}
 
       {/* Progress */}
       <div className="mb-3">
         <div className="flex items-center justify-between mb-1.5">
           <span className="text-[10px] text-secondary-blue-400 font-medium">
-            Step {client.step} of {client.totalSteps}
+            Step {step} of {totalSteps}
           </span>
           <span className={`text-[10px] font-bold ${col.countText}`}>
             {pct}%
@@ -427,24 +480,20 @@ function KanbanCard({
         </div>
       </div>
 
-      {/* Footer: tier + meta + actions */}
+      {/* Footer: meta + actions */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <span
-            className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${tierBadge[client.subscriptionTier]}`}
-          >
-            {client.subscriptionTier}
-          </span>
-          {client.subGyms > 0 && (
-            <span className="flex items-center gap-0.5 text-[10px] text-secondary-blue-300">
-              <MapPin className="w-2.5 h-2.5" />
-              {client.subGyms}
+          {client.data?.country ? (
+            <span
+              className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${metaBadge}`}
+            >
+              {client.data.country}
             </span>
-          )}
+          ) : null}
         </div>
 
         <div className="flex items-center gap-1">
-          {client.status !== 'Completed' && (
+          {client.status !== 'completed' && client.status !== 'cancelled' && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -452,6 +501,7 @@ function KanbanCard({
               }}
               className={`p-1.5 rounded-lg ${col.countBg} ${col.countText} hover:opacity-80 transition-opacity`}
               title="Resume"
+              type="button"
             >
               <Play className="w-2.5 h-2.5 fill-current" />
             </button>
@@ -463,6 +513,7 @@ function KanbanCard({
             }}
             className="p-1.5 rounded-lg bg-secondary-blue-400 text-secondary-blue-100 hover:bg-secondary-blue-300 hover:text-white transition-colors"
             title="View"
+            type="button"
           >
             <ArrowRight className="w-2.5 h-2.5" />
           </button>
@@ -470,25 +521,29 @@ function KanbanCard({
       </div>
 
       {/* Date */}
-      <div className="flex items-center gap-1 mt-3 pt-2.5 border-t border-secondary-blue-400">
-        <Calendar className="w-2.5 h-2.5 text-secondary-blue-400" />
-        <span className="text-[10px] text-secondary-blue-400">
-          {new Date(client.createdAt).toLocaleDateString('en-IN', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-          })}
-        </span>
-        {client.subGyms > 0 && (
-          <>
-            <span className="text-secondary-blue-500 mx-1">·</span>
-            <Building2 className="w-2.5 h-2.5 text-secondary-blue-400" />
-            <span className="text-[10px] text-secondary-blue-400">
-              {client.subGyms} gym{client.subGyms > 1 ? 's' : ''}
-            </span>
-          </>
-        )}
-      </div>
+      {(createdLabel || client.data?.gymLocation) && (
+        <div className="flex items-center gap-1 mt-3 pt-2.5 border-t border-secondary-blue-400">
+          {createdLabel ? (
+            <>
+              <Calendar className="w-2.5 h-2.5 text-secondary-blue-400" />
+              <span className="text-[10px] text-secondary-blue-400">
+                {createdLabel}
+              </span>
+            </>
+          ) : null}
+          {client.data?.gymLocation ? (
+            <>
+              {createdLabel ? (
+                <span className="text-secondary-blue-500 mx-1">·</span>
+              ) : null}
+              <Building2 className="w-2.5 h-2.5 text-secondary-blue-400" />
+              <span className="text-[10px] text-secondary-blue-400">
+                {client.data.gymLocation}
+              </span>
+            </>
+          ) : null}
+        </div>
+      )}
     </motion.div>
   );
 }
