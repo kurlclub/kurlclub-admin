@@ -42,8 +42,9 @@ export function KanbanColumn({
     >
       {/* Column header */}
       <div
-        className={`relative rounded-2xl border ${col.accentBorder} bg-secondary-blue-600/70 px-3.5 py-3`}
+        className={`sticky top-0 z-20 rounded-2xl border ${col.accentBorder} bg-secondary-blue-700/35 backdrop-blur-lg px-3.5 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.25)] overflow-hidden`}
       >
+        <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-white/8 to-transparent" />
         <div
           className={`absolute left-0 top-0 h-full w-1.5 rounded-l-2xl ${col.accentSolid}`}
         />
@@ -74,12 +75,13 @@ export function KanbanColumn({
       {/* Card list */}
       <div
         ref={setNodeRef}
-        className={`flex flex-col gap-3 min-h-120 rounded-2xl border border-secondary-blue-500/30 bg-secondary-blue-700/30 p-2.5 transition-all ${
+        className={`relative flex flex-col gap-3 min-h-120 rounded-2xl border border-secondary-blue-400/25 bg-secondary-blue-700/20 backdrop-blur-md p-2.5 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] ${
           isOver
-            ? `bg-secondary-blue-600/60 ring-2 ${col.accentRing} border-secondary-blue-300/40`
+            ? `bg-secondary-blue-600/45 ring-2 ${col.accentRing} border-secondary-blue-300/60`
             : ''
         }`}
       >
+        <div className="pointer-events-none absolute inset-0 rounded-2xl bg-linear-to-b from-white/6 to-transparent" />
         <SortableContext
           id={col.id}
           items={cards.map((c) => c.id)}
@@ -98,7 +100,7 @@ export function KanbanColumn({
         </SortableContext>
 
         {cards.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full rounded-xl border border-dashed border-secondary-blue-400/40 bg-secondary-blue-800/40 py-12 text-center">
+          <div className="flex flex-col items-center justify-center h-full rounded-xl border border-dashed border-secondary-blue-400/40 bg-secondary-blue-800/25 backdrop-blur-md py-12 text-center">
             <div
               className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-3 border ${col.accentBorder} ${col.accentBg} ${col.accentText}`}
             >
@@ -141,7 +143,7 @@ function SortableCard({
   const style: CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.35 : 1,
+    opacity: isDragging ? 0.12 : 1,
   };
 
   return (

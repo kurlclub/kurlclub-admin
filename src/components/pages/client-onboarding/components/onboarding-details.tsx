@@ -13,11 +13,7 @@ import {
   User,
 } from 'lucide-react';
 
-import {
-  formatOnboardingDate,
-  getStatusLabel,
-  getStatusVariant,
-} from '@/lib/utils/onboarding.utils';
+import { getStatusLabel, getStatusVariant } from '@/lib/utils/onboarding.utils';
 import type { OnboardingRecord } from '@/types/onboarding';
 
 interface OnboardingDetailsProps {
@@ -25,6 +21,20 @@ interface OnboardingDetailsProps {
 }
 
 export function OnboardingDetails({ client }: OnboardingDetailsProps) {
+  const formatLocalDateTime = (value?: string | null) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleString(undefined, {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header with Status */}
@@ -106,15 +116,15 @@ export function OnboardingDetails({ client }: OnboardingDetailsProps) {
         <div className="space-y-2 text-sm">
           <InfoRow
             label="Created"
-            value={formatOnboardingDate(client.createdAt)}
+            value={formatLocalDateTime(client.createdAt)}
           />
           <InfoRow
             label="Updated"
-            value={formatOnboardingDate(client.updatedAt)}
+            value={formatLocalDateTime(client.updatedAt)}
           />
           <InfoRow
             label="Completed"
-            value={formatOnboardingDate(client.completedAt)}
+            value={formatLocalDateTime(client.completedAt)}
             valueClass={
               client.completedAt
                 ? 'text-primary-green-400'
