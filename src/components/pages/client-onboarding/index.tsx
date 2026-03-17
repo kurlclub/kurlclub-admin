@@ -16,17 +16,20 @@ import {
 
 import { StudioLayout } from '@/components/shared/layout';
 import {
+  formatOnboardingDate,
+  getStatusLabel,
+} from '@/lib/utils/onboarding.utils';
+import {
   flattenBoard,
   useOnboardingBoard,
   useOnboardingRecord,
   useUpdateOnboardingStatus,
 } from '@/services/client-onboarding';
+import type { OnboardingRecord, OnboardingStatus } from '@/types/onboarding';
 
 import { OnboardingDetails, OnboardingWizard } from './components';
 import { KanbanBoard } from './components/kanban-board';
 import { OnboardingProvider } from './contexts';
-import type { OnboardingRecord, OnboardingStatus } from './types';
-import { formatOnboardingDate, getStatusLabel } from './utils';
 
 /* ── Root Module ─────────────────────────────────────── */
 
@@ -61,21 +64,14 @@ export function OnboardingModule() {
   };
 
   const totals = useMemo(() => {
-    if (!board || !clients) return null;
-    const totalLeads = board.lead.length;
-    const totalInProgress = board.inProgress.length;
-    const totalPendingReview = board.pendingReview.length;
-    const totalCompleted = board.completed.length;
-    const completionRate = clients.length
-      ? Math.round((totalCompleted / clients.length) * 100)
-      : 0;
+    if (!board) return null;
     return {
-      totalLeads,
-      totalInProgress,
-      totalPendingReview,
-      completionRate,
+      totalLeads: board.leadCount ?? 0,
+      totalInProgress: board.inProgressCount ?? 0,
+      totalPendingReview: board.pendingReviewCount ?? 0,
+      completionRate: board.completionRatePercentage ?? 0,
     };
-  }, [board, clients]);
+  }, [board]);
 
   const detailClient = selectedDetails ?? null;
   const detailCreatedAt = detailClient
@@ -189,7 +185,15 @@ export function OnboardingModule() {
         isOpen={!!selectedClient}
         onClose={(open: boolean) => !open && setSelectedClient(null)}
         width="lg"
-        title={detailClient?.data?.gymName || detailClient?.contactName || ''}
+        title={
+          detailClient?.data?.gymName ? (
+            detailClient.data.gymName
+          ) : detailClient?.contactName ? (
+            detailClient.contactName
+          ) : (
+            <span className="sr-only">Client onboarding details</span>
+          )
+        }
         description={detailDescription}
         footer={
           detailClient ? (
@@ -215,7 +219,10 @@ export function OnboardingModule() {
         }
       >
         {detailClient ? (
-          <OnboardingDetails client={detailClient} />
+          <OnboardingDetails
+            client={detailClient}
+            onDeleted={() => setSelectedClient(null)}
+          />
         ) : isDetailLoading ? (
           <div className="flex justify-center py-16">
             <Spinner />

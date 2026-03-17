@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { api } from '@/lib/api';
 import type {
   GymDraft,
   LeadData,
@@ -7,8 +8,7 @@ import type {
   OnboardingFormData,
   OnboardingRecord,
   OnboardingStatus,
-} from '@/components/pages/client-onboarding/types';
-import { api } from '@/lib/api';
+} from '@/types/onboarding';
 
 type ApiEnvelope<T> = {
   success?: boolean;
@@ -44,6 +44,7 @@ const normalizeLeadData = (raw: unknown): LeadData | null => {
   const parsed = value as Record<string, unknown>;
 
   return {
+    ...parsed,
     gymName: typeof parsed.gymName === 'string' ? parsed.gymName : '',
     gymLocation:
       typeof parsed.gymLocation === 'string' ? parsed.gymLocation : '',
@@ -100,6 +101,10 @@ const normalizeBoard = (
     cancelled: payload.cancelled.map((record) =>
       normalizeRecord(record, 'cancelled'),
     ),
+    leadCount: payload.leadCount ?? 0,
+    inProgressCount: payload.inProgressCount ?? 0,
+    pendingReviewCount: payload.pendingReviewCount ?? 0,
+    completionRatePercentage: payload.completionRatePercentage ?? 0,
   };
 };
 
@@ -189,6 +194,11 @@ export const updateOnboardingStatus = async (
   return normalizeRecord(unwrap(response));
 };
 
+export const deleteOnboardingRecord = async (id: number) => {
+  await api.delete(`/ClientOnboarding/${id}`);
+  return true;
+};
+
 const buildGymPayload = (gym: GymDraft) => ({
   gymName: gym.gymName,
   gymEmail: gym.gymEmail,
@@ -200,20 +210,14 @@ const buildGymPayload = (gym: GymDraft) => ({
 
 export const buildCompleteFormData = (payload: OnboardingFormData) => {
   const formData = new FormData();
-  const { account, subscription, gyms, lead } = payload;
+  const { account, subscription, gyms } = payload;
 
   formData.append('UserName', account.userName);
-  formData.append('Email', account.email || lead.email);
-  formData.append('Password', account.password || '');
-  formData.append('PhoneNumber', account.phoneNumber || lead.phoneNumber);
-
-  if (subscription.subscriptionId) {
-    formData.append('SubscriptionId', subscription.subscriptionId);
-  }
-
-  if (subscription.subscriptionDate) {
-    formData.append('SubscriptionDate', subscription.subscriptionDate);
-  }
+  formData.append('Email', account.email);
+  formData.append('Password', account.password);
+  formData.append('PhoneNumber', account.phoneNumber);
+  formData.append('SubscriptionId', subscription.subscriptionId);
+  formData.append('SubscriptionDate', subscription.subscriptionDate);
 
   if (account.userPhotoFile) {
     formData.append('UserPhoto', account.userPhotoFile);
@@ -226,13 +230,10 @@ export const buildCompleteFormData = (payload: OnboardingFormData) => {
     );
   }
 
-  const gymPhotos = gyms.gyms
-    .map((gym) => gym.gymPhotoFile)
-    .filter((photo): photo is File => photo instanceof File);
-
-  if (gymPhotos.length > 0) {
-    gymPhotos.forEach((photo) => {
-      formData.append('GymPhotos', photo);
+  if (gyms.gyms.length > 0) {
+    gyms.gyms.forEach((gym) => {
+      if (!(gym.gymPhotoFile instanceof File)) return;
+      formData.append('GymPhotos', gym.gymPhotoFile);
     });
   }
 
@@ -322,6 +323,17 @@ export const useCompleteOnboarding = () => {
     }) => completeOnboarding(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: BOARD_QUERY_KEY });
+    },
+  });
+};
+
+export const useDeleteOnboardingRecord = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => deleteOnboardingRecord(id),
+    onSuccess: (_result, id) => {
+      queryClient.invalidateQueries({ queryKey: BOARD_QUERY_KEY });
+      queryClient.removeQueries({ queryKey: ['client-onboarding', id] });
     },
   });
 };

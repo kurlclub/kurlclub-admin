@@ -1,6 +1,12 @@
 'use client';
 
-import React, { createContext, useContext, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from 'react';
 
 export interface ApiMeta {
   timestamp: string;
@@ -27,44 +33,50 @@ export const ApiMetaProvider: React.FC<{ children: React.ReactNode }> = ({
   const [lastMeta, setLastMeta] = useState<ApiMeta | null>(null);
   const [metaHistory, setMetaHistory] = useState<ApiMeta[]>([]);
 
-  const addToHistory = (meta: ApiMeta) => {
+  const addToHistory = useCallback((meta: ApiMeta) => {
     setMetaHistory((prev) => {
       const newHistory = [meta, ...prev];
       return newHistory.slice(0, MAX_HISTORY_SIZE);
     });
-  };
+  }, []);
 
-  const clearHistory = () => {
+  const clearHistory = useCallback(() => {
     setMetaHistory([]);
-  };
+  }, []);
 
-  const handleSetLastMeta = (meta: ApiMeta | null) => {
-    setLastMeta(meta);
-    if (meta) {
-      addToHistory(meta);
+  const handleSetLastMeta = useCallback(
+    (meta: ApiMeta | null) => {
+      setLastMeta(meta);
+      if (meta) {
+        addToHistory(meta);
 
-      // Log to console in development
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[API Meta]', {
-          timestamp: meta.timestamp,
-          apiVersion: meta.apiVersion,
-          traceId: meta.traceId,
-          requestId: meta.requestId,
-        });
+        // Log to console in development
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[API Meta]', {
+            timestamp: meta.timestamp,
+            apiVersion: meta.apiVersion,
+            traceId: meta.traceId,
+            requestId: meta.requestId,
+          });
+        }
       }
-    }
-  };
+    },
+    [addToHistory],
+  );
+
+  const contextValue = useMemo(
+    () => ({
+      lastMeta,
+      setLastMeta: handleSetLastMeta,
+      metaHistory,
+      addToHistory,
+      clearHistory,
+    }),
+    [addToHistory, clearHistory, handleSetLastMeta, lastMeta, metaHistory],
+  );
 
   return (
-    <ApiMetaContext.Provider
-      value={{
-        lastMeta,
-        setLastMeta: handleSetLastMeta,
-        metaHistory,
-        addToHistory,
-        clearHistory,
-      }}
-    >
+    <ApiMetaContext.Provider value={contextValue}>
       {children}
     </ApiMetaContext.Provider>
   );

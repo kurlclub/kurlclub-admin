@@ -2,7 +2,7 @@
 
 import type React from 'react';
 
-import { InfoBadge } from '@kurlclub/ui-components';
+import { Button, InfoBadge, useAppDialog } from '@kurlclub/ui-components';
 import {
   Building2,
   Calendar,
@@ -13,25 +13,72 @@ import {
   User,
 } from 'lucide-react';
 
-import type { OnboardingRecord } from '../types';
-import {
-  formatOnboardingDate,
-  getStatusLabel,
-  getStatusVariant,
-} from '../utils';
+import { getStatusLabel, getStatusVariant } from '@/lib/utils/onboarding.utils';
+import { useAuth } from '@/providers/auth-provider';
+import { useDeleteOnboardingRecord } from '@/services/client-onboarding';
+import type { OnboardingRecord } from '@/types/onboarding';
 
 interface OnboardingDetailsProps {
   client: OnboardingRecord;
+  onDeleted?: () => void;
 }
 
-export function OnboardingDetails({ client }: OnboardingDetailsProps) {
+export function OnboardingDetails({
+  client,
+  onDeleted,
+}: OnboardingDetailsProps) {
+  const { user } = useAuth();
+  const { showConfirm } = useAppDialog();
+  const canDelete = user?.userRole === 'super_admin';
+  const deleteMutation = useDeleteOnboardingRecord();
+
+  const formatLocalDateTime = (value?: string | null) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleString(undefined, {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  };
+
+  const handleDelete = () => {
+    if (!canDelete || deleteMutation.isPending) return;
+    showConfirm({
+      title: 'Delete onboarding record?',
+      description:
+        'This action cannot be undone. This will permanently remove the record.',
+      variant: 'destructive',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      onConfirm: async () => {
+        await deleteMutation.mutateAsync(client.id);
+        onDeleted?.();
+      },
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header with Status */}
-      <div className="flex items-center gap-2 -mt-2">
+      <div className="flex items-center justify-between gap-2 -mt-2">
         <InfoBadge variant={getStatusVariant(client.status)}>
           {getStatusLabel(client.status)}
         </InfoBadge>
+        {canDelete ? (
+          <Button
+            variant="outline"
+            onClick={handleDelete}
+            disabled={deleteMutation.isPending}
+            className="h-8 border-alert-red-400/60 text-alert-red-200 hover:bg-alert-red-500/10 hover:text-alert-red-100"
+          >
+            {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+          </Button>
+        ) : null}
       </div>
 
       {/* Lead summary */}
@@ -106,15 +153,15 @@ export function OnboardingDetails({ client }: OnboardingDetailsProps) {
         <div className="space-y-2 text-sm">
           <InfoRow
             label="Created"
-            value={formatOnboardingDate(client.createdAt)}
+            value={formatLocalDateTime(client.createdAt)}
           />
           <InfoRow
             label="Updated"
-            value={formatOnboardingDate(client.updatedAt)}
+            value={formatLocalDateTime(client.updatedAt)}
           />
           <InfoRow
             label="Completed"
-            value={formatOnboardingDate(client.completedAt)}
+            value={formatLocalDateTime(client.completedAt)}
             valueClass={
               client.completedAt
                 ? 'text-primary-green-400'

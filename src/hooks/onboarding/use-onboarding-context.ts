@@ -6,8 +6,8 @@
  */
 import { useContext } from 'react';
 
-import { OnboardingContext } from '../contexts';
-import type { OnboardingContextType } from '../types';
+import { OnboardingContext } from '@/components/pages/client-onboarding/contexts';
+import type { OnboardingContextType } from '@/types/onboarding';
 
 export function useOnboardingContext(): OnboardingContextType {
   const context = useContext(OnboardingContext);

@@ -1,4 +1,4 @@
-export * from './steps';
-export { OnboardingWizard } from './onboarding-wizard';
-export { StepWrapper } from './stepper-wrapper';
+export * from './onboarding-steps/steps';
+export { OnboardingWizard } from './onboarding-steps';
+export { StepWrapper } from './onboarding-steps/stepper-wrapper';
 export { OnboardingDetails } from './onboarding-details';

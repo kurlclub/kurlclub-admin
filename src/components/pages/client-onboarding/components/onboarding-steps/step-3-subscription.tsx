@@ -12,21 +12,24 @@ import {
 import { CreditCard } from 'lucide-react';
 import { useForm, useWatch } from 'react-hook-form';
 
+import { useOnboardingContext } from '@/hooks/onboarding';
+import { useAdminFormData } from '@/hooks/use-admin-form-data';
 import { subscriptionSetupSchema } from '@/schemas/onboarding.schema';
-import { useSubscriptions } from '@/services/subscription';
-import type { Subscription } from '@/types/subscription';
+import type { SubscriptionSetupData } from '@/types/onboarding';
 
-import { useOnboardingContext } from '../../hooks';
-import type { SubscriptionSetupData } from '../../types';
-import { StepWrapper } from '../stepper-wrapper';
+import { StepWrapper } from './stepper-wrapper';
 
-const resolveSubscriptions = (
-  payload: Subscription[] | { data?: Subscription[] } | undefined | null,
-): Subscription[] => {
-  if (!payload) return [];
-  if (Array.isArray(payload)) return payload;
-  if (Array.isArray(payload.data)) return payload.data;
-  return [];
+type SubscriptionOption = {
+  id: number;
+  name: string;
+  subtitle?: string;
+  badge?: string;
+  monthlyPrice?: number;
+  limits?: {
+    maxClubs?: number;
+    maxMembers?: number;
+    maxStaffs?: number;
+  };
 };
 
 const isSubscriptionEqual = (
@@ -58,11 +61,10 @@ export function OnboardingStep3() {
     defaultValues: subscription,
   });
   const watchedSubscription = useWatch({ control: form.control });
-  const { data: subscriptionResponse, isLoading } = useSubscriptions();
-
-  const subscriptions = useMemo(
-    () => resolveSubscriptions(subscriptionResponse),
-    [subscriptionResponse],
+  const { adminFormData, loading: isLoading } = useAdminFormData();
+  const subscriptions = useMemo<SubscriptionOption[]>(
+    () => adminFormData?.subscriptionPlans ?? [],
+    [adminFormData?.subscriptionPlans],
   );
 
   useEffect(() => {
@@ -138,6 +140,14 @@ export function OnboardingStep3() {
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {subscriptions.map((plan) => {
                     const isSelected = selectedId === plan.id;
+                    const hasPricing =
+                      typeof plan.monthlyPrice === 'number' &&
+                      Number.isFinite(plan.monthlyPrice);
+                    const hasLimits =
+                      plan.limits &&
+                      typeof plan.limits.maxClubs === 'number' &&
+                      typeof plan.limits.maxMembers === 'number' &&
+                      typeof plan.limits.maxStaffs === 'number';
                     return (
                       <button
                         key={plan.id}
@@ -165,29 +175,43 @@ export function OnboardingStep3() {
                               <p className="text-[11px] text-secondary-blue-200 mt-0.5 line-clamp-1">
                                 {plan.subtitle}
                               </p>
-                            ) : null}
+                            ) : (
+                              <p className="text-[11px] text-secondary-blue-300 mt-0.5">
+                                Subscription plan
+                              </p>
+                            )}
                           </div>
                           <div className="text-right">
-                            <p className="text-lg font-bold text-primary-green-400 leading-none">
-                              ₹{plan.monthlyPrice}
-                            </p>
-                            <p className="text-[10px] text-secondary-blue-300 uppercase tracking-[0.2em] mt-1">
-                              Monthly
-                            </p>
+                            {hasPricing ? (
+                              <>
+                                <p className="text-lg font-bold text-primary-green-400 leading-none">
+                                  ₹{plan.monthlyPrice}
+                                </p>
+                                <p className="text-[10px] text-secondary-blue-300 uppercase tracking-[0.2em] mt-1">
+                                  Monthly
+                                </p>
+                              </>
+                            ) : (
+                              <p className="text-[10px] text-secondary-blue-300 uppercase tracking-[0.2em] mt-1">
+                                Plan
+                              </p>
+                            )}
                           </div>
                         </div>
 
-                        <div className="mt-3 flex flex-wrap gap-2 text-[10px] text-secondary-blue-300">
-                          <span className="rounded-full bg-secondary-blue-500/60 px-2 py-0.5">
-                            Clubs {plan.limits.maxClubs}
-                          </span>
-                          <span className="rounded-full bg-secondary-blue-500/60 px-2 py-0.5">
-                            Members {plan.limits.maxMembers}
-                          </span>
-                          <span className="rounded-full bg-secondary-blue-500/60 px-2 py-0.5">
-                            Staff {plan.limits.maxStaffs}
-                          </span>
-                        </div>
+                        {hasLimits ? (
+                          <div className="mt-3 flex flex-wrap gap-2 text-[10px] text-secondary-blue-300">
+                            <span className="rounded-full bg-secondary-blue-500/60 px-2 py-0.5">
+                              Clubs {plan.limits?.maxClubs}
+                            </span>
+                            <span className="rounded-full bg-secondary-blue-500/60 px-2 py-0.5">
+                              Members {plan.limits?.maxMembers}
+                            </span>
+                            <span className="rounded-full bg-secondary-blue-500/60 px-2 py-0.5">
+                              Staff {plan.limits?.maxStaffs}
+                            </span>
+                          </div>
+                        ) : null}
                       </button>
                     );
                   })}
@@ -206,6 +230,7 @@ export function OnboardingStep3() {
               floating
               showYearSelector
               showPresets={false}
+              mandatory
             />
           </div>
         </form>

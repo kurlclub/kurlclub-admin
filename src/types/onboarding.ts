@@ -17,6 +17,7 @@ export interface LeadData {
   gymContactNumber: string;
   country: string;
   region: string;
+  [key: string]: unknown;
 }
 
 export interface LeadFormData {
@@ -50,6 +51,10 @@ export interface OnboardingBoardData {
   onHold: OnboardingRecord[];
   completed: OnboardingRecord[];
   cancelled: OnboardingRecord[];
+  leadCount: number;
+  inProgressCount: number;
+  pendingReviewCount: number;
+  completionRatePercentage: number;
 }
 
 /* ── Wizard Data Models ─────────────────────────────── */
@@ -129,7 +134,15 @@ export interface OnboardingContextType {
   validateStep: (step: number) => Promise<boolean>;
 }
 
-export interface OnboardingWizardProps {
-  onClose: () => void;
-  initialClient?: OnboardingRecord | null;
+export interface ColDef {
+  id: OnboardingStatus;
+  label: string;
+  description: string;
+  icon: React.ReactNode;
+  accentText: string;
+  accentBg: string;
+  accentBorder: string;
+  accentSolid: string;
+  accentRing: string;
+  cardBorder: string;
 }
