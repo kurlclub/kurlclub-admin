@@ -28,7 +28,7 @@ export const AuthWrapper = ({
   const { title = '', description = '' } = header;
 
   return (
-    <div className="w-full max-w-full sm:max-w-[500px] md:max-w-[60%] md:min-w-[400px]">
+    <div className="w-full sm:max-w-[60%] md:max-w-100">
       <AuthHeader authTitle={title} authDesc={description} />
       <div className="">{children}</div>
       {(linkUrl || onFooterClick) && (
