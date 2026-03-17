@@ -169,7 +169,7 @@ export function OnboardingDetails({
             }
           />
           <InfoRow
-            label="Assigned Admin"
+            label="Assigned Team Member"
             value={
               client.assignedAdminId !== null &&
               client.assignedAdminId !== undefined

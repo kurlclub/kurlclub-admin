@@ -5,7 +5,7 @@ import { resolveRouteParams } from '@/lib/route-params';
 
 export const metadata: Metadata = {
   title: 'Gym Members - KurlClub Admin',
-  description: 'Gym member directory',
+  description: 'Member directory for client gyms',
 };
 
 export default async function GymMembersRoute({

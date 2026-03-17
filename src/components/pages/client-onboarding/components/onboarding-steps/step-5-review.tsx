@@ -51,7 +51,7 @@ export function OnboardingStep5() {
                 icon={<Phone className="w-3.5 h-3.5" />}
               />
               <InfoRow
-                label="Assigned Admin"
+                label="Assigned Team Member"
                 value={
                   lead.assignedAdminId !== null &&
                   lead.assignedAdminId !== undefined
@@ -99,7 +99,7 @@ export function OnboardingStep5() {
                 {account.userPhotoPreview ? (
                   <Image
                     src={account.userPhotoPreview}
-                    alt="Owner"
+                    alt="Account Owner"
                     width={64}
                     height={64}
                     className="w-full h-full object-cover"
@@ -128,7 +128,7 @@ export function OnboardingStep5() {
             </div>
             <div className="p-3 rounded-2xl bg-secondary-blue-600/40 border border-secondary-blue-400/40 text-xs text-secondary-blue-200 flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-primary-green-400" />
-              Temporary password will be sent to the owner&apos;s email.
+              Temporary password will be sent to the account owner&apos;s email.
             </div>
           </div>
 

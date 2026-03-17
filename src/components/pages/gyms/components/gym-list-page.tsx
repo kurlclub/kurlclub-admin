@@ -127,7 +127,7 @@ export function GymListPage() {
             <div>
               <h1 className="text-2xl font-bold text-white">Gyms</h1>
               <p className="text-sm text-secondary-blue-200 mt-1">
-                Manage gym locations and assignments
+                Manage client gym locations and assignments
               </p>
             </div>
             <Button onClick={() => setIsCreating(true)} className="gap-2">

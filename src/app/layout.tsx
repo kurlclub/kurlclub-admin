@@ -12,8 +12,37 @@ const figtree = localFont({
 });
 
 export const metadata: Metadata = {
-  title: 'Kurl Club Admin',
-  description: 'Admin dashboard for Kurl Club',
+  title: {
+    template: '%s | KurlClub Admin',
+    default: 'KurlClub Admin',
+  },
+  description: 'Internal CRM for the KurlClub team',
+  applicationName: 'KurlClub Admin',
+  appleWebApp: {
+    title: 'KurlClub',
+    capable: true,
+    statusBarStyle: 'black-translucent',
+  },
+  openGraph: {
+    title: 'KurlClub Admin',
+    description: 'Internal CRM for the KurlClub team',
+    siteName: 'KurlClub Admin',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'KurlClub Admin',
+    description: 'Internal CRM for the KurlClub team',
+  },
+  icons: {
+    icon: ['/favicon.ico', '/icon.svg'],
+    apple: '/apple-icon.png',
+  },
+  manifest: '/manifest.json',
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function RootLayout({
@@ -23,7 +52,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${figtree.variable} bg-secondary-blue-500 antialiased`}>
+      <body
+        className={`${figtree.className} ${figtree.variable} bg-secondary-blue-500 antialiased`}
+      >
         <AppProviders>
           <AppLayout>{children}</AppLayout>
         </AppProviders>

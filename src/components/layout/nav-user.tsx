@@ -24,8 +24,8 @@ export function NavUser() {
   const { user, logout } = useAuth();
   const router = useRouter();
 
-  const userName = user?.userName || 'Admin User';
-  const userEmail = user?.userEmail || 'admin@kurlclub.com';
+  const userName = user?.userName || 'Team Member';
+  const userEmail = user?.userEmail || 'team@kurlclub.com';
   const avatarStyle = getAvatarColor(userName);
   const profileSrc = getProfilePictureSrc(
     null,

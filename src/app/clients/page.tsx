@@ -4,7 +4,7 @@ import { ClientListPage } from '@/components/pages/clients';
 
 export const metadata: Metadata = {
   title: 'Clients - KurlClub Admin',
-  description: 'Manage clients and subscriptions',
+  description: 'Manage client accounts and subscriptions in the internal CRM',
 };
 
 export default function ClientsPage() {

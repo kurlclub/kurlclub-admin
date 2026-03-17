@@ -120,7 +120,7 @@ export function ResetForm() {
           title: 'Enter OTP',
           description: savedEmail
             ? `Enter the 6-digit code sent to ${savedEmail}`
-            : 'Enter the 6-digit code sent to your email',
+            : 'Enter the 6-digit code sent to your work email',
         }}
       >
         <form
@@ -193,7 +193,7 @@ export function ResetForm() {
       <AuthWrapper
         header={{
           title: 'Set New Password',
-          description: 'Enter your new password',
+          description: 'Create a new password for your CRM access',
         }}
         footer={{
           linkUrl: '/auth/login',
@@ -267,7 +267,7 @@ export function ResetForm() {
     <AuthWrapper
       header={{
         title: 'Reset Password',
-        description: 'Enter your email to receive reset instructions',
+        description: 'Enter your work email to receive a reset code',
       }}
       footer={{
         linkUrl: '/auth/login',
