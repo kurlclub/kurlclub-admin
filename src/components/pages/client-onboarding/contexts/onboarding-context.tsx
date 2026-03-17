@@ -71,10 +71,15 @@ export function OnboardingProvider({
 }) {
   const { user } = useAuth();
 
-  const assignedAdminId = useMemo(
-    () => initialClient?.assignedAdminId ?? user?.userId ?? null,
-    [initialClient?.assignedAdminId, user?.userId],
-  );
+  const assignedAdminId = useMemo(() => {
+    if (initialClient?.assignedAdminId !== undefined) {
+      return initialClient.assignedAdminId ?? null;
+    }
+    if (user?.userRole === 'super_admin') {
+      return null;
+    }
+    return user?.userId ?? null;
+  }, [initialClient?.assignedAdminId, user?.userId, user?.userRole]);
 
   const getStepFromStatus = (status?: OnboardingStatus | null) => {
     switch (status) {

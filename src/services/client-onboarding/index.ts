@@ -101,6 +101,10 @@ const normalizeBoard = (
     cancelled: payload.cancelled.map((record) =>
       normalizeRecord(record, 'cancelled'),
     ),
+    leadCount: payload.leadCount ?? 0,
+    inProgressCount: payload.inProgressCount ?? 0,
+    pendingReviewCount: payload.pendingReviewCount ?? 0,
+    completionRatePercentage: payload.completionRatePercentage ?? 0,
   };
 };
 
@@ -188,6 +192,11 @@ export const updateOnboardingStatus = async (
     payload,
   );
   return normalizeRecord(unwrap(response));
+};
+
+export const deleteOnboardingRecord = async (id: number) => {
+  await api.delete(`/ClientOnboarding/${id}`);
+  return true;
 };
 
 const buildGymPayload = (gym: GymDraft) => ({
@@ -314,6 +323,17 @@ export const useCompleteOnboarding = () => {
     }) => completeOnboarding(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: BOARD_QUERY_KEY });
+    },
+  });
+};
+
+export const useDeleteOnboardingRecord = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => deleteOnboardingRecord(id),
+    onSuccess: (_result, id) => {
+      queryClient.invalidateQueries({ queryKey: BOARD_QUERY_KEY });
+      queryClient.removeQueries({ queryKey: ['client-onboarding', id] });
     },
   });
 };

@@ -12,6 +12,7 @@ import { useApiMeta } from './api-meta-provider';
 
 interface AuthContextType {
   user: AppUser | null;
+  isReady: boolean;
   login: (
     email: string,
     password: string,
@@ -38,6 +39,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<AppUser | null>(null);
+  const [isReady, setIsReady] = useState(false);
   const router = useRouter();
   const { setLastMeta } = useApiMeta();
 
@@ -69,6 +71,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     };
 
     loadCachedUser();
+    const readyId = requestAnimationFrame(() => setIsReady(true));
+    return () => cancelAnimationFrame(readyId);
   }, []);
 
   const handleLogin = async (email: string, password: string) => {
@@ -155,6 +159,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     <AuthContext.Provider
       value={{
         user,
+        isReady,
         login: handleLogin,
         logout: handleLogout,
       }}

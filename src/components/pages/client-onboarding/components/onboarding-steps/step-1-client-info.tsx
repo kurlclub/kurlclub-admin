@@ -15,6 +15,8 @@ import { Building2, ClipboardList, User } from 'lucide-react';
 import { type DeepPartial, useForm, useWatch } from 'react-hook-form';
 
 import { useOnboardingContext } from '@/hooks/onboarding';
+import { useAdminFormData } from '@/hooks/use-admin-form-data';
+import { useAuth } from '@/providers/auth-provider';
 import type { LeadDraftSchemaInput } from '@/schemas/onboarding.schema';
 import { leadDraftSchema } from '@/schemas/onboarding.schema';
 import type { LeadDraftData } from '@/types/onboarding';
@@ -61,7 +63,10 @@ const normalizeLeadValues = (
 export function OnboardingStep1() {
   const { formData, setFormData, registerStepValidator } =
     useOnboardingContext();
+  const { user } = useAuth();
+  const { adminFormData, loading: adminFormLoading } = useAdminFormData();
   const { lead } = formData;
+  const canAssignAdmin = user?.userRole === 'super_admin';
   const form = useForm<LeadDraftSchemaInput, unknown, LeadDraftData>({
     resolver: zodResolver(leadDraftSchema),
     mode: 'onTouched',
@@ -99,6 +104,17 @@ export function OnboardingStep1() {
   }, [selectedCountry]);
   const regionDisabled =
     !watchedLead?.leadData?.country || regionOptions.length === 0;
+  const adminOptions = useMemo(() => {
+    const admins = adminFormData?.adminUsers ?? [];
+    return [...admins]
+      .filter((admin) => typeof admin?.name === 'string')
+      .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''))
+      .map((admin) => ({
+        label: admin.name,
+        value: String(admin.id),
+      }));
+  }, [adminFormData?.adminUsers]);
+  const adminOptionsEmpty = adminOptions.length === 0;
 
   useEffect(() => {
     const currentValues = form.getValues();
@@ -165,7 +181,6 @@ export function OnboardingStep1() {
               name="email"
               label="Email"
               type="email"
-              mandatory
             />
             <KFormField
               fieldType={KFormFieldType.PHONE_INPUT}
@@ -174,14 +189,21 @@ export function OnboardingStep1() {
               label="Contact Number"
               mandatory
             />
-            <KFormField
-              fieldType={KFormFieldType.INPUT}
-              control={form.control}
-              name="assignedAdminId"
-              label="Assigned Admin"
-              type="number"
-              mandatory
-            />
+            {canAssignAdmin && (
+              <KFormField
+                fieldType={KFormFieldType.SELECT}
+                control={form.control}
+                name="assignedAdminId"
+                label="Assigned Admin"
+                options={adminOptions}
+                floating={false}
+                disabled={adminFormLoading || adminOptionsEmpty}
+                placeholder={
+                  adminFormLoading ? 'Loading admins...' : 'Select an admin'
+                }
+                mandatory
+              />
+            )}
           </FieldGrid>
 
           <SectionHeader

@@ -51,6 +51,10 @@ export interface OnboardingBoardData {
   onHold: OnboardingRecord[];
   completed: OnboardingRecord[];
   cancelled: OnboardingRecord[];
+  leadCount: number;
+  inProgressCount: number;
+  pendingReviewCount: number;
+  completionRatePercentage: number;
 }
 
 /* ── Wizard Data Models ─────────────────────────────── */

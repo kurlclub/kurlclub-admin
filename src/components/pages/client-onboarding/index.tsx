@@ -64,21 +64,14 @@ export function OnboardingModule() {
   };
 
   const totals = useMemo(() => {
-    if (!board || !clients) return null;
-    const totalLeads = board.lead.length;
-    const totalInProgress = board.inProgress.length;
-    const totalPendingReview = board.pendingReview.length;
-    const totalCompleted = board.completed.length;
-    const completionRate = clients.length
-      ? Math.round((totalCompleted / clients.length) * 100)
-      : 0;
+    if (!board) return null;
     return {
-      totalLeads,
-      totalInProgress,
-      totalPendingReview,
-      completionRate,
+      totalLeads: board.leadCount ?? 0,
+      totalInProgress: board.inProgressCount ?? 0,
+      totalPendingReview: board.pendingReviewCount ?? 0,
+      completionRate: board.completionRatePercentage ?? 0,
     };
-  }, [board, clients]);
+  }, [board]);
 
   const detailClient = selectedDetails ?? null;
   const detailCreatedAt = detailClient
@@ -226,7 +219,10 @@ export function OnboardingModule() {
         }
       >
         {detailClient ? (
-          <OnboardingDetails client={detailClient} />
+          <OnboardingDetails
+            client={detailClient}
+            onDeleted={() => setSelectedClient(null)}
+          />
         ) : isDetailLoading ? (
           <div className="flex justify-center py-16">
             <Spinner />

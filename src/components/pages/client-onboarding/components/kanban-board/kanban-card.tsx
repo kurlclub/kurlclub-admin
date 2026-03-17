@@ -1,7 +1,11 @@
+'use client';
+
 import type { DraggableSyntheticListeners } from '@dnd-kit/core';
 import { motion } from 'framer-motion';
 import { ArrowRight, GripVertical, Play } from 'lucide-react';
 
+import { useAdminFormData } from '@/hooks/use-admin-form-data';
+import { useAuth } from '@/providers/auth-provider';
 import type { OnboardingRecord } from '@/types/onboarding';
 import type { ColDef } from '@/types/onboarding';
 
@@ -22,6 +26,18 @@ export function KanbanCard({
   isDragging,
   dragListeners,
 }: KanbanCardProps) {
+  const { user } = useAuth();
+  const canSeeAssignedAdmin = user?.userRole === 'super_admin';
+  const { adminFormData } = useAdminFormData();
+  const assignedAdminName = (() => {
+    if (!adminFormData?.adminUsers || client.assignedAdminId == null) {
+      return null;
+    }
+    const match = adminFormData.adminUsers.find(
+      (admin) => admin.id === client.assignedAdminId,
+    );
+    return match?.name ?? null;
+  })();
   const data = client.data as Record<string, unknown> | null;
   const gymName = typeof data?.gymName === 'string' ? data.gymName : '';
   const primaryLabel = gymName || client.contactName || client.email || '';
@@ -56,8 +72,15 @@ export function KanbanCard({
   pushMeta('Source', data?.source);
   pushMeta('Expected Members', data?.expectedMembers);
   pushMeta('Portal Username', client.portalUsername);
-  if (client.assignedAdminId !== null && client.assignedAdminId !== undefined) {
-    pushMeta('Assigned Admin', `#${client.assignedAdminId}`);
+  if (
+    canSeeAssignedAdmin &&
+    client.assignedAdminId !== null &&
+    client.assignedAdminId !== undefined
+  ) {
+    pushMeta(
+      'Assigned to',
+      assignedAdminName ? assignedAdminName : `#${client.assignedAdminId}`,
+    );
   }
   if (client.completedUserId !== null && client.completedUserId !== undefined) {
     pushMeta('Completed By', `#${client.completedUserId}`);

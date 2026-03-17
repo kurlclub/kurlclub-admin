@@ -7,13 +7,21 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   AppHeader,
   AppSidebar,
+  Spinner,
   TeamSwitcher,
   AppLayout as UIAppLayout,
 } from '@kurlclub/ui-components';
 
+import { AccessDenied } from '@/components/auth/access-denied';
 import { AppHeaderContent } from '@/components/layout/app-header-content';
 import { NavUser } from '@/components/layout/nav-user';
 import { navGroups } from '@/constants/nav-items';
+import {
+  filterNavGroupsByRole,
+  getRequiredRolesForPath,
+  isRoleAllowed,
+} from '@/lib/authz';
+import { useAuth } from '@/providers/auth-provider';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -22,6 +30,7 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { user, isReady } = useAuth();
 
   const isAuthPage = pathname?.startsWith('/auth');
 
@@ -29,11 +38,15 @@ export function AppLayout({ children }: AppLayoutProps) {
     return <>{children}</>;
   }
 
+  const visibleNavGroups = filterNavGroupsByRole(navGroups, user?.userRole);
+  const requiredRoles = getRequiredRolesForPath(pathname ?? '/', navGroups);
+  const hasAccess = isRoleAllowed(user?.userRole, requiredRoles);
+
   return (
     <UIAppLayout
       sidebar={
         <AppSidebar
-          navGroups={navGroups}
+          navGroups={visibleNavGroups}
           currentPath={pathname}
           onNavigate={(url) => router.push(url)}
           header={
@@ -52,7 +65,15 @@ export function AppLayout({ children }: AppLayoutProps) {
         </AppHeader>
       }
     >
-      {children}
+      {!isReady ? (
+        <div className="flex items-center justify-center py-16">
+          <Spinner />
+        </div>
+      ) : hasAccess ? (
+        children
+      ) : (
+        <AccessDenied />
+      )}
     </UIAppLayout>
   );
 }

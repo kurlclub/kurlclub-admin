@@ -1,6 +1,20 @@
 import { Building2, CreditCard, Home, UserRound, Users } from 'lucide-react';
 
-export const navGroups = [
+import type { UserRole } from '@/types/user';
+
+type NavItem = {
+  title: string;
+  url: string;
+  icon: typeof Home;
+  roles?: UserRole[];
+};
+
+type NavGroup = {
+  label: string;
+  items: NavItem[];
+};
+
+export const navGroups: NavGroup[] = [
   {
     label: 'GENERAL',
     items: [
@@ -43,6 +57,7 @@ export const navGroups = [
         title: 'Subscription Plans',
         url: '/subscription-plans',
         icon: CreditCard,
+        roles: ['super_admin'],
       },
     ],
   },

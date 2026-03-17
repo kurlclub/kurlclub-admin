@@ -35,9 +35,19 @@ const requiredEmail = (label: string) =>
     .min(1, `${label} is required`)
     .email('Valid email is required');
 
+const optionalEmail = () =>
+  z
+    .string()
+    .trim()
+    .optional()
+    .refine((value) => !value || z.string().email().safeParse(value).success, {
+      message: 'Valid email is required',
+    })
+    .transform((value) => value ?? '');
+
 export const leadDraftSchema = z.object({
   contactName: requiredText('Contact name'),
-  email: requiredEmail('Email'),
+  email: optionalEmail(),
   phoneNumber: requiredText('Contact number'),
   assignedAdminId: requiredNullableNumber('Assigned admin'),
   notes: requiredText('Notes'),
