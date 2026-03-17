@@ -51,7 +51,7 @@ export function ClientListPage() {
           <div>
             <h1 className="text-2xl font-bold text-white">Clients</h1>
             <p className="text-sm text-secondary-blue-200 mt-1">
-              Manage client accounts, gyms, and subscriptions
+              Manage client accounts, gym locations, and subscriptions
             </p>
           </div>
         </div>

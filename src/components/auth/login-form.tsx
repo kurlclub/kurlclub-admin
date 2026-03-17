@@ -52,12 +52,12 @@ export function LoginForm() {
     <AuthWrapper
       header={{
         title: 'Login',
-        description: "Welcome back! Let's get started.",
+        description: 'Sign in to the KurlClub internal CRM.',
       }}
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col">
-          <div className="flex flex-col gap-4 sm:gap-6">
+          <div className="flex flex-col gap-5 sm:gap-6">
             <KFormField
               fieldType={KFormFieldType.INPUT}
               control={form.control}
@@ -86,7 +86,7 @@ export function LoginForm() {
           <Button
             type="submit"
             disabled={isPending}
-            className="px-3 py-4 h-[46px]"
+            className="px-3 py-4 h-11.5"
           >
             {isPending ? 'Logging in...' : 'Login'}
           </Button>

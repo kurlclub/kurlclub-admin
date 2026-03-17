@@ -75,7 +75,7 @@ export function GymDetailsPage({ gymId }: GymDetailsPageProps) {
             <div>
               <h1 className="text-2xl font-bold text-white">Gym Details</h1>
               <p className="text-sm text-secondary-blue-200 mt-1">
-                View gym profile and member summary
+                View client gym profile and member summary
               </p>
             </div>
           </div>

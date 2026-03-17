@@ -55,10 +55,10 @@ export function MembersLandingPage() {
             Tips
           </h2>
           <ul className="space-y-2 text-sm text-secondary-blue-200">
-            <li>Use the member identifier provided by the gym.</li>
+            <li>Use the member identifier provided by the client gym.</li>
             <li>
               You can also browse members inside a specific gym from the Gyms
-              module.
+              area.
             </li>
           </ul>
         </div>

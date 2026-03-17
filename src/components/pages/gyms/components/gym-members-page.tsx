@@ -120,7 +120,7 @@ export function GymMembersPage({ gymId }: GymMembersPageProps) {
             <div>
               <h1 className="text-2xl font-bold text-white">Gym Members</h1>
               <p className="text-sm text-secondary-blue-200 mt-1">
-                Browse and filter members for this gym
+                Browse and filter members for this client gym
               </p>
             </div>
           </div>

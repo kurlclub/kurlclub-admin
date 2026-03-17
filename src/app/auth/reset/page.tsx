@@ -4,7 +4,7 @@ import { ResetForm } from '@/components/auth/reset-form';
 
 export const metadata: Metadata = {
   title: 'Reset Password',
-  description: 'Reset your KurlClub Admin account password',
+  description: 'Reset your KurlClub internal CRM password',
 };
 
 export default function ResetPasswordPage() {

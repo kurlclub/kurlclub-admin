@@ -147,7 +147,7 @@ export function GymForm({
                   render={({ field }) => (
                     <FormItem className="space-y-2">
                       <label className="text-xs font-semibold text-secondary-blue-200 uppercase tracking-wider">
-                        Gym Admin (Client)
+                        Client Admin
                       </label>
                       <FormControl>
                         <select
@@ -166,8 +166,8 @@ export function GymForm({
                         >
                           <option value="" className="text-black">
                             {clientsLoading
-                              ? 'Loading clients...'
-                              : 'Select client'}
+                              ? 'Loading client admins...'
+                              : 'Select client admin'}
                           </option>
                           {clients?.map((client) => (
                             <option

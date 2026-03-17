@@ -194,12 +194,14 @@ export function OnboardingStep1() {
                 fieldType={KFormFieldType.SELECT}
                 control={form.control}
                 name="assignedAdminId"
-                label="Assigned Admin"
+                label="Assigned Team Member"
                 options={adminOptions}
                 floating={false}
                 disabled={adminFormLoading || adminOptionsEmpty}
                 placeholder={
-                  adminFormLoading ? 'Loading admins...' : 'Select an admin'
+                  adminFormLoading
+                    ? 'Loading team members...'
+                    : 'Select a team member'
                 }
                 mandatory
               />

@@ -20,7 +20,7 @@ export function AccessDenied() {
         </p>
       </div>
       <Button variant="outline" onClick={() => router.push('/dashboard')}>
-        Back to dashboard
+        Back to overview
       </Button>
     </div>
   );

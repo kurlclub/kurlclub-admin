@@ -181,7 +181,6 @@ type UpdateAdminProfilePayload = {
   id: number;
   name: string;
   phoneNumber: string;
-  type?: string;
   photoFile?: File | null;
 };
 
@@ -189,7 +188,6 @@ const buildAdminProfileFormData = (payload: UpdateAdminProfilePayload) => {
   const formData = new FormData();
   formData.append('Name', payload.name ?? '');
   formData.append('Phone', payload.phoneNumber ?? '');
-  formData.append('Type', payload.type ?? '');
   if (payload.photoFile) {
     formData.append('Photo', payload.photoFile);
   }

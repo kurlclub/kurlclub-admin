@@ -124,7 +124,7 @@ export function ClientDetailsPage({ clientId }: ClientDetailsPageProps) {
             <div>
               <h1 className="text-2xl font-bold text-white">Client Details</h1>
               <p className="text-sm text-secondary-blue-200 mt-1">
-                View client profile, subscription, and gyms
+                View client profile, subscriptions, and gym locations
               </p>
             </div>
           </div>
@@ -141,7 +141,7 @@ export function ClientDetailsPage({ clientId }: ClientDetailsPageProps) {
               onClick={() => router.push('/gyms')}
               className="gap-2"
             >
-              Manage Gyms
+              Manage Client Gyms
             </Button>
           </div>
         </div>
@@ -242,7 +242,7 @@ export function ClientDetailsPage({ clientId }: ClientDetailsPageProps) {
                   Gyms ({gymOptions.length})
                 </h2>
                 <Button size="sm" onClick={() => router.push('/gyms')}>
-                  View All Gyms
+                  View All Client Gyms
                 </Button>
               </div>
 

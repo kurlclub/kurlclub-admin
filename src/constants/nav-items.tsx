@@ -57,7 +57,6 @@ export const navGroups: NavGroup[] = [
         title: 'Subscription Plans',
         url: '/subscription-plans',
         icon: CreditCard,
-        roles: ['super_admin'],
       },
     ],
   },

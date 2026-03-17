@@ -78,7 +78,7 @@ export function KanbanCard({
     client.assignedAdminId !== undefined
   ) {
     pushMeta(
-      'Assigned to',
+      'Assigned Team Member',
       assignedAdminName ? assignedAdminName : `#${client.assignedAdminId}`,
     );
   }

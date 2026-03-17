@@ -4,7 +4,7 @@ import { GymListPage } from '@/components/pages/gyms';
 
 export const metadata: Metadata = {
   title: 'Gyms - KurlClub Admin',
-  description: 'Manage gym locations',
+  description: 'Manage client gym locations in the internal CRM',
 };
 
 export default function GymsPage() {

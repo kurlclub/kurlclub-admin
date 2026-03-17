@@ -53,7 +53,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           header={
             <TeamSwitcher
               brandLogoVariant="admin"
-              alt="KurlClub Admin Logo"
+              alt="KurlClub Logo"
               collapsedLogo="/assets/png/logo-icon.png"
             />
           }

@@ -68,9 +68,9 @@ export function ProfilePage() {
   const normalizedRole = normalizeRole(user?.userRole);
   const roleLabel = normalizedRole
     ? ROLE_LABELS[normalizedRole]
-    : user?.userRole || 'Admin';
+    : user?.userRole || 'Team Member';
 
-  const displayName = watchedName?.trim() || user?.userName || 'Admin User';
+  const displayName = watchedName?.trim() || user?.userName || 'Team Member';
 
   const displayEmail = user?.userEmail || '—';
   const displayPhone = watchedPhone ?? user?.phoneNumber ?? '';
@@ -89,7 +89,6 @@ export function ProfilePage() {
         id: user.userId,
         name: values.name?.trim() ?? '',
         phoneNumber: values.phoneNumber ?? '',
-        type: user.userRole,
         photoFile: values.photoFile ?? null,
       });
       const refreshed = await refreshUser();
@@ -115,7 +114,7 @@ export function ProfilePage() {
   return (
     <StudioLayout
       title="Profile"
-      description="Update your admin profile and profile picture"
+      description="Update your internal team profile and profile picture"
     >
       {!isReady ? (
         <div className="flex items-center justify-center py-20">
