@@ -2,17 +2,7 @@
  * Business logic utilities for onboarding
  * Credential generation, tier management, calculations
  */
-import type { OnboardingStatus } from '../types';
-
-export const generateUsername = (gymName: string): string => {
-  const sanitized = gymName
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '_')
-    .replace(/_+/g, '_')
-    .slice(0, 10);
-  const timestamp = Date.now().toString().slice(-4);
-  return `${sanitized}_${timestamp}`;
-};
+import type { OnboardingStatus } from '@/types/onboarding';
 
 export const generatePassword = (): string => {
   const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -58,27 +48,6 @@ export const getStatusVariant = (
     case 'cancelled':
     default:
       return 'error';
-  }
-};
-
-export const getStatusStep = (
-  status: OnboardingStatus,
-): { step: number; totalSteps: number } => {
-  const totalSteps = 5;
-  switch (status) {
-    case 'lead':
-      return { step: 1, totalSteps };
-    case 'in_progress':
-      return { step: 2, totalSteps };
-    case 'pending_review':
-      return { step: 4, totalSteps };
-    case 'on_hold':
-      return { step: 2, totalSteps };
-    case 'completed':
-    case 'cancelled':
-      return { step: 5, totalSteps };
-    default:
-      return { step: 1, totalSteps };
   }
 };
 

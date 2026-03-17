@@ -14,12 +14,12 @@ import { Country, State } from 'country-state-city';
 import { Building2, ClipboardList, User } from 'lucide-react';
 import { type DeepPartial, useForm, useWatch } from 'react-hook-form';
 
+import { useOnboardingContext } from '@/hooks/onboarding';
 import type { LeadDraftSchemaInput } from '@/schemas/onboarding.schema';
 import { leadDraftSchema } from '@/schemas/onboarding.schema';
+import type { LeadDraftData } from '@/types/onboarding';
 
-import { useOnboardingContext } from '../../hooks';
-import type { LeadDraftData } from '../../types';
-import { StepWrapper } from '../stepper-wrapper';
+import { StepWrapper } from './stepper-wrapper';
 
 const isLeadEqual = (a: LeadDraftData, b: LeadDraftData) =>
   a.contactName === b.contactName &&
@@ -163,8 +163,9 @@ export function OnboardingStep1() {
               fieldType={KFormFieldType.INPUT}
               control={form.control}
               name="email"
-              label="Email (Optional)"
+              label="Email"
               type="email"
+              mandatory
             />
             <KFormField
               fieldType={KFormFieldType.PHONE_INPUT}
@@ -215,6 +216,7 @@ export function OnboardingStep1() {
               name="leadData.country"
               label="Country"
               options={countryOptions}
+              mandatory
             />
             <KFormField
               fieldType={KFormFieldType.SELECT}
@@ -223,6 +225,7 @@ export function OnboardingStep1() {
               label="Region / State / Province"
               options={regionOptions}
               disabled={regionDisabled}
+              mandatory
             />
           </FieldGrid>
 
@@ -236,6 +239,7 @@ export function OnboardingStep1() {
             name="notes"
             label="Notes"
             placeholder="Add any notes..."
+            mandatory
           />
         </form>
       </Form>

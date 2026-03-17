@@ -16,17 +16,20 @@ import {
 
 import { StudioLayout } from '@/components/shared/layout';
 import {
+  formatOnboardingDate,
+  getStatusLabel,
+} from '@/lib/utils/onboarding.utils';
+import {
   flattenBoard,
   useOnboardingBoard,
   useOnboardingRecord,
   useUpdateOnboardingStatus,
 } from '@/services/client-onboarding';
+import type { OnboardingRecord, OnboardingStatus } from '@/types/onboarding';
 
 import { OnboardingDetails, OnboardingWizard } from './components';
 import { KanbanBoard } from './components/kanban-board';
 import { OnboardingProvider } from './contexts';
-import type { OnboardingRecord, OnboardingStatus } from './types';
-import { formatOnboardingDate, getStatusLabel } from './utils';
 
 /* ── Root Module ─────────────────────────────────────── */
 
@@ -189,7 +192,15 @@ export function OnboardingModule() {
         isOpen={!!selectedClient}
         onClose={(open: boolean) => !open && setSelectedClient(null)}
         width="lg"
-        title={detailClient?.data?.gymName || detailClient?.contactName || ''}
+        title={
+          detailClient?.data?.gymName ? (
+            detailClient.data.gymName
+          ) : detailClient?.contactName ? (
+            detailClient.contactName
+          ) : (
+            <span className="sr-only">Client onboarding details</span>
+          )
+        }
         description={detailDescription}
         footer={
           detailClient ? (

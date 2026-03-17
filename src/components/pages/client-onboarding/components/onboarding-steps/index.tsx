@@ -3,8 +3,9 @@
 import { Button } from '@kurlclub/ui-components';
 import { ArrowLeft, ArrowRight, Check, X } from 'lucide-react';
 
-import { useOnboardingContext } from '../hooks';
-import type { OnboardingRecord } from '../types';
+import { useOnboardingContext } from '@/hooks/onboarding';
+import type { OnboardingRecord } from '@/types/onboarding';
+
 import {
   OnboardingStep1,
   OnboardingStep2,
@@ -148,7 +149,7 @@ export function OnboardingWizard({
     if (currentStep === 1) {
       const success = await saveDraft();
       if (success) {
-        setCurrentStep(currentStep + 1);
+        onClose();
       }
       return;
     }

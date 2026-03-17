@@ -24,11 +24,11 @@ import {
 } from 'lucide-react';
 import { useForm, useWatch } from 'react-hook-form';
 
+import { useOnboardingContext } from '@/hooks/onboarding';
 import { gymDraftSchema, gymListSchema } from '@/schemas/onboarding.schema';
+import type { GymDraft } from '@/types/onboarding';
 
-import { useOnboardingContext } from '../../hooks';
-import type { GymDraft } from '../../types';
-import { StepWrapper } from '../stepper-wrapper';
+import { StepWrapper } from './stepper-wrapper';
 
 const INITIAL_GYM_STATE: GymDraft = {
   gymName: '',
@@ -129,7 +129,7 @@ export function OnboardingStep4() {
   useEffect(() => {
     const leadGym: GymDraft = {
       gymName: lead.leadData.gymName.trim(),
-      gymEmail: '',
+      gymEmail: lead.email.trim(),
       gymLocation: lead.leadData.gymLocation.trim(),
       gymContactNumber: lead.leadData.gymContactNumber.trim(),
       country: lead.leadData.country.trim(),
@@ -139,7 +139,6 @@ export function OnboardingStep4() {
     };
     const hasLeadValues = [
       leadGym.gymName,
-      leadGym.gymEmail,
       leadGym.gymLocation,
       leadGym.gymContactNumber,
       leadGym.country,
@@ -165,19 +164,24 @@ export function OnboardingStep4() {
         gyms: [leadGym, ...gyms],
       },
     });
-  }, [formData, gyms, lead.leadData, setFormData]);
+  }, [formData, gyms, lead.email, lead.leadData, setFormData]);
 
   const saveGym = async () => {
     const isValid = await gymForm.trigger();
     if (!isValid) return;
 
     const gymValues = gymForm.getValues();
+    const hasGymPhoto =
+      (typeof File !== 'undefined' && gymValues.gymPhotoFile instanceof File) ||
+      Boolean(gymValues.gymPhotoPreview?.trim());
     if (
       !gymValues.gymName ||
+      !gymValues.gymEmail ||
       !gymValues.gymLocation ||
       !gymValues.gymContactNumber ||
       !gymValues.country ||
-      !gymValues.region
+      !gymValues.region ||
+      !hasGymPhoto
     )
       return;
 
@@ -404,8 +408,9 @@ export function OnboardingStep4() {
                       fieldType={KFormFieldType.INPUT}
                       control={gymForm.control}
                       name="gymEmail"
-                      label="Email (Optional)"
+                      label="Email"
                       type="email"
+                      mandatory
                     />
                     <KFormField
                       fieldType={KFormFieldType.INPUT}
@@ -420,6 +425,7 @@ export function OnboardingStep4() {
                       name="country"
                       label="Country"
                       options={countryOptions}
+                      mandatory
                     />
                     <KFormField
                       fieldType={KFormFieldType.SELECT}
@@ -428,6 +434,7 @@ export function OnboardingStep4() {
                       label="Region / State / Province"
                       options={regionOptions}
                       disabled={regionDisabled}
+                      mandatory
                     />
                   </FieldGrid>
                 </form>

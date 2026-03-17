@@ -15,16 +15,14 @@ import {
   completeOnboarding,
   createOnboardingDraft,
   updateOnboardingDraft,
-  updateOnboardingStatus,
 } from '@/services/client-onboarding';
-
 import type {
   OnboardingContextType,
   OnboardingFormData,
   OnboardingRecord,
   OnboardingStatus,
   ValidationError,
-} from '../types';
+} from '@/types/onboarding';
 
 const emptyLeadData = {
   gymName: '',
@@ -258,20 +256,6 @@ export function OnboardingProvider({
           phoneNumber: saved.phoneNumber || prev.account.phoneNumber,
         },
       }));
-
-      if (saved.status === 'lead') {
-        try {
-          const statusPayload: {
-            status: OnboardingStatus;
-            notes?: string;
-          } = { status: 'in_progress' };
-          if (lead.notes) statusPayload.notes = lead.notes;
-          const updated = await updateOnboardingStatus(saved.id, statusPayload);
-          setRecordStatus(updated.status);
-        } catch (statusError) {
-          console.warn('Status update failed:', statusError);
-        }
-      }
 
       return true;
     } catch (err) {

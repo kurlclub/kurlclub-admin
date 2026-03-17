@@ -28,15 +28,19 @@ const requiredText = (label: string) =>
 
 const optionalText = () => z.string().trim();
 
-const optionalEmail = () =>
-  z.string().trim().email('Valid email is required').or(z.literal(''));
+const requiredEmail = (label: string) =>
+  z
+    .string()
+    .trim()
+    .min(1, `${label} is required`)
+    .email('Valid email is required');
 
 export const leadDraftSchema = z.object({
   contactName: requiredText('Contact name'),
-  email: optionalEmail(),
+  email: requiredEmail('Email'),
   phoneNumber: requiredText('Contact number'),
   assignedAdminId: requiredNullableNumber('Assigned admin'),
-  notes: optionalText(),
+  notes: requiredText('Notes'),
   leadData: z.object({
     gymName: requiredText('Club name'),
     gymLocation: requiredText('Club location'),
@@ -53,7 +57,7 @@ export const accountSetupSchema = z
       .string()
       .min(1, 'Password is required')
       .min(8, 'Password must be at least 8 characters'),
-    email: z.string().trim().email('Valid email is required'),
+    email: requiredEmail('Email'),
     phoneNumber: requiredText('Phone number'),
     userPhotoFile: z.any().nullable(),
     userPhotoPreview: optionalText(),
@@ -73,19 +77,32 @@ export const accountSetupSchema = z
 
 export const subscriptionSetupSchema = z.object({
   subscriptionId: requiredText('Subscription plan'),
-  subscriptionDate: optionalText(),
+  subscriptionDate: requiredText('Subscription date'),
 });
 
-export const gymDraftSchema = z.object({
-  gymName: requiredText('Club name'),
-  gymEmail: optionalEmail(),
-  gymLocation: requiredText('Club location'),
-  gymContactNumber: requiredText('Club contact number'),
-  country: requiredText('Country'),
-  region: requiredText('Region'),
-  gymPhotoFile: z.any().nullable(),
-  gymPhotoPreview: optionalText(),
-});
+export const gymDraftSchema = z
+  .object({
+    gymName: requiredText('Club name'),
+    gymEmail: requiredEmail('Club email'),
+    gymLocation: requiredText('Club location'),
+    gymContactNumber: requiredText('Club contact number'),
+    country: requiredText('Country'),
+    region: requiredText('Region'),
+    gymPhotoFile: z.any().nullable(),
+    gymPhotoPreview: optionalText(),
+  })
+  .superRefine((data, ctx) => {
+    const hasFile =
+      typeof File !== 'undefined' && data.gymPhotoFile instanceof File;
+    const hasPhoto = hasFile || data.gymPhotoPreview.trim().length > 0;
+    if (!hasPhoto) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['gymPhotoFile'],
+        message: 'Club profile photo is required',
+      });
+    }
+  });
 
 export const gymListSchema = z
   .array(gymDraftSchema)

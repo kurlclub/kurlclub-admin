@@ -12,13 +12,13 @@ import {
 import { CreditCard } from 'lucide-react';
 import { useForm, useWatch } from 'react-hook-form';
 
+import { useOnboardingContext } from '@/hooks/onboarding';
 import { subscriptionSetupSchema } from '@/schemas/onboarding.schema';
 import { useSubscriptions } from '@/services/subscription';
+import type { SubscriptionSetupData } from '@/types/onboarding';
 import type { Subscription } from '@/types/subscription';
 
-import { useOnboardingContext } from '../../hooks';
-import type { SubscriptionSetupData } from '../../types';
-import { StepWrapper } from '../stepper-wrapper';
+import { StepWrapper } from './stepper-wrapper';
 
 const resolveSubscriptions = (
   payload: Subscription[] | { data?: Subscription[] } | undefined | null,
@@ -206,6 +206,7 @@ export function OnboardingStep3() {
               floating
               showYearSelector
               showPresets={false}
+              mandatory
             />
           </div>
         </form>

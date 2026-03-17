@@ -14,12 +14,12 @@ import {
 import { ShieldCheck } from 'lucide-react';
 import { useForm, useWatch } from 'react-hook-form';
 
+import { useOnboardingContext } from '@/hooks/onboarding';
+import { generatePassword } from '@/lib/utils/onboarding.utils';
 import { accountSetupSchema } from '@/schemas/onboarding.schema';
+import type { AccountSetupData } from '@/types/onboarding';
 
-import { useOnboardingContext } from '../../hooks';
-import type { AccountSetupData } from '../../types';
-import { generatePassword } from '../../utils';
-import { StepWrapper } from '../stepper-wrapper';
+import { StepWrapper } from './stepper-wrapper';
 
 const isAccountEqual = (a: AccountSetupData, b: AccountSetupData) =>
   a.userName === b.userName &&

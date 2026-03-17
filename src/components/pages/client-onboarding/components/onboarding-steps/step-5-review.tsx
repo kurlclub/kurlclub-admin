@@ -16,8 +16,9 @@ import {
   User,
 } from 'lucide-react';
 
-import { useOnboardingContext } from '../../hooks';
-import { StepWrapper } from '../stepper-wrapper';
+import { useOnboardingContext } from '@/hooks/onboarding';
+
+import { StepWrapper } from './stepper-wrapper';
 
 export function OnboardingStep5() {
   const { formData } = useOnboardingContext();

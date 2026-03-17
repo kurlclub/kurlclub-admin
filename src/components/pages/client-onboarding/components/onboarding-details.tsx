@@ -13,12 +13,12 @@ import {
   User,
 } from 'lucide-react';
 
-import type { OnboardingRecord } from '../types';
 import {
   formatOnboardingDate,
   getStatusLabel,
   getStatusVariant,
-} from '../utils';
+} from '@/lib/utils/onboarding.utils';
+import type { OnboardingRecord } from '@/types/onboarding';
 
 interface OnboardingDetailsProps {
   client: OnboardingRecord;
