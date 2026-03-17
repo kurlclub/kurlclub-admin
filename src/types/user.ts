@@ -3,6 +3,8 @@ export interface AppUser {
   userName: string;
   userEmail: string;
   userRole: UserRole | string;
+  phoneNumber?: string | null;
+  photoPath?: string | null;
   createdAt?: string;
 }
 

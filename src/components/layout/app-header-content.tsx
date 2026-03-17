@@ -13,11 +13,12 @@ import { useApiEnvironment } from '@/providers/api-environment-provider';
 import { useAuth } from '@/providers/auth-provider';
 
 export function AppHeaderContent() {
-  const { user } = useAuth();
+  const { user, isReady } = useAuth();
   const { environment, setEnvironment } = useApiEnvironment();
 
   const userName = user?.userName || user?.userEmail || 'User';
   const canSwitchEnvironment = user?.userRole === 'super_admin';
+  const greeting = isReady ? getGreeting() : 'Welcome back';
 
   const handleEnvironmentChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const next = normalizeApiEnvironment(event.target.value);
@@ -30,9 +31,7 @@ export function AppHeaderContent() {
         <span className="text-sm font-medium leading-normal text-secondary-blue-400">
           Hey, {userName}
         </span>
-        <span className="text-base font-semibold text-white">
-          {getGreeting()}
-        </span>
+        <span className="text-base font-semibold text-white">{greeting}</span>
       </div>
       <div className="ml-auto flex items-center gap-2">
         {canSwitchEnvironment ? (

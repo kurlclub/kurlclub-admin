@@ -228,6 +228,9 @@ const baseFetch: typeof fetch = async (url, options = {}) => {
   const isFormData = restOptions.body instanceof FormData;
   const accessToken = getStorageItem('accessToken');
   const environment = getStoredApiEnvironment();
+  const requestPath = getPathnameFromUrl(url);
+  const isAuthEndpoint = requestPath.toLowerCase().startsWith('/auth');
+  const environmentHeaderValue = isAuthEndpoint ? 'Admin' : environment;
 
   let userData = null;
   try {
@@ -245,7 +248,7 @@ const baseFetch: typeof fetch = async (url, options = {}) => {
 
   const headers: Record<string, string> = {
     ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
-    [API_ENV_HEADER]: environment,
+    [API_ENV_HEADER]: environmentHeaderValue,
     ...(accessToken && !skipAuth
       ? { Authorization: `Bearer ${accessToken}` }
       : {}),
@@ -271,7 +274,10 @@ const baseFetch: typeof fetch = async (url, options = {}) => {
 
   const method = (fetchOptions.method || 'GET').toUpperCase();
   const urlString = typeof url === 'string' ? url : url.toString();
-  const requestPath = getPathnameFromUrl(url);
+  // Re-apply to ensure auth endpoints always use Admin database.
+  if (isAuthEndpoint) {
+    headers[API_ENV_HEADER] = 'Admin';
+  }
   const shouldSkipConfirm =
     skipConfirm || NON_GET_CONFIRM_SKIP_PATHS.has(requestPath);
 

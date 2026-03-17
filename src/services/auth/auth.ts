@@ -1,4 +1,13 @@
+import {
+  type UseQueryOptions,
+  type UseQueryResult,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
+
 import { api } from '@/lib/api';
+import type { AppUser } from '@/types/user';
 
 interface LoginRequest {
   email: string;
@@ -54,10 +63,38 @@ type AuthMeData = {
   id: number;
   email: string;
   role: string;
-  createdAt: string;
+  name?: string | null;
+  userName?: string | null;
+  phoneNumber?: string | null;
+  photoPath?: string | null;
+  createdAt?: string;
 };
 
 type AuthMeResponse = ApiEnvelope<AuthMeData>;
+
+const buildAuthUser = (payload: AuthMeData): AppUser => {
+  const email = payload.email || '';
+  const derivedUserName =
+    email && email.includes('@') ? email.split('@')[0] : '';
+  const resolvedName =
+    payload.name?.trim() ||
+    payload.userName?.trim() ||
+    derivedUserName ||
+    'Admin User';
+
+  return {
+    userId: payload.id,
+    userName: resolvedName,
+    userEmail: email,
+    userRole: payload.role || '',
+    phoneNumber: payload.phoneNumber ?? '',
+    photoPath:
+      payload.photoPath ??
+      (payload as { photoURL?: string | null }).photoURL ??
+      null,
+    createdAt: payload.createdAt,
+  };
+};
 
 export const login = async (credentials: LoginRequest) => {
   try {
@@ -90,19 +127,11 @@ export const getAuthMe = async () => {
       return { success: false, error: 'Failed to get user' };
     }
 
-    const email = payload.email || '';
-    const derivedUserName =
-      email && email.includes('@') ? email.split('@')[0] : '';
+    const user = buildAuthUser(payload);
 
     return {
       success: true,
-      data: {
-        userId: payload.id,
-        userName: derivedUserName || 'Admin User',
-        userEmail: email,
-        userRole: payload.role || '',
-        createdAt: payload.createdAt,
-      },
+      data: user,
       meta,
     };
   } catch (error) {
@@ -111,6 +140,78 @@ export const getAuthMe = async () => {
       error: error instanceof Error ? error.message : 'Failed to get user',
     };
   }
+};
+
+type AuthMeResult = { user: AppUser; meta?: ApiMeta };
+
+export const fetchAuthMe = async (): Promise<AuthMeResult> => {
+  const response = await api.get<AuthMeResponse | AuthMeData>('/Auth/me');
+  const payload =
+    (response as AuthMeResponse).data ?? (response as AuthMeData | undefined);
+  const meta = (response as AuthMeResponse).meta;
+
+  if (!payload) {
+    throw new Error('Failed to get user');
+  }
+
+  return {
+    user: buildAuthUser(payload),
+    meta,
+  };
+};
+
+type AuthMeOptions = Omit<
+  UseQueryOptions<AuthMeResult, Error>,
+  'queryKey' | 'queryFn'
+>;
+
+export const useAuthMe = (
+  options?: AuthMeOptions,
+): UseQueryResult<AuthMeResult, Error> => {
+  return useQuery<AuthMeResult, Error>({
+    queryKey: ['auth-me'],
+    queryFn: fetchAuthMe,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    ...options,
+  });
+};
+
+type UpdateAdminProfilePayload = {
+  id: number;
+  name: string;
+  phoneNumber: string;
+  type?: string;
+  photoFile?: File | null;
+};
+
+const buildAdminProfileFormData = (payload: UpdateAdminProfilePayload) => {
+  const formData = new FormData();
+  formData.append('Name', payload.name ?? '');
+  formData.append('Phone', payload.phoneNumber ?? '');
+  formData.append('Type', payload.type ?? '');
+  if (payload.photoFile) {
+    formData.append('Photo', payload.photoFile);
+  }
+  return formData;
+};
+
+export const updateAdminProfile = async (
+  payload: UpdateAdminProfilePayload,
+) => {
+  const formData = buildAdminProfileFormData(payload);
+  await api.put(`/Auth/admins/${payload.id}`, formData);
+  return true;
+};
+
+export const useUpdateAdminProfile = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateAdminProfile,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auth-me'] });
+    },
+  });
 };
 
 export const logout = () => {

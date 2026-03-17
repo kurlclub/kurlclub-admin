@@ -1,11 +1,24 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useSyncExternalStore,
+} from 'react';
 
 import { useRouter } from 'next/navigation';
 
+import { useQueryClient } from '@tanstack/react-query';
+
 import { decrypt, encrypt } from '@/lib/crypto';
-import { getAuthMe, login, logout as logoutApi } from '@/services/auth/auth';
+import {
+  getAuthMe,
+  login,
+  logout as logoutApi,
+  useAuthMe,
+} from '@/services/auth/auth';
 import { AppUser } from '@/types/user';
 
 import { useApiMeta } from './api-meta-provider';
@@ -13,6 +26,7 @@ import { useApiMeta } from './api-meta-provider';
 interface AuthContextType {
   user: AppUser | null;
   isReady: boolean;
+  refreshUser: () => Promise<{ success: boolean; error?: string }>;
   login: (
     email: string,
     password: string,
@@ -24,6 +38,84 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const ACCESS_TOKEN_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const REFRESH_TOKEN_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
+
+type StoredAuthState = {
+  user: AppUser | null;
+  hasToken: boolean;
+  hydrated: boolean;
+};
+
+const authStore = (() => {
+  const listeners = new Set<() => void>();
+  const serverSnapshot: StoredAuthState = {
+    user: null,
+    hasToken: false,
+    hydrated: false,
+  };
+  let cachedSnapshot: StoredAuthState = serverSnapshot;
+  let lastToken: string | null = null;
+  let lastEncryptedUser: string | null = null;
+
+  const getSnapshot = (): StoredAuthState => {
+    if (typeof window === 'undefined') {
+      return serverSnapshot;
+    }
+
+    let token: string | null = null;
+    let encryptedUser: string | null = null;
+
+    try {
+      token = localStorage.getItem('accessToken');
+      encryptedUser = localStorage.getItem('appUser');
+    } catch (error) {
+      console.warn('Failed to read auth storage:', error);
+    }
+
+    if (
+      cachedSnapshot.hydrated &&
+      token === lastToken &&
+      encryptedUser === lastEncryptedUser
+    ) {
+      return cachedSnapshot;
+    }
+
+    lastToken = token;
+    lastEncryptedUser = encryptedUser;
+
+    const hasToken = Boolean(token);
+    let nextUser: AppUser | null = null;
+
+    if (hasToken && encryptedUser) {
+      const decryptedData = decrypt(encryptedUser);
+      if (decryptedData) {
+        try {
+          nextUser = JSON.parse(decryptedData) as AppUser;
+        } catch (error) {
+          console.warn('Failed to parse cached user:', error);
+        }
+      }
+    }
+
+    cachedSnapshot = {
+      user: nextUser,
+      hasToken,
+      hydrated: true,
+    };
+    return cachedSnapshot;
+  };
+
+  return {
+    subscribe: (listener: () => void) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    notify: () => {
+      listeners.forEach((listener) => listener());
+    },
+    getSnapshot,
+    getServerSnapshot: () => serverSnapshot,
+  };
+})();
 
 const getMaxAgeSeconds = (isoString: string | undefined, fallback: number) => {
   if (!isoString) return fallback;
@@ -38,42 +130,43 @@ const getMaxAgeSeconds = (isoString: string | undefined, fallback: number) => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [user, setUser] = useState<AppUser | null>(null);
-  const [isReady, setIsReady] = useState(false);
+  const storedAuth = useSyncExternalStore(
+    authStore.subscribe,
+    authStore.getSnapshot,
+    authStore.getServerSnapshot,
+  );
+  const { user: cachedUser, hasToken, hydrated } = storedAuth;
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { setLastMeta } = useApiMeta();
 
-  useEffect(() => {
-    const loadCachedUser = () => {
-      try {
-        const token = localStorage.getItem('accessToken');
-        const encryptedUser = localStorage.getItem('appUser');
-
-        if (token && encryptedUser) {
-          const decryptedData = decrypt(encryptedUser);
-          if (decryptedData) {
-            const userData = JSON.parse(decryptedData) as AppUser;
-            setUser(userData);
-          }
-        } else if (encryptedUser) {
-          localStorage.removeItem('appUser');
-        }
-      } catch (error) {
-        console.warn('Failed to load cached user:', error);
-        try {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          localStorage.removeItem('appUser');
-        } catch (e) {
-          console.error('Failed to clear storage:', e);
-        }
+  const persistUser = useCallback((nextUser: AppUser | null) => {
+    try {
+      if (nextUser) {
+        localStorage.setItem('appUser', encrypt(JSON.stringify(nextUser)));
+      } else {
+        localStorage.removeItem('appUser');
       }
-    };
-
-    loadCachedUser();
-    const readyId = requestAnimationFrame(() => setIsReady(true));
-    return () => cancelAnimationFrame(readyId);
+    } catch (storageError) {
+      console.error('Failed to store user data:', storageError);
+    }
+    authStore.notify();
   }, []);
+
+  const authMeQuery = useAuthMe({
+    enabled: hasToken,
+  });
+
+  useEffect(() => {
+    if (!authMeQuery.data?.user) return;
+    if (authMeQuery.data.meta) {
+      setLastMeta(authMeQuery.data.meta);
+    }
+    persistUser(authMeQuery.data.user);
+  }, [authMeQuery.data, persistUser, setLastMeta]);
+
+  const isReady = hydrated && (!hasToken || !authMeQuery.isLoading);
+  const resolvedUser = authMeQuery.data?.user ?? cachedUser;
 
   const handleLogin = async (email: string, password: string) => {
     try {
@@ -97,6 +190,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('refreshToken', refreshToken);
+        authStore.notify();
 
         const accessTokenMaxAge = getMaxAgeSeconds(
           (result.data as { expiresAt?: string }).expiresAt,
@@ -130,13 +224,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         ...userResult.data,
       };
 
-      setUser(fullUser);
-
-      try {
-        localStorage.setItem('appUser', encrypt(JSON.stringify(fullUser)));
-      } catch (storageError) {
-        console.error('Failed to store user data:', storageError);
-      }
+      persistUser(fullUser);
+      queryClient.setQueryData(['auth-me'], {
+        user: fullUser,
+        meta: userResult.meta,
+      });
 
       return { success: true };
     } catch (error) {
@@ -145,21 +237,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const refreshUser = useCallback(async () => {
+    const result = await authMeQuery.refetch();
+    if (result.data?.meta) {
+      setLastMeta(result.data.meta);
+    }
+    if (result.data?.user) {
+      persistUser(result.data.user);
+      return { success: true };
+    }
+    return {
+      success: false,
+      error: result.error?.message || 'Failed to fetch user details',
+    };
+  }, [authMeQuery, persistUser, setLastMeta]);
+
   const handleLogout = () => {
     logoutApi();
 
     document.cookie = 'accessToken=; path=/; max-age=0';
     document.cookie = 'refreshToken=; path=/; max-age=0';
 
-    setUser(null);
+    persistUser(null);
+    queryClient.removeQueries({ queryKey: ['auth-me'] });
     router.push('/auth/login');
   };
 
   return (
     <AuthContext.Provider
       value={{
-        user,
+        user: resolvedUser,
         isReady,
+        refreshUser,
         login: handleLogin,
         logout: handleLogout,
       }}

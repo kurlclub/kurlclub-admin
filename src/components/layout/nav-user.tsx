@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 import {
@@ -8,6 +9,7 @@ import {
   SidebarMenuItem,
   getAvatarColor,
   getInitials,
+  getProfilePictureSrc,
   useAppDialog,
   useSidebar,
 } from '@kurlclub/ui-components';
@@ -25,6 +27,10 @@ export function NavUser() {
   const userName = user?.userName || 'Admin User';
   const userEmail = user?.userEmail || 'admin@kurlclub.com';
   const avatarStyle = getAvatarColor(userName);
+  const profileSrc = getProfilePictureSrc(
+    null,
+    user?.photoPath?.trim() || null,
+  );
 
   const handleLogout = () => {
     showConfirm({
@@ -49,12 +55,23 @@ export function NavUser() {
             className="cursor-pointer hover:bg-primary-green-500/10 transition-all duration-300 group relative justify-center rounded-md border border-white/5 hover:border-primary-green-500/30"
           >
             <div className="relative">
-              <div
-                className="h-9 w-9 rounded-md flex items-center justify-center font-bold text-sm"
-                style={avatarStyle}
-              >
-                {getInitials(userName)}
-              </div>
+              {profileSrc ? (
+                <Image
+                  src={profileSrc}
+                  alt={userName}
+                  width={36}
+                  height={36}
+                  sizes="36px"
+                  className="h-9 w-9 rounded-md object-cover"
+                />
+              ) : (
+                <div
+                  className="h-9 w-9 rounded-md flex items-center justify-center font-bold text-sm"
+                  style={avatarStyle}
+                >
+                  {getInitials(userName)}
+                </div>
+              )}
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-neutral-green-400 rounded-full border-2 border-secondary-blue-500 shadow-md" />
             </div>
           </SidebarMenuButton>
@@ -70,12 +87,23 @@ export function NavUser() {
           <div className="flex flex-col gap-4 p-4">
             <div className="flex items-center gap-4">
               <div className="relative">
-                <div
-                  className="h-12 w-12 rounded-md flex items-center justify-center font-bold text-sm"
-                  style={avatarStyle}
-                >
-                  {getInitials(userName)}
-                </div>
+                {profileSrc ? (
+                  <Image
+                    src={profileSrc}
+                    alt={userName}
+                    width={48}
+                    height={48}
+                    sizes="48px"
+                    className="h-12 w-12 rounded-md object-cover"
+                  />
+                ) : (
+                  <div
+                    className="h-12 w-12 rounded-md flex items-center justify-center font-bold text-sm"
+                    style={avatarStyle}
+                  >
+                    {getInitials(userName)}
+                  </div>
+                )}
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-neutral-green-400 rounded-full border-2 border-secondary-blue-500 shadow-md" />
               </div>
               <div className="flex-1 min-w-0">

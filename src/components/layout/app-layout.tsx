@@ -41,12 +41,13 @@ export function AppLayout({ children }: AppLayoutProps) {
   const visibleNavGroups = filterNavGroupsByRole(navGroups, user?.userRole);
   const requiredRoles = getRequiredRolesForPath(pathname ?? '/', navGroups);
   const hasAccess = isRoleAllowed(user?.userRole, requiredRoles);
+  const sidebarNavGroups = isReady ? visibleNavGroups : [];
 
   return (
     <UIAppLayout
       sidebar={
         <AppSidebar
-          navGroups={visibleNavGroups}
+          navGroups={sidebarNavGroups}
           currentPath={pathname}
           onNavigate={(url) => router.push(url)}
           header={
