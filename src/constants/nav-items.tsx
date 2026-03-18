@@ -1,4 +1,11 @@
-import { Building2, CreditCard, Home, UserRound, Users } from 'lucide-react';
+import {
+  Building2,
+  CreditCard,
+  Home,
+  LifeBuoy,
+  UserRound,
+  Users,
+} from 'lucide-react';
 
 import type { UserRole } from '@/types/user';
 
@@ -57,6 +64,17 @@ export const navGroups: NavGroup[] = [
         title: 'Subscription Plans',
         url: '/subscription-plans',
         icon: CreditCard,
+      },
+    ],
+  },
+  {
+    label: 'SUPPORT',
+    items: [
+      {
+        title: 'Support Tickets',
+        url: '/support-tickets',
+        icon: LifeBuoy,
+        roles: ['admin', 'super_admin'],
       },
     ],
   },
