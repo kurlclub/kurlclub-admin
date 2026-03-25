@@ -22,6 +22,7 @@ export const FEATURE_GROUPS = {
       { key: 'liveAttendance', label: 'Live Attendance' },
       { key: 'doorAccessAttendance', label: 'Door Access Attendance' },
       { key: 'qrCodeCheckIn', label: 'QR Code Check-in' },
+      { key: 'attendanceTracking', label: 'Attendance Tracking' },
     ],
   },
   management: {
@@ -56,6 +57,7 @@ export const FEATURE_GROUPS = {
   analytics: {
     title: 'Analytics',
     features: [
+      { key: 'basicDashboard', label: 'Basic Dashboard' },
       { key: 'basicReports', label: 'Basic Reports' },
       { key: 'revenueAnalytics', label: 'Revenue Analytics' },
       { key: 'advancedAnalytics', label: 'Advanced Analytics' },
@@ -70,6 +72,7 @@ export const FEATURE_GROUPS = {
       { key: 'memberPortal', label: 'Member Portal' },
       { key: 'trainerPortal', label: 'Trainer Portal' },
       { key: 'mobileAppAccess', label: 'Mobile App Access' },
+      { key: 'customBranding', label: 'Custom Branding' },
     ],
   },
   support: {
@@ -103,6 +106,7 @@ export const FORM_FEATURE_GROUPS = {
       { key: 'LiveAttendance', label: 'Live Attendance' },
       { key: 'DoorAccessAttendance', label: 'Door Access Attendance' },
       { key: 'QrCodeCheckIn', label: 'QR Code Check-in' },
+      { key: 'AttendanceTracking', label: 'Attendance Tracking' },
     ],
   },
   management: {
@@ -137,6 +141,7 @@ export const FORM_FEATURE_GROUPS = {
   analytics: {
     title: 'Analytics',
     features: [
+      { key: 'BasicDashboard', label: 'Basic Dashboard' },
       { key: 'BasicReports', label: 'Basic Reports' },
       { key: 'RevenueAnalytics', label: 'Revenue Analytics' },
       { key: 'AdvancedAnalytics', label: 'Advanced Analytics' },
@@ -151,6 +156,7 @@ export const FORM_FEATURE_GROUPS = {
       { key: 'MemberPortal', label: 'Member Portal' },
       { key: 'TrainerPortal', label: 'Trainer Portal' },
       { key: 'MobileAppAccess', label: 'Mobile App Access' },
+      { key: 'CustomBranding', label: 'Custom Branding' },
     ],
   },
   support: {
