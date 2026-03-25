@@ -16,6 +16,7 @@ export interface SubscriptionFeatures {
   liveAttendance: boolean;
   doorAccessAttendance: boolean;
   qrCodeCheckIn: boolean;
+  attendanceTracking: boolean;
 
   // Management
   memberManagement: boolean;
@@ -38,6 +39,7 @@ export interface SubscriptionFeatures {
   classScheduling: boolean;
 
   // Analytics
+  basicDashboard: boolean;
   basicReports: boolean;
   revenueAnalytics: boolean;
   advancedAnalytics: boolean;
@@ -49,6 +51,7 @@ export interface SubscriptionFeatures {
   memberPortal: boolean;
   trainerPortal: boolean;
   mobileAppAccess: boolean;
+  customBranding: boolean;
 
   // Support
   emailSupport: boolean;
@@ -98,6 +101,7 @@ export interface SubscriptionFormFeatures {
   LiveAttendance: boolean;
   DoorAccessAttendance: boolean;
   QrCodeCheckIn: boolean;
+  AttendanceTracking: boolean;
 
   // Management
   MemberManagement: boolean;
@@ -120,6 +124,7 @@ export interface SubscriptionFormFeatures {
   ClassScheduling: boolean;
 
   // Analytics
+  BasicDashboard: boolean;
   BasicReports: boolean;
   RevenueAnalytics: boolean;
   AdvancedAnalytics: boolean;
@@ -131,6 +136,7 @@ export interface SubscriptionFormFeatures {
   MemberPortal: boolean;
   TrainerPortal: boolean;
   MobileAppAccess: boolean;
+  CustomBranding: boolean;
 
   // Support
   EmailSupport: boolean;
