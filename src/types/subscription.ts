@@ -3,67 +3,79 @@ export interface SubscriptionLimits {
   maxMembers: number;
   maxTrainers: number;
   maxStaffs: number;
+  maxMembershipPlans: number;
+  maxWorkoutPlans: number;
+  maxLeadsPerMonth: number;
+}
+
+export interface SubscriptionStudioDashboardFeatures {
+  enabled: boolean;
+  paymentInsights: boolean;
+  skipperStats: boolean;
+  attendanceStats: boolean;
+}
+
+export interface SubscriptionAttendanceFeatures {
+  manual: boolean;
+  automatic: boolean;
+  memberInsights: boolean;
+  deviceManagement: boolean;
+}
+
+export interface SubscriptionProgramsFeatures {
+  membershipPlans: boolean;
+  workoutPlans: boolean;
+}
+
+export interface SubscriptionStaffManagementFeatures {
+  activityTracking: boolean;
+  staffLogin: boolean;
+}
+
+export interface SubscriptionExpensesFeatures {
+  reportsDashboard: boolean;
+  expenseManagement: boolean;
+}
+
+export interface SubscriptionHelpAndSupportFeatures {
+  ticketingPortal: boolean;
+  whatsApp: boolean;
+  email: boolean;
+  call: boolean;
+}
+
+export interface SubscriptionWhatsAppNotificationFeatures {
+  paymentReminders: boolean;
+  membershipExpiry: boolean;
+  lowAttendance: boolean;
+  specialDays: boolean;
+}
+
+export interface SubscriptionInvoiceFeatures {
+  customTemplates: boolean;
+}
+
+export interface SubscriptionNotificationFeatures {
+  realtime: boolean;
+  whatsApp: boolean;
+  email: boolean;
+  push: boolean;
 }
 
 export interface SubscriptionFeatures {
-  // Notifications
-  emailNotifications: boolean;
-  whatsAppNotifications: boolean;
-  realTimeNotifications: boolean;
-
-  // Attendance
-  manualAttendance: boolean;
-  liveAttendance: boolean;
-  doorAccessAttendance: boolean;
-  qrCodeCheckIn: boolean;
-  attendanceTracking: boolean;
-
-  // Management
+  studioDashboard: SubscriptionStudioDashboardFeatures;
   memberManagement: boolean;
-  trainerManagement: boolean;
-  staffManagement: boolean;
-  membershipManagement: boolean;
-  roleBasedAccess: boolean;
-
-  // Finance
-  paymentTracking: boolean;
-  paymentRecording: boolean;
-  invoiceGeneration: boolean;
-  expenseTracker: boolean;
-  ptCollections: boolean;
-  commissionTracking: boolean;
-
-  // Business Tools
-  leadManagement: boolean;
-  offersDiscounts: boolean;
-  classScheduling: boolean;
-
-  // Analytics
-  basicDashboard: boolean;
-  basicReports: boolean;
-  revenueAnalytics: boolean;
-  advancedAnalytics: boolean;
-  customReports: boolean;
-  exportToExcel: boolean;
-  reportsAnalytics: boolean;
-
-  // Portals
-  memberPortal: boolean;
-  trainerPortal: boolean;
-  mobileAppAccess: boolean;
-  customBranding: boolean;
-
-  // Support
-  emailSupport: boolean;
-  chatSupport: boolean;
-  phoneSupport: boolean;
-  prioritySupport: boolean;
-  prioritySupport24x7: boolean;
-
-  // Limits
-  devicesPerUserLimit: number;
-  staffLoginLimit: number;
-  trainerLoginLimit: number;
+  paymentManagement: boolean;
+  attendance: SubscriptionAttendanceFeatures;
+  leadsManagement: boolean;
+  programs: SubscriptionProgramsFeatures;
+  staffManagement: SubscriptionStaffManagementFeatures;
+  payrollManagement: boolean;
+  expenses: SubscriptionExpensesFeatures;
+  helpAndSupport: SubscriptionHelpAndSupportFeatures;
+  whatsAppNotifications: SubscriptionWhatsAppNotificationFeatures;
+  invoice: SubscriptionInvoiceFeatures;
+  notifications: SubscriptionNotificationFeatures;
 }
 
 export interface Subscription {
@@ -88,67 +100,79 @@ export interface SubscriptionFormLimits {
   MaxMembers: number;
   MaxTrainers: number;
   MaxStaffs: number;
+  MaxMembershipPlans: number;
+  MaxWorkoutPlans: number;
+  MaxLeadsPerMonth: number;
+}
+
+export interface SubscriptionFormStudioDashboardFeatures {
+  Enabled: boolean;
+  PaymentInsights: boolean;
+  SkipperStats: boolean;
+  AttendanceStats: boolean;
+}
+
+export interface SubscriptionFormAttendanceFeatures {
+  Manual: boolean;
+  Automatic: boolean;
+  MemberInsights: boolean;
+  DeviceManagement: boolean;
+}
+
+export interface SubscriptionFormProgramsFeatures {
+  MembershipPlans: boolean;
+  WorkoutPlans: boolean;
+}
+
+export interface SubscriptionFormStaffManagementFeatures {
+  ActivityTracking: boolean;
+  StaffLogin: boolean;
+}
+
+export interface SubscriptionFormExpensesFeatures {
+  ReportsDashboard: boolean;
+  ExpenseManagement: boolean;
+}
+
+export interface SubscriptionFormHelpAndSupportFeatures {
+  TicketingPortal: boolean;
+  WhatsApp: boolean;
+  Email: boolean;
+  Call: boolean;
+}
+
+export interface SubscriptionFormWhatsAppNotificationFeatures {
+  PaymentReminders: boolean;
+  MembershipExpiry: boolean;
+  LowAttendance: boolean;
+  SpecialDays: boolean;
+}
+
+export interface SubscriptionFormInvoiceFeatures {
+  CustomTemplates: boolean;
+}
+
+export interface SubscriptionFormNotificationFeatures {
+  Realtime: boolean;
+  WhatsApp: boolean;
+  Email: boolean;
+  Push: boolean;
 }
 
 export interface SubscriptionFormFeatures {
-  // Notifications
-  EmailNotifications: boolean;
-  WhatsAppNotifications: boolean;
-  RealTimeNotifications: boolean;
-
-  // Attendance
-  ManualAttendance: boolean;
-  LiveAttendance: boolean;
-  DoorAccessAttendance: boolean;
-  QrCodeCheckIn: boolean;
-  AttendanceTracking: boolean;
-
-  // Management
+  StudioDashboard: SubscriptionFormStudioDashboardFeatures;
   MemberManagement: boolean;
-  TrainerManagement: boolean;
-  StaffManagement: boolean;
-  MembershipManagement: boolean;
-  RoleBasedAccess: boolean;
-
-  // Finance
-  PaymentTracking: boolean;
-  PaymentRecording: boolean;
-  InvoiceGeneration: boolean;
-  ExpenseTracker: boolean;
-  PtCollections: boolean;
-  CommissionTracking: boolean;
-
-  // Business Tools
-  LeadManagement: boolean;
-  OffersDiscounts: boolean;
-  ClassScheduling: boolean;
-
-  // Analytics
-  BasicDashboard: boolean;
-  BasicReports: boolean;
-  RevenueAnalytics: boolean;
-  AdvancedAnalytics: boolean;
-  CustomReports: boolean;
-  ExportToExcel: boolean;
-  ReportsAnalytics: boolean;
-
-  // Portals
-  MemberPortal: boolean;
-  TrainerPortal: boolean;
-  MobileAppAccess: boolean;
-  CustomBranding: boolean;
-
-  // Support
-  EmailSupport: boolean;
-  ChatSupport: boolean;
-  PhoneSupport: boolean;
-  PrioritySupport: boolean;
-  PrioritySupport24x7: boolean;
-
-  // Limits
-  DevicesPerUserLimit: number;
-  StaffLoginLimit: number;
-  TrainerLoginLimit: number;
+  PaymentManagement: boolean;
+  Attendance: SubscriptionFormAttendanceFeatures;
+  LeadsManagement: boolean;
+  Programs: SubscriptionFormProgramsFeatures;
+  StaffManagement: SubscriptionFormStaffManagementFeatures;
+  PayrollManagement: boolean;
+  Expenses: SubscriptionFormExpensesFeatures;
+  HelpAndSupport: SubscriptionFormHelpAndSupportFeatures;
+  WhatsAppNotifications: SubscriptionFormWhatsAppNotificationFeatures;
+  Invoice: SubscriptionFormInvoiceFeatures;
+  Notifications: SubscriptionFormNotificationFeatures;
 }
 
 export interface SubscriptionFormData {

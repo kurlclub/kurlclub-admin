@@ -16,20 +16,17 @@ import {
   ProfileUploader,
   Switch,
 } from '@kurlclub/ui-components';
-import { type FieldPath, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 
 import {
   type SubscriptionSchemaInput,
   subscriptionSchema,
 } from '@/schemas/subscription.schema';
-import type {
-  SubscriptionFormData,
-  SubscriptionFormFeatures,
-} from '@/types/subscription';
+import type { SubscriptionFormData } from '@/types/subscription';
 
 import {
-  FORM_FEATURE_GROUPS,
-  FORM_LIMIT_FIELDS,
+  SUBSCRIPTION_FEATURE_GROUPS,
+  SUBSCRIPTION_LIMIT_FIELDS,
 } from '../utils/feature-groups';
 
 interface SubscriptionFormProps {
@@ -56,49 +53,60 @@ const DEFAULT_VALUES: SubscriptionSchemaInput = {
     MaxMembers: '',
     MaxTrainers: '',
     MaxStaffs: '',
+    MaxMembershipPlans: '',
+    MaxWorkoutPlans: '',
+    MaxLeadsPerMonth: '',
   },
   Features: {
-    EmailNotifications: false,
-    WhatsAppNotifications: false,
-    RealTimeNotifications: false,
-    ManualAttendance: false,
-    LiveAttendance: false,
-    DoorAccessAttendance: false,
-    QrCodeCheckIn: false,
-    AttendanceTracking: false,
+    StudioDashboard: {
+      Enabled: false,
+      PaymentInsights: false,
+      SkipperStats: false,
+      AttendanceStats: false,
+    },
     MemberManagement: false,
-    TrainerManagement: false,
-    StaffManagement: false,
-    MembershipManagement: false,
-    RoleBasedAccess: false,
-    PaymentTracking: false,
-    PaymentRecording: false,
-    InvoiceGeneration: false,
-    ExpenseTracker: false,
-    PtCollections: false,
-    CommissionTracking: false,
-    LeadManagement: false,
-    OffersDiscounts: false,
-    ClassScheduling: false,
-    BasicDashboard: false,
-    BasicReports: false,
-    RevenueAnalytics: false,
-    AdvancedAnalytics: false,
-    CustomReports: false,
-    ExportToExcel: false,
-    ReportsAnalytics: false,
-    MemberPortal: false,
-    TrainerPortal: false,
-    MobileAppAccess: false,
-    CustomBranding: false,
-    EmailSupport: false,
-    ChatSupport: false,
-    PhoneSupport: false,
-    PrioritySupport: false,
-    PrioritySupport24x7: false,
-    DevicesPerUserLimit: '',
-    StaffLoginLimit: '',
-    TrainerLoginLimit: '',
+    PaymentManagement: false,
+    Attendance: {
+      Manual: false,
+      Automatic: false,
+      MemberInsights: false,
+      DeviceManagement: false,
+    },
+    LeadsManagement: false,
+    Programs: {
+      MembershipPlans: false,
+      WorkoutPlans: false,
+    },
+    StaffManagement: {
+      ActivityTracking: false,
+      StaffLogin: false,
+    },
+    PayrollManagement: false,
+    Expenses: {
+      ReportsDashboard: false,
+      ExpenseManagement: false,
+    },
+    HelpAndSupport: {
+      TicketingPortal: false,
+      WhatsApp: false,
+      Email: false,
+      Call: false,
+    },
+    WhatsAppNotifications: {
+      PaymentReminders: false,
+      MembershipExpiry: false,
+      LowAttendance: false,
+      SpecialDays: false,
+    },
+    Invoice: {
+      CustomTemplates: false,
+    },
+    Notifications: {
+      Realtime: false,
+      WhatsApp: false,
+      Email: false,
+      Push: false,
+    },
   },
 };
 
@@ -114,14 +122,11 @@ export function SubscriptionForm({
     resolver: zodResolver(subscriptionSchema),
     defaultValues: defaultValues || DEFAULT_VALUES,
   });
-  const toFeaturePath = (key: keyof SubscriptionFormFeatures) =>
-    `Features.${key}` as FieldPath<SubscriptionFormData>;
 
   return (
     <Form {...form}>
       <form id={formId} onSubmit={form.handleSubmit(onSubmit)}>
         <FieldStack gap="lg">
-          {/* Basic Information */}
           <section className="rounded-2xl border border-secondary-blue-400 bg-secondary-blue-600/50 p-5">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
               <h3 className="text-sm font-semibold text-secondary-blue-200 uppercase tracking-wider">
@@ -144,6 +149,7 @@ export function SubscriptionForm({
                 )}
               />
             </div>
+
             <FieldGrid columns={1} smColumns={2} gap="md">
               <FieldGridItem smSpan={2}>
                 <KFormField
@@ -161,6 +167,7 @@ export function SubscriptionForm({
                   )}
                 />
               </FieldGridItem>
+
               <KFormField
                 fieldType={KFormFieldType.INPUT}
                 control={form.control}
@@ -177,6 +184,7 @@ export function SubscriptionForm({
                 placeholder="e.g., Perfect for growing gyms"
                 mandatory
               />
+
               <FieldGridItem smSpan={2}>
                 <KFormField
                   fieldType={KFormFieldType.RICH_TEXT_EDITOR}
@@ -187,6 +195,7 @@ export function SubscriptionForm({
                   toolbarPreset="standard"
                 />
               </FieldGridItem>
+
               <KFormField
                 fieldType={KFormFieldType.INPUT}
                 control={form.control}
@@ -194,19 +203,19 @@ export function SubscriptionForm({
                 label="Badge Text"
                 placeholder="e.g., Most Popular"
               />
+
               <FieldGridItem smSpan={2}>
                 <InfoBanner
                   variant="info"
                   showIcon
-                  message="Badge text appears on the plan card (e.g., 'Most Popular'). Leave it blank to hide the badge."
+                  message="Badge text appears on the plan card. Leave it blank to hide the badge."
                 />
               </FieldGridItem>
             </FieldGrid>
           </section>
 
-          {/* Pricing */}
           <section className="rounded-2xl border border-secondary-blue-400 bg-secondary-blue-600/50 p-5">
-            <h3 className="text-sm font-semibold text-secondary-blue-200 uppercase tracking-wider mb-4">
+            <h3 className="mb-4 text-sm font-semibold text-secondary-blue-200 uppercase tracking-wider">
               Pricing
             </h3>
             <FieldGrid columns={1} smColumns={2} lgColumns={3} gap="md">
@@ -238,64 +247,41 @@ export function SubscriptionForm({
             </FieldGrid>
           </section>
 
-          {/* Limits */}
           <section className="rounded-2xl border border-secondary-blue-400 bg-secondary-blue-600/50 p-5">
-            <h3 className="text-sm font-semibold text-secondary-blue-200 uppercase tracking-wider mb-4">
+            <h3 className="mb-4 text-sm font-semibold text-secondary-blue-200 uppercase tracking-wider">
               Limits
             </h3>
-            <FieldGrid columns={1} smColumns={2} gap="md">
-              <KFormField
-                fieldType={KFormFieldType.INPUT}
-                control={form.control}
-                name="Limits.MaxClubs"
-                label="Max Clubs"
-                type="number"
-                mandatory
-              />
-              <KFormField
-                fieldType={KFormFieldType.INPUT}
-                control={form.control}
-                name="Limits.MaxMembers"
-                label="Max Members"
-                type="number"
-                mandatory
-              />
-              <KFormField
-                fieldType={KFormFieldType.INPUT}
-                control={form.control}
-                name="Limits.MaxTrainers"
-                label="Max Trainers"
-                type="number"
-                mandatory
-              />
-              <KFormField
-                fieldType={KFormFieldType.INPUT}
-                control={form.control}
-                name="Limits.MaxStaffs"
-                label="Max Staff"
-                type="number"
-                mandatory
-              />
+            <FieldGrid columns={1} smColumns={2} lgColumns={3} gap="md">
+              {SUBSCRIPTION_LIMIT_FIELDS.map((field) => (
+                <KFormField
+                  key={field.formKey}
+                  fieldType={KFormFieldType.INPUT}
+                  control={form.control}
+                  name={field.formKey}
+                  label={field.label}
+                  type="number"
+                  mandatory
+                />
+              ))}
             </FieldGrid>
           </section>
 
-          {/* Features */}
           <section className="rounded-2xl border border-secondary-blue-400 bg-secondary-blue-600/50 p-5">
-            <h3 className="text-sm font-semibold text-secondary-blue-200 uppercase tracking-wider mb-4">
+            <h3 className="mb-4 text-sm font-semibold text-secondary-blue-200 uppercase tracking-wider">
               Features
             </h3>
             <FieldStack gap="lg">
-              {Object.entries(FORM_FEATURE_GROUPS).map(([groupKey, group]) => (
-                <div key={groupKey} className="space-y-3">
+              {SUBSCRIPTION_FEATURE_GROUPS.map((group) => (
+                <div key={group.title} className="space-y-3">
                   <h4 className="text-xs font-semibold text-primary-green-400 uppercase tracking-wider">
                     {group.title}
                   </h4>
                   <FieldGrid columns={1} smColumns={2} gap="md">
                     {group.features.map((feature) => (
                       <FormField
-                        key={feature.key}
+                        key={feature.formKey}
                         control={form.control}
-                        name={toFeaturePath(feature.key)}
+                        name={feature.formKey}
                         render={({ field }) => (
                           <FormItem className="flex items-center gap-3 space-y-0">
                             <FormControl>
@@ -312,32 +298,11 @@ export function SubscriptionForm({
                   </FieldGrid>
                 </div>
               ))}
-
-              {/* Numeric Limits */}
-              <div className="space-y-3 pt-4 border-t border-secondary-blue-400/70">
-                <h4 className="text-xs font-semibold text-primary-green-400 uppercase tracking-wider">
-                  Additional Limits
-                </h4>
-                <FieldGrid columns={1} smColumns={2} mdColumns={3} gap="md">
-                  {FORM_LIMIT_FIELDS.map((field) => (
-                    <KFormField
-                      key={field.key}
-                      fieldType={KFormFieldType.INPUT}
-                      control={form.control}
-                      name={toFeaturePath(field.key)}
-                      label={field.label}
-                      type="number"
-                      mandatory
-                    />
-                  ))}
-                </FieldGrid>
-              </div>
             </FieldStack>
           </section>
 
-          {/* Actions */}
           {showActions && (
-            <div className="flex gap-4 justify-end border-t border-secondary-blue-400/70 pt-4">
+            <div className="flex justify-end gap-4 border-t border-secondary-blue-400/70 pt-4">
               <Button type="button" variant="outline" onClick={onCancel}>
                 Cancel
               </Button>

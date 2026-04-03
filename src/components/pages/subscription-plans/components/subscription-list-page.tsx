@@ -20,35 +20,81 @@ import { SubscriptionCard } from './subscription-card';
 import { SubscriptionDetails } from './subscription-details';
 import { SubscriptionForm } from './subscription-form';
 
-const toPascalCaseKeys = (value: unknown): unknown => {
-  if (Array.isArray(value)) {
-    return value.map((item) => toPascalCaseKeys(item));
-  }
-
-  const isFile = typeof File !== 'undefined' && value instanceof File;
-  if (!value || typeof value !== 'object' || isFile) {
-    return value;
-  }
-
-  return Object.entries(value).reduce<Record<string, unknown>>(
-    (acc, [key, entry]) => {
-      const pascalKey = key.charAt(0).toUpperCase() + key.slice(1);
-      acc[pascalKey] = toPascalCaseKeys(entry);
-      return acc;
-    },
-    {},
-  );
-};
-
 const toSubscriptionFormDefaults = (
   subscription: Subscription,
-): SubscriptionSchemaInput => {
-  const converted = toPascalCaseKeys(subscription) as SubscriptionSchemaInput;
-  return {
-    ...converted,
-    Photo: subscription.photoPath ?? null,
-  };
-};
+): SubscriptionSchemaInput => ({
+  Name: subscription.name ?? '',
+  Subtitle: subscription.subtitle ?? '',
+  Description: subscription.description ?? '',
+  Badge: subscription.badge ?? '',
+  IsPopular: subscription.isPopular ?? false,
+  Photo: subscription.photoPath ?? null,
+  MonthlyPrice: subscription.monthlyPrice,
+  SixMonthsPrice: subscription.sixMonthsPrice,
+  YearlyPrice: subscription.yearlyPrice,
+  Limits: {
+    MaxClubs: subscription.limits.maxClubs,
+    MaxMembers: subscription.limits.maxMembers,
+    MaxTrainers: subscription.limits.maxTrainers,
+    MaxStaffs: subscription.limits.maxStaffs,
+    MaxMembershipPlans: subscription.limits.maxMembershipPlans,
+    MaxWorkoutPlans: subscription.limits.maxWorkoutPlans,
+    MaxLeadsPerMonth: subscription.limits.maxLeadsPerMonth,
+  },
+  Features: {
+    StudioDashboard: {
+      Enabled: subscription.features.studioDashboard.enabled,
+      PaymentInsights: subscription.features.studioDashboard.paymentInsights,
+      SkipperStats: subscription.features.studioDashboard.skipperStats,
+      AttendanceStats: subscription.features.studioDashboard.attendanceStats,
+    },
+    MemberManagement: subscription.features.memberManagement,
+    PaymentManagement: subscription.features.paymentManagement,
+    Attendance: {
+      Manual: subscription.features.attendance.manual,
+      Automatic: subscription.features.attendance.automatic,
+      MemberInsights: subscription.features.attendance.memberInsights,
+      DeviceManagement: subscription.features.attendance.deviceManagement,
+    },
+    LeadsManagement: subscription.features.leadsManagement,
+    Programs: {
+      MembershipPlans: subscription.features.programs.membershipPlans,
+      WorkoutPlans: subscription.features.programs.workoutPlans,
+    },
+    StaffManagement: {
+      ActivityTracking: subscription.features.staffManagement.activityTracking,
+      StaffLogin: subscription.features.staffManagement.staffLogin,
+    },
+    PayrollManagement: subscription.features.payrollManagement,
+    Expenses: {
+      ReportsDashboard: subscription.features.expenses.reportsDashboard,
+      ExpenseManagement: subscription.features.expenses.expenseManagement,
+    },
+    HelpAndSupport: {
+      TicketingPortal: subscription.features.helpAndSupport.ticketingPortal,
+      WhatsApp: subscription.features.helpAndSupport.whatsApp,
+      Email: subscription.features.helpAndSupport.email,
+      Call: subscription.features.helpAndSupport.call,
+    },
+    WhatsAppNotifications: {
+      PaymentReminders:
+        subscription.features.whatsAppNotifications.paymentReminders,
+      MembershipExpiry:
+        subscription.features.whatsAppNotifications.membershipExpiry,
+      LowAttendance: subscription.features.whatsAppNotifications.lowAttendance,
+      SpecialDays: subscription.features.whatsAppNotifications.specialDays,
+    },
+    Invoice: {
+      CustomTemplates: subscription.features.invoice.customTemplates,
+    },
+    Notifications: {
+      Realtime: subscription.features.notifications.realtime,
+      WhatsApp: subscription.features.notifications.whatsApp,
+      Email: subscription.features.notifications.email,
+      Push: subscription.features.notifications.push,
+    },
+  },
+});
 
 export function SubscriptionListPage() {
   const { data: subscriptions, isLoading } = useSubscriptions();
@@ -94,12 +140,12 @@ export function SubscriptionListPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white">Subscriptions</h1>
-              <p className="text-sm text-secondary-blue-200 mt-1">
+              <p className="mt-1 text-sm text-secondary-blue-200">
                 Manage platform subscription plans
               </p>
             </div>
             <Button onClick={() => setIsCreating(true)} className="gap-2">
-              <Plus className="w-4 h-4" />
+              <Plus className="h-4 w-4" />
               Create Subscription
             </Button>
           </div>
@@ -109,7 +155,7 @@ export function SubscriptionListPage() {
               <Spinner />
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
               {subscriptions?.map((subscription) => (
                 <SubscriptionCard
                   key={subscription.id}
@@ -121,13 +167,13 @@ export function SubscriptionListPage() {
           )}
 
           {!isLoading && subscriptions?.length === 0 && (
-            <div className="text-center py-20">
+            <div className="py-20 text-center">
               <p className="text-secondary-blue-300">No subscriptions found</p>
               <Button
                 onClick={() => setIsCreating(true)}
                 className="mt-4 gap-2"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="h-4 w-4" />
                 Create First Subscription
               </Button>
             </div>
@@ -176,7 +222,7 @@ export function SubscriptionListPage() {
             }}
           />
         ) : (
-          <div className="text-center py-10 text-secondary-blue-300">
+          <div className="py-10 text-center text-secondary-blue-300">
             Unable to load subscription details.
           </div>
         )}
@@ -254,7 +300,7 @@ export function SubscriptionListPage() {
             showActions={false}
           />
         ) : (
-          <div className="text-center py-10 text-secondary-blue-300">
+          <div className="py-10 text-center text-secondary-blue-300">
             Unable to load subscription details.
           </div>
         )}

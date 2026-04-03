@@ -31,6 +31,60 @@ const requiredNumber = (label: string) =>
       .transform((value) => value as number),
   );
 
+const studioDashboardSchema = z.object({
+  Enabled: z.boolean(),
+  PaymentInsights: z.boolean(),
+  SkipperStats: z.boolean(),
+  AttendanceStats: z.boolean(),
+});
+
+const attendanceSchema = z.object({
+  Manual: z.boolean(),
+  Automatic: z.boolean(),
+  MemberInsights: z.boolean(),
+  DeviceManagement: z.boolean(),
+});
+
+const programsSchema = z.object({
+  MembershipPlans: z.boolean(),
+  WorkoutPlans: z.boolean(),
+});
+
+const staffManagementSchema = z.object({
+  ActivityTracking: z.boolean(),
+  StaffLogin: z.boolean(),
+});
+
+const expensesSchema = z.object({
+  ReportsDashboard: z.boolean(),
+  ExpenseManagement: z.boolean(),
+});
+
+const helpAndSupportSchema = z.object({
+  TicketingPortal: z.boolean(),
+  WhatsApp: z.boolean(),
+  Email: z.boolean(),
+  Call: z.boolean(),
+});
+
+const whatsAppNotificationsSchema = z.object({
+  PaymentReminders: z.boolean(),
+  MembershipExpiry: z.boolean(),
+  LowAttendance: z.boolean(),
+  SpecialDays: z.boolean(),
+});
+
+const invoiceSchema = z.object({
+  CustomTemplates: z.boolean(),
+});
+
+const notificationsSchema = z.object({
+  Realtime: z.boolean(),
+  WhatsApp: z.boolean(),
+  Email: z.boolean(),
+  Push: z.boolean(),
+});
+
 export const subscriptionSchema = z.object({
   Name: z.string().min(1, 'Plan name is required'),
   Subtitle: z.string().min(1, 'Subtitle is required'),
@@ -48,50 +102,25 @@ export const subscriptionSchema = z.object({
     MaxMembers: requiredNumber('Max members'),
     MaxTrainers: requiredNumber('Max trainers'),
     MaxStaffs: requiredNumber('Max staff'),
+    MaxMembershipPlans: requiredNumber('Max membership plans'),
+    MaxWorkoutPlans: requiredNumber('Max workout plans'),
+    MaxLeadsPerMonth: requiredNumber('Max leads per month'),
   }),
 
   Features: z.object({
-    EmailNotifications: z.boolean(),
-    WhatsAppNotifications: z.boolean(),
-    RealTimeNotifications: z.boolean(),
-    ManualAttendance: z.boolean(),
-    LiveAttendance: z.boolean(),
-    DoorAccessAttendance: z.boolean(),
-    QrCodeCheckIn: z.boolean(),
-    AttendanceTracking: z.boolean(),
+    StudioDashboard: studioDashboardSchema,
     MemberManagement: z.boolean(),
-    TrainerManagement: z.boolean(),
-    StaffManagement: z.boolean(),
-    MembershipManagement: z.boolean(),
-    RoleBasedAccess: z.boolean(),
-    PaymentTracking: z.boolean(),
-    PaymentRecording: z.boolean(),
-    InvoiceGeneration: z.boolean(),
-    ExpenseTracker: z.boolean(),
-    PtCollections: z.boolean(),
-    CommissionTracking: z.boolean(),
-    LeadManagement: z.boolean(),
-    OffersDiscounts: z.boolean(),
-    ClassScheduling: z.boolean(),
-    BasicDashboard: z.boolean(),
-    BasicReports: z.boolean(),
-    RevenueAnalytics: z.boolean(),
-    AdvancedAnalytics: z.boolean(),
-    CustomReports: z.boolean(),
-    ExportToExcel: z.boolean(),
-    ReportsAnalytics: z.boolean(),
-    MemberPortal: z.boolean(),
-    TrainerPortal: z.boolean(),
-    MobileAppAccess: z.boolean(),
-    CustomBranding: z.boolean(),
-    EmailSupport: z.boolean(),
-    ChatSupport: z.boolean(),
-    PhoneSupport: z.boolean(),
-    PrioritySupport: z.boolean(),
-    PrioritySupport24x7: z.boolean(),
-    DevicesPerUserLimit: requiredNumber('Devices per user'),
-    StaffLoginLimit: requiredNumber('Staff login limit'),
-    TrainerLoginLimit: requiredNumber('Trainer login limit'),
+    PaymentManagement: z.boolean(),
+    Attendance: attendanceSchema,
+    LeadsManagement: z.boolean(),
+    Programs: programsSchema,
+    StaffManagement: staffManagementSchema,
+    PayrollManagement: z.boolean(),
+    Expenses: expensesSchema,
+    HelpAndSupport: helpAndSupportSchema,
+    WhatsAppNotifications: whatsAppNotificationsSchema,
+    Invoice: invoiceSchema,
+    Notifications: notificationsSchema,
   }),
 });
 
