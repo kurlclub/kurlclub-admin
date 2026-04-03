@@ -1,181 +1,288 @@
+import type { FieldPath } from 'react-hook-form';
+
 import type {
   SubscriptionFeatures,
-  SubscriptionFormFeatures,
+  SubscriptionFormData,
+  SubscriptionLimits,
 } from '@/types/subscription';
 
-type FeatureKey = keyof SubscriptionFeatures;
-type FormFeatureKey = keyof SubscriptionFormFeatures;
+type FeatureConfig = {
+  formKey: FieldPath<SubscriptionFormData>;
+  responseKey: string;
+  label: string;
+};
 
-export const FEATURE_GROUPS = {
-  notifications: {
-    title: 'Notifications',
+type FeatureGroupConfig = {
+  title: string;
+  features: FeatureConfig[];
+};
+
+type LimitFieldConfig = {
+  formKey: FieldPath<SubscriptionFormData>;
+  responseKey: keyof SubscriptionLimits;
+  label: string;
+};
+
+type FeatureRootKey = keyof SubscriptionFeatures;
+
+export const SUBSCRIPTION_FEATURE_GROUPS = [
+  {
+    title: 'Studio Dashboard',
     features: [
-      { key: 'emailNotifications', label: 'Email Notifications' },
-      { key: 'whatsAppNotifications', label: 'WhatsApp Notifications' },
-      { key: 'realTimeNotifications', label: 'Real-time Notifications' },
+      {
+        formKey: 'Features.StudioDashboard.Enabled',
+        responseKey: 'studioDashboard.enabled',
+        label: 'Dashboard Access',
+      },
+      {
+        formKey: 'Features.StudioDashboard.PaymentInsights',
+        responseKey: 'studioDashboard.paymentInsights',
+        label: 'Payment Insights',
+      },
+      {
+        formKey: 'Features.StudioDashboard.SkipperStats',
+        responseKey: 'studioDashboard.skipperStats',
+        label: 'Skipper Stats',
+      },
+      {
+        formKey: 'Features.StudioDashboard.AttendanceStats',
+        responseKey: 'studioDashboard.attendanceStats',
+        label: 'Attendance Stats',
+      },
     ],
   },
-  attendance: {
+  {
+    title: 'Core Management',
+    features: [
+      {
+        formKey: 'Features.MemberManagement',
+        responseKey: 'memberManagement',
+        label: 'Member Management',
+      },
+      {
+        formKey: 'Features.PaymentManagement',
+        responseKey: 'paymentManagement',
+        label: 'Payment Management',
+      },
+      {
+        formKey: 'Features.LeadsManagement',
+        responseKey: 'leadsManagement',
+        label: 'Leads Management',
+      },
+      {
+        formKey: 'Features.PayrollManagement',
+        responseKey: 'payrollManagement',
+        label: 'Payroll Management',
+      },
+    ],
+  },
+  {
     title: 'Attendance',
     features: [
-      { key: 'manualAttendance', label: 'Manual Attendance' },
-      { key: 'liveAttendance', label: 'Live Attendance' },
-      { key: 'doorAccessAttendance', label: 'Door Access Attendance' },
-      { key: 'qrCodeCheckIn', label: 'QR Code Check-in' },
-      { key: 'attendanceTracking', label: 'Attendance Tracking' },
+      {
+        formKey: 'Features.Attendance.Manual',
+        responseKey: 'attendance.manual',
+        label: 'Manual Attendance',
+      },
+      {
+        formKey: 'Features.Attendance.Automatic',
+        responseKey: 'attendance.automatic',
+        label: 'Automatic Attendance',
+      },
+      {
+        formKey: 'Features.Attendance.MemberInsights',
+        responseKey: 'attendance.memberInsights',
+        label: 'Member Insights',
+      },
+      {
+        formKey: 'Features.Attendance.DeviceManagement',
+        responseKey: 'attendance.deviceManagement',
+        label: 'Device Management',
+      },
     ],
   },
-  management: {
-    title: 'Management',
+  {
+    title: 'Programs',
     features: [
-      { key: 'memberManagement', label: 'Member Management' },
-      { key: 'trainerManagement', label: 'Trainer Management' },
-      { key: 'staffManagement', label: 'Staff Management' },
-      { key: 'membershipManagement', label: 'Membership Management' },
-      { key: 'roleBasedAccess', label: 'Role-based Access' },
+      {
+        formKey: 'Features.Programs.MembershipPlans',
+        responseKey: 'programs.membershipPlans',
+        label: 'Membership Plans',
+      },
+      {
+        formKey: 'Features.Programs.WorkoutPlans',
+        responseKey: 'programs.workoutPlans',
+        label: 'Workout Plans',
+      },
     ],
   },
-  finance: {
-    title: 'Finance',
+  {
+    title: 'Staff Management',
     features: [
-      { key: 'paymentTracking', label: 'Payment Tracking' },
-      { key: 'paymentRecording', label: 'Payment Recording' },
-      { key: 'invoiceGeneration', label: 'Invoice Generation' },
-      { key: 'expenseTracker', label: 'Expense Tracker' },
-      { key: 'ptCollections', label: 'PT Collections' },
-      { key: 'commissionTracking', label: 'Commission Tracking' },
+      {
+        formKey: 'Features.StaffManagement.ActivityTracking',
+        responseKey: 'staffManagement.activityTracking',
+        label: 'Activity Tracking',
+      },
+      {
+        formKey: 'Features.StaffManagement.StaffLogin',
+        responseKey: 'staffManagement.staffLogin',
+        label: 'Staff Login',
+      },
     ],
   },
-  business: {
-    title: 'Business Tools',
+  {
+    title: 'Expenses',
     features: [
-      { key: 'leadManagement', label: 'Lead Management' },
-      { key: 'offersDiscounts', label: 'Offers & Discounts' },
-      { key: 'classScheduling', label: 'Class Scheduling' },
+      {
+        formKey: 'Features.Expenses.ReportsDashboard',
+        responseKey: 'expenses.reportsDashboard',
+        label: 'Reports Dashboard',
+      },
+      {
+        formKey: 'Features.Expenses.ExpenseManagement',
+        responseKey: 'expenses.expenseManagement',
+        label: 'Expense Management',
+      },
     ],
   },
-  analytics: {
-    title: 'Analytics',
+  {
+    title: 'Help & Support',
     features: [
-      { key: 'basicDashboard', label: 'Basic Dashboard' },
-      { key: 'basicReports', label: 'Basic Reports' },
-      { key: 'revenueAnalytics', label: 'Revenue Analytics' },
-      { key: 'advancedAnalytics', label: 'Advanced Analytics' },
-      { key: 'customReports', label: 'Custom Reports' },
-      { key: 'exportToExcel', label: 'Export to Excel' },
-      { key: 'reportsAnalytics', label: 'Reports & Analytics' },
+      {
+        formKey: 'Features.HelpAndSupport.TicketingPortal',
+        responseKey: 'helpAndSupport.ticketingPortal',
+        label: 'Ticketing Portal',
+      },
+      {
+        formKey: 'Features.HelpAndSupport.WhatsApp',
+        responseKey: 'helpAndSupport.whatsApp',
+        label: 'WhatsApp Support',
+      },
+      {
+        formKey: 'Features.HelpAndSupport.Email',
+        responseKey: 'helpAndSupport.email',
+        label: 'Email Support',
+      },
+      {
+        formKey: 'Features.HelpAndSupport.Call',
+        responseKey: 'helpAndSupport.call',
+        label: 'Call Support',
+      },
     ],
   },
-  portals: {
-    title: 'Portals',
+  {
+    title: 'WhatsApp Notifications',
     features: [
-      { key: 'memberPortal', label: 'Member Portal' },
-      { key: 'trainerPortal', label: 'Trainer Portal' },
-      { key: 'mobileAppAccess', label: 'Mobile App Access' },
-      { key: 'customBranding', label: 'Custom Branding' },
+      {
+        formKey: 'Features.WhatsAppNotifications.PaymentReminders',
+        responseKey: 'whatsAppNotifications.paymentReminders',
+        label: 'Payment Reminders',
+      },
+      {
+        formKey: 'Features.WhatsAppNotifications.MembershipExpiry',
+        responseKey: 'whatsAppNotifications.membershipExpiry',
+        label: 'Membership Expiry',
+      },
+      {
+        formKey: 'Features.WhatsAppNotifications.LowAttendance',
+        responseKey: 'whatsAppNotifications.lowAttendance',
+        label: 'Low Attendance',
+      },
+      {
+        formKey: 'Features.WhatsAppNotifications.SpecialDays',
+        responseKey: 'whatsAppNotifications.specialDays',
+        label: 'Special Days',
+      },
     ],
   },
-  support: {
-    title: 'Support',
+  {
+    title: 'Invoice',
     features: [
-      { key: 'emailSupport', label: 'Email Support' },
-      { key: 'chatSupport', label: 'Chat Support' },
-      { key: 'phoneSupport', label: 'Phone Support' },
-      { key: 'prioritySupport', label: 'Priority Support' },
-      { key: 'prioritySupport24x7', label: '24/7 Priority Support' },
+      {
+        formKey: 'Features.Invoice.CustomTemplates',
+        responseKey: 'invoice.customTemplates',
+        label: 'Custom Templates',
+      },
     ],
   },
-} as const satisfies Record<
-  string,
-  { title: string; features: { key: FeatureKey; label: string }[] }
->;
-
-export const FORM_FEATURE_GROUPS = {
-  notifications: {
+  {
     title: 'Notifications',
     features: [
-      { key: 'EmailNotifications', label: 'Email Notifications' },
-      { key: 'WhatsAppNotifications', label: 'WhatsApp Notifications' },
-      { key: 'RealTimeNotifications', label: 'Real-time Notifications' },
+      {
+        formKey: 'Features.Notifications.Realtime',
+        responseKey: 'notifications.realtime',
+        label: 'Realtime Notifications',
+      },
+      {
+        formKey: 'Features.Notifications.WhatsApp',
+        responseKey: 'notifications.whatsApp',
+        label: 'WhatsApp Notifications',
+      },
+      {
+        formKey: 'Features.Notifications.Email',
+        responseKey: 'notifications.email',
+        label: 'Email Notifications',
+      },
+      {
+        formKey: 'Features.Notifications.Push',
+        responseKey: 'notifications.push',
+        label: 'Push Notifications',
+      },
     ],
   },
-  attendance: {
-    title: 'Attendance',
-    features: [
-      { key: 'ManualAttendance', label: 'Manual Attendance' },
-      { key: 'LiveAttendance', label: 'Live Attendance' },
-      { key: 'DoorAccessAttendance', label: 'Door Access Attendance' },
-      { key: 'QrCodeCheckIn', label: 'QR Code Check-in' },
-      { key: 'AttendanceTracking', label: 'Attendance Tracking' },
-    ],
-  },
-  management: {
-    title: 'Management',
-    features: [
-      { key: 'MemberManagement', label: 'Member Management' },
-      { key: 'TrainerManagement', label: 'Trainer Management' },
-      { key: 'StaffManagement', label: 'Staff Management' },
-      { key: 'MembershipManagement', label: 'Membership Management' },
-      { key: 'RoleBasedAccess', label: 'Role-based Access' },
-    ],
-  },
-  finance: {
-    title: 'Finance',
-    features: [
-      { key: 'PaymentTracking', label: 'Payment Tracking' },
-      { key: 'PaymentRecording', label: 'Payment Recording' },
-      { key: 'InvoiceGeneration', label: 'Invoice Generation' },
-      { key: 'ExpenseTracker', label: 'Expense Tracker' },
-      { key: 'PtCollections', label: 'PT Collections' },
-      { key: 'CommissionTracking', label: 'Commission Tracking' },
-    ],
-  },
-  business: {
-    title: 'Business Tools',
-    features: [
-      { key: 'LeadManagement', label: 'Lead Management' },
-      { key: 'OffersDiscounts', label: 'Offers & Discounts' },
-      { key: 'ClassScheduling', label: 'Class Scheduling' },
-    ],
-  },
-  analytics: {
-    title: 'Analytics',
-    features: [
-      { key: 'BasicDashboard', label: 'Basic Dashboard' },
-      { key: 'BasicReports', label: 'Basic Reports' },
-      { key: 'RevenueAnalytics', label: 'Revenue Analytics' },
-      { key: 'AdvancedAnalytics', label: 'Advanced Analytics' },
-      { key: 'CustomReports', label: 'Custom Reports' },
-      { key: 'ExportToExcel', label: 'Export to Excel' },
-      { key: 'ReportsAnalytics', label: 'Reports & Analytics' },
-    ],
-  },
-  portals: {
-    title: 'Portals',
-    features: [
-      { key: 'MemberPortal', label: 'Member Portal' },
-      { key: 'TrainerPortal', label: 'Trainer Portal' },
-      { key: 'MobileAppAccess', label: 'Mobile App Access' },
-      { key: 'CustomBranding', label: 'Custom Branding' },
-    ],
-  },
-  support: {
-    title: 'Support',
-    features: [
-      { key: 'EmailSupport', label: 'Email Support' },
-      { key: 'ChatSupport', label: 'Chat Support' },
-      { key: 'PhoneSupport', label: 'Phone Support' },
-      { key: 'PrioritySupport', label: 'Priority Support' },
-      { key: 'PrioritySupport24x7', label: '24/7 Priority Support' },
-    ],
-  },
-} as const satisfies Record<
-  string,
-  { title: string; features: { key: FormFeatureKey; label: string }[] }
->;
+] satisfies readonly FeatureGroupConfig[];
 
-export const FORM_LIMIT_FIELDS = [
-  { key: 'DevicesPerUserLimit', label: 'Devices Per User' },
-  { key: 'StaffLoginLimit', label: 'Staff Login Limit' },
-  { key: 'TrainerLoginLimit', label: 'Trainer Login Limit' },
-] as const satisfies readonly { key: FormFeatureKey; label: string }[];
+export const SUBSCRIPTION_LIMIT_FIELDS = [
+  {
+    formKey: 'Limits.MaxClubs',
+    responseKey: 'maxClubs',
+    label: 'Max Clubs',
+  },
+  {
+    formKey: 'Limits.MaxMembers',
+    responseKey: 'maxMembers',
+    label: 'Max Members',
+  },
+  {
+    formKey: 'Limits.MaxTrainers',
+    responseKey: 'maxTrainers',
+    label: 'Max Trainers',
+  },
+  {
+    formKey: 'Limits.MaxStaffs',
+    responseKey: 'maxStaffs',
+    label: 'Max Staff',
+  },
+  {
+    formKey: 'Limits.MaxMembershipPlans',
+    responseKey: 'maxMembershipPlans',
+    label: 'Max Membership Plans',
+  },
+  {
+    formKey: 'Limits.MaxWorkoutPlans',
+    responseKey: 'maxWorkoutPlans',
+    label: 'Max Workout Plans',
+  },
+  {
+    formKey: 'Limits.MaxLeadsPerMonth',
+    responseKey: 'maxLeadsPerMonth',
+    label: 'Max Leads / Month',
+  },
+] satisfies readonly LimitFieldConfig[];
+
+export const FEATURE_ROOT_KEYS = [
+  'studioDashboard',
+  'memberManagement',
+  'paymentManagement',
+  'attendance',
+  'leadsManagement',
+  'programs',
+  'staffManagement',
+  'payrollManagement',
+  'expenses',
+  'helpAndSupport',
+  'whatsAppNotifications',
+  'invoice',
+  'notifications',
+] satisfies readonly FeatureRootKey[];
