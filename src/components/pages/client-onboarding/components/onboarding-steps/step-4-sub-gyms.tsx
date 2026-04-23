@@ -171,17 +171,13 @@ export function OnboardingStep4() {
     if (!isValid) return;
 
     const gymValues = gymForm.getValues();
-    const hasGymPhoto =
-      (typeof File !== 'undefined' && gymValues.gymPhotoFile instanceof File) ||
-      Boolean(gymValues.gymPhotoPreview?.trim());
     if (
       !gymValues.gymName ||
       !gymValues.gymEmail ||
       !gymValues.gymLocation ||
       !gymValues.gymContactNumber ||
       !gymValues.country ||
-      !gymValues.region ||
-      !hasGymPhoto
+      !gymValues.region
     )
       return;
 
@@ -225,7 +221,7 @@ export function OnboardingStep4() {
   return (
     <StepWrapper
       title="Club Locations"
-      description="Add club locations and contact details."
+      description="Add club locations, contact details, and optional club profile photos."
       className="max-w-225 mx-auto"
       gymCount={`${gyms.length} locations`}
     >

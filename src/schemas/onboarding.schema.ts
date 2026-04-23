@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const requiredNullableNumber = (label: string) =>
+const optionalNullableNumber = (label: string) =>
   z
     .union([z.string(), z.number(), z.null()])
     .transform((value) => {
@@ -11,9 +11,6 @@ const requiredNullableNumber = (label: string) =>
       if (!trimmed) return null;
       const num = Number(trimmed);
       return Number.isFinite(num) ? num : NaN;
-    })
-    .refine((value) => value !== null, {
-      message: `${label} is required`,
     })
     .refine(
       (value) =>
@@ -49,8 +46,8 @@ export const leadDraftSchema = z.object({
   contactName: requiredText('Contact name'),
   email: optionalEmail(),
   phoneNumber: requiredText('Contact number'),
-  assignedAdminId: requiredNullableNumber('Assigned admin'),
-  notes: requiredText('Notes'),
+  assignedAdminId: optionalNullableNumber('Assigned admin'),
+  notes: optionalText(),
   leadData: z.object({
     gymName: requiredText('Club name'),
     gymLocation: requiredText('Club location'),
@@ -60,59 +57,33 @@ export const leadDraftSchema = z.object({
   }),
 });
 
-export const accountSetupSchema = z
-  .object({
-    userName: requiredText('Username'),
-    password: z
-      .string()
-      .min(1, 'Password is required')
-      .min(8, 'Password must be at least 8 characters'),
-    email: requiredEmail('Email'),
-    phoneNumber: requiredText('Phone number'),
-    userPhotoFile: z.any().nullable(),
-    userPhotoPreview: optionalText(),
-  })
-  .superRefine((data, ctx) => {
-    const hasFile =
-      typeof File !== 'undefined' && data.userPhotoFile instanceof File;
-    const hasPhoto = hasFile || data.userPhotoPreview.trim().length > 0;
-    if (!hasPhoto) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['userPhotoFile'],
-        message: 'Profile photo is required',
-      });
-    }
-  });
+export const accountSetupSchema = z.object({
+  userName: requiredText('Username'),
+  password: z
+    .string()
+    .min(1, 'Password is required')
+    .min(8, 'Password must be at least 8 characters'),
+  email: requiredEmail('Email'),
+  phoneNumber: requiredText('Phone number'),
+  userPhotoFile: z.any().nullable(),
+  userPhotoPreview: optionalText(),
+});
 
 export const subscriptionSetupSchema = z.object({
   subscriptionId: requiredText('Subscription plan'),
   subscriptionDate: requiredText('Subscription date'),
 });
 
-export const gymDraftSchema = z
-  .object({
-    gymName: requiredText('Club name'),
-    gymEmail: requiredEmail('Club email'),
-    gymLocation: requiredText('Club location'),
-    gymContactNumber: requiredText('Club contact number'),
-    country: requiredText('Country'),
-    region: requiredText('Region'),
-    gymPhotoFile: z.any().nullable(),
-    gymPhotoPreview: optionalText(),
-  })
-  .superRefine((data, ctx) => {
-    const hasFile =
-      typeof File !== 'undefined' && data.gymPhotoFile instanceof File;
-    const hasPhoto = hasFile || data.gymPhotoPreview.trim().length > 0;
-    if (!hasPhoto) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['gymPhotoFile'],
-        message: 'Club profile photo is required',
-      });
-    }
-  });
+export const gymDraftSchema = z.object({
+  gymName: requiredText('Club name'),
+  gymEmail: requiredEmail('Club email'),
+  gymLocation: requiredText('Club location'),
+  gymContactNumber: requiredText('Club contact number'),
+  country: requiredText('Country'),
+  region: requiredText('Region'),
+  gymPhotoFile: z.any().nullable(),
+  gymPhotoPreview: optionalText(),
+});
 
 export const gymListSchema = z
   .array(gymDraftSchema)
