@@ -149,7 +149,7 @@ export function OnboardingWizard({
     if (currentStep === 1) {
       const success = await saveDraft();
       if (success) {
-        onClose();
+        setCurrentStep(2);
       }
       return;
     }
