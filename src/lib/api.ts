@@ -25,6 +25,9 @@ export const setNonGetRequestGuard = (guard: NonGetRequestGuard | null) => {
 };
 
 const NON_GET_CONFIRM_SKIP_PATHS = new Set<string>(['/Auth/refresh-token']);
+const AUTH_ENVIRONMENT_HEADER_PATHS = new Set<string>([
+  '/Auth/admin-form-data',
+]);
 
 const inFlightControllers = new Set<AbortController>();
 
@@ -230,7 +233,11 @@ const baseFetch: typeof fetch = async (url, options = {}) => {
   const environment = getStoredApiEnvironment();
   const requestPath = getPathnameFromUrl(url);
   const isAuthEndpoint = requestPath.toLowerCase().startsWith('/auth');
-  const environmentHeaderValue = isAuthEndpoint ? 'Admin' : environment;
+  const usesAdminDatabaseHeader =
+    isAuthEndpoint && !AUTH_ENVIRONMENT_HEADER_PATHS.has(requestPath);
+  const environmentHeaderValue = usesAdminDatabaseHeader
+    ? 'Admin'
+    : environment;
 
   let userData = null;
   try {
@@ -274,8 +281,8 @@ const baseFetch: typeof fetch = async (url, options = {}) => {
 
   const method = (fetchOptions.method || 'GET').toUpperCase();
   const urlString = typeof url === 'string' ? url : url.toString();
-  // Re-apply to ensure auth endpoints always use Admin database.
-  if (isAuthEndpoint) {
+  // Re-apply to ensure auth endpoints that live in Admin keep using that database.
+  if (usesAdminDatabaseHeader) {
     headers[API_ENV_HEADER] = 'Admin';
   }
   const shouldSkipConfirm =

@@ -83,7 +83,7 @@ export function OnboardingStep2() {
   return (
     <StepWrapper
       title="Account Setup"
-      description="Create the client portal credentials and attach a profile photo."
+      description="Create the client portal credentials and optionally attach a profile photo."
       className="max-w-180 mx-auto"
     >
       <Form {...form}>

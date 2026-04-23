@@ -201,9 +201,8 @@ export function OnboardingStep1() {
                 placeholder={
                   adminFormLoading
                     ? 'Loading team members...'
-                    : 'Select a team member'
+                    : 'Select a team member (optional)'
                 }
-                mandatory
               />
             )}
           </FieldGrid>
@@ -262,8 +261,7 @@ export function OnboardingStep1() {
             control={form.control}
             name="notes"
             label="Notes"
-            placeholder="Add any notes..."
-            mandatory
+            placeholder="Add any notes (optional)..."
           />
         </form>
       </Form>
