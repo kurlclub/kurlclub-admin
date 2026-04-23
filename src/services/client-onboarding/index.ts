@@ -156,6 +156,7 @@ export const createOnboardingDraft = async (
   const response = await api.post<ApiEnvelope<OnboardingRecord>>(
     '/ClientOnboarding/draft',
     requestPayload,
+    { skipConfirm: true },
   );
   return normalizeRecord(unwrap(response));
 };
@@ -174,6 +175,7 @@ export const updateOnboardingDraft = async (
   const response = await api.put<ApiEnvelope<OnboardingRecord>>(
     `/ClientOnboarding/${id}/draft`,
     requestPayload,
+    { skipConfirm: true },
   );
   return normalizeRecord(unwrap(response));
 };

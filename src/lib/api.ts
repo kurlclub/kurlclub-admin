@@ -2,7 +2,6 @@ import {
   API_ENV_HEADER,
   type ApiEnvironment,
   getStoredApiEnvironment,
-  isProductionEnvironment,
 } from '@/lib/api-environment';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL!;
@@ -67,15 +66,6 @@ const attachAbortSignal = (
   );
 };
 
-const createAbortError = (message: string) => {
-  if (typeof DOMException !== 'undefined') {
-    return new DOMException(message, 'AbortError');
-  }
-  const error = new Error(message);
-  error.name = 'AbortError';
-  return error;
-};
-
 const getPathnameFromUrl = (url: RequestInfo | URL) => {
   if (typeof url === 'string') {
     const [path] = url.split('?');
@@ -105,6 +95,12 @@ const notifyCancelledRequest = async (message: string) => {
   } catch (error) {
     console.warn('Failed to show cancellation toast:', error);
   }
+};
+
+const createAbortError = (message: string) => {
+  const error = new Error(message);
+  error.name = 'AbortError';
+  return error;
 };
 
 const getStorageItem = (key: string): string | null => {
@@ -289,34 +285,20 @@ const baseFetch: typeof fetch = async (url, options = {}) => {
     skipConfirm || NON_GET_CONFIRM_SKIP_PATHS.has(requestPath);
 
   if (method !== 'GET' && !shouldSkipConfirm) {
-    if (!('Idempotency-Key' in headers)) {
-      headers['Idempotency-Key'] = createIdempotencyKey();
-    }
-  }
-
-  if (
-    method !== 'GET' &&
-    !shouldSkipConfirm &&
-    isProductionEnvironment(environment)
-  ) {
-    const confirmRequest = nonGetRequestGuard
-      ? nonGetRequestGuard({
+    const isAllowed = nonGetRequestGuard
+      ? await nonGetRequestGuard({
           method,
-          url: `${API_BASE_URL}${urlString}`,
+          url: urlString,
           environment,
         })
-      : typeof window !== 'undefined'
-        ? Promise.resolve(
-            window.confirm(
-              `You are about to ${method} ${urlString} in ${environment}. Continue?`,
-            ),
-          )
-        : Promise.resolve(true);
+      : true;
 
-    const isAllowed = await confirmRequest;
     if (!isAllowed) {
-      await notifyCancelledRequest('Request cancelled.');
-      throw createAbortError('Request cancelled by user');
+      throw createAbortError('Request cancelled by user.');
+    }
+
+    if (!('Idempotency-Key' in headers)) {
+      headers['Idempotency-Key'] = createIdempotencyKey();
     }
   }
 
