@@ -250,6 +250,7 @@ export const completeOnboarding = async (
   const response = await api.post<ApiEnvelope<OnboardingRecord>>(
     `/ClientOnboarding/${id}/complete`,
     formData,
+    { skipConfirm: true },
   );
   return normalizeRecord(unwrap(response));
 };
