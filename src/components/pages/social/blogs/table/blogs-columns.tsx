@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@kurlclub/ui-components';
 import type { ColumnDef } from '@tanstack/react-table';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { MoreHorizontal } from 'lucide-react';
 
 import type { Blog } from '@/types/blog';
@@ -71,7 +71,7 @@ export const createBlogColumns = ({
       try {
         return (
           <span className="text-secondary-blue-200 text-sm">
-            {format(new Date(row.original.displayDate), 'MMM dd, yyyy')}
+            {format(parseISO(row.original.displayDate), 'MMM dd, yyyy')}
           </span>
         );
       } catch {

@@ -41,6 +41,8 @@ export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
       } else if (blog) {
         await updateMutation.mutateAsync({ id: blog.id, data: payload });
         toast.success('Article updated');
+      } else {
+        toast.error('Unable to save: article data not loaded yet. Please try again.');
       }
     } catch {
       toast.error('Failed to save article');
@@ -88,7 +90,9 @@ export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
             disabled={isPending}
             onClick={() => triggerSubmit('draft')}
           >
-            {isPending && pendingStatus === 'draft' ? 'Saving...' : 'Save Draft'}
+            {isPending && pendingStatus === 'draft'
+              ? 'Saving...'
+              : 'Save Draft'}
           </Button>
           <Button
             type="button"

@@ -137,7 +137,9 @@ export function BlogListPage() {
           <div className="text-center py-20 text-secondary-blue-300">
             {searchTerm
               ? 'No articles match your search.'
-              : 'No articles yet. Create your first blog post.'}
+              : statusFilter !== 'all'
+                ? `No ${statusFilter} articles.`
+                : 'No articles yet. Create your first blog post.'}
           </div>
         )}
       </div>

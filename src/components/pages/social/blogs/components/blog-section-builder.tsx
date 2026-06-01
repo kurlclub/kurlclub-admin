@@ -1,15 +1,13 @@
 'use client';
 
-import {
-  Controller,
-  useFieldArray,
-  type Control,
-  type FieldErrors,
-} from 'react-hook-form';
-
-import { Plus, Trash2 } from 'lucide-react';
-
 import { Button } from '@kurlclub/ui-components';
+import { Plus, Trash2 } from 'lucide-react';
+import {
+  type Control,
+  Controller,
+  type FieldErrors,
+  useFieldArray,
+} from 'react-hook-form';
 
 import type { BlogFormData } from '@/types/blog';
 
@@ -82,36 +80,45 @@ function SectionCard({ control, index, onRemove, errors }: SectionCardProps) {
           Paragraphs <span className="text-red-400">*</span>
         </label>
         {paraFields.map((para, pIdx) => (
-          <div key={para.id} className="flex gap-2">
-            <Controller
-              control={control}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              name={`sections.${index}.paragraphs.${pIdx}` as any}
-              render={({ field }) => (
-                <textarea
-                  {...field}
-                  value={field.value ?? ''}
-                  placeholder={`Paragraph ${pIdx + 1}`}
-                  rows={3}
-                  className={`${inputClass} resize-y flex-1`}
-                />
+          <div key={para.id} className="flex flex-col gap-1">
+            <div className="flex gap-2">
+              <Controller
+                control={control}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                name={`sections.${index}.paragraphs.${pIdx}` as any}
+                render={({ field }) => (
+                  <textarea
+                    {...field}
+                    value={field.value ?? ''}
+                    placeholder={`Paragraph ${pIdx + 1}`}
+                    rows={3}
+                    className={`${inputClass} resize-y flex-1`}
+                  />
+                )}
+              />
+              {paraFields.length > 1 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="mt-1 h-7 w-7 shrink-0 p-0 text-secondary-blue-400"
+                  onClick={() => removePara(pIdx)}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
               )}
-            />
-            {paraFields.length > 1 && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="mt-1 h-7 w-7 shrink-0 p-0 text-secondary-blue-400"
-                onClick={() => removePara(pIdx)}
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
+            </div>
+            {sectionError?.paragraphs?.[pIdx]?.message && (
+              <p className="text-xs text-red-400">
+                {sectionError.paragraphs[pIdx].message}
+              </p>
             )}
           </div>
         ))}
         {sectionError?.paragraphs?.message && (
-          <p className="text-xs text-red-400">{sectionError.paragraphs.message}</p>
+          <p className="text-xs text-red-400">
+            {sectionError.paragraphs.message}
+          </p>
         )}
         <Button
           type="button"
@@ -189,9 +196,7 @@ export function BlogSectionBuilder({
         type="button"
         variant="outline"
         className="w-full gap-2"
-        onClick={() =>
-          append({ heading: '', paragraphs: [''], quote: '' })
-        }
+        onClick={() => append({ heading: '', paragraphs: [''], quote: '' })}
       >
         <Plus className="h-4 w-4" />
         Add Section

@@ -2,9 +2,9 @@
 
 import { useRef } from 'react';
 
-import { ImageIcon, X } from 'lucide-react';
-
 import { Button, Spinner } from '@kurlclub/ui-components';
+import { ImageIcon, X } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { useUploadBlogImage } from '@/services/social/blogs';
 import type { BlogCoverImage } from '@/types/blog';
@@ -15,17 +15,25 @@ interface BlogImageUploadProps {
   error?: string;
 }
 
-export function BlogImageUpload({ value, onChange, error }: BlogImageUploadProps) {
+export function BlogImageUpload({
+  value,
+  onChange,
+  error,
+}: BlogImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const uploadMutation = useUploadBlogImage();
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const { src } = await uploadMutation.mutateAsync(file);
-    onChange({ src, alt: value.alt || file.name.replace(/\.[^.]+$/, '') });
-    // Reset so the same file can be re-selected
-    if (inputRef.current) inputRef.current.value = '';
+    try {
+      const { src } = await uploadMutation.mutateAsync(file);
+      onChange({ src, alt: value.alt || file.name.replace(/\.[^.]+$/, '') });
+    } catch {
+      toast.error('Image upload failed. Please try again.');
+    } finally {
+      if (inputRef.current) inputRef.current.value = '';
+    }
   };
 
   const handleClear = () => {
