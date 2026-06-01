@@ -1,10 +1,15 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
-import { Button, DataTable, DataTableToolbar, Spinner } from '@kurlclub/ui-components';
+import {
+  Button,
+  DataTable,
+  DataTableToolbar,
+  Spinner,
+} from '@kurlclub/ui-components';
 import { Plus } from 'lucide-react';
 
 import { StudioLayout } from '@/components/shared/layout';
@@ -21,7 +26,11 @@ const STATUS_TABS: { label: string; value: StatusFilter }[] = [
   { label: 'Draft', value: 'draft' },
 ];
 
-const filterBlogs = (blogs: Blog[], term: string, status: StatusFilter): Blog[] => {
+const filterBlogs = (
+  blogs: Blog[],
+  term: string,
+  status: StatusFilter,
+): Blog[] => {
   let result = blogs;
   if (status !== 'all') {
     result = result.filter((b) => b.status === status);
@@ -48,11 +57,14 @@ export function BlogListPage() {
     [blogs, searchTerm, statusFilter],
   );
 
-  const handleDelete = async (id: number, title: string) => {
-    if (confirm(`Delete "${title}"? This cannot be undone.`)) {
-      await deleteMutation.mutateAsync(id);
-    }
-  };
+  const handleDelete = useCallback(
+    async (id: number, title: string) => {
+      if (confirm(`Delete "${title}"? This cannot be undone.`)) {
+        await deleteMutation.mutateAsync(id);
+      }
+    },
+    [deleteMutation],
+  );
 
   const columns = useMemo(
     () =>
@@ -60,8 +72,7 @@ export function BlogListPage() {
         onEdit: (slug) => router.push(`/social/blogs/${slug}/edit`),
         onDelete: handleDelete,
       }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [router],
+    [router, handleDelete],
   );
 
   return (
@@ -74,7 +85,10 @@ export function BlogListPage() {
               Manage your blog content
             </p>
           </div>
-          <Button onClick={() => router.push('/social/blogs/new')} className="gap-2">
+          <Button
+            onClick={() => router.push('/social/blogs/new')}
+            className="gap-2"
+          >
             <Plus className="h-4 w-4" />
             New Article
           </Button>
