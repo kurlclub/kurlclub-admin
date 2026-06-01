@@ -30,7 +30,10 @@ export function useCountryRegion(
 
   const regionDisabled = !selectedCountryName || regionOptions.length === 0;
 
-  const stableOnChange = useCallback(() => onCountryChange?.(), [onCountryChange]);
+  const stableOnChange = useCallback(
+    () => onCountryChange?.(),
+    [onCountryChange],
+  );
 
   useEffect(() => {
     if (prevCountryRef.current === undefined) {

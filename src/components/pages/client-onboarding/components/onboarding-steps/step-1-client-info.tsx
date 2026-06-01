@@ -14,8 +14,8 @@ import { Building2, ClipboardList, User } from 'lucide-react';
 import { type DeepPartial, useForm, useWatch } from 'react-hook-form';
 
 import { useOnboardingContext } from '@/hooks/onboarding';
-import { useCountryRegion } from '@/hooks/use-country-region';
 import { useAdminFormData } from '@/hooks/use-admin-form-data';
+import { useCountryRegion } from '@/hooks/use-country-region';
 import { useAuth } from '@/providers/auth-provider';
 import type { LeadDraftSchemaInput } from '@/schemas/onboarding.schema';
 import { leadDraftSchema } from '@/schemas/onboarding.schema';
@@ -124,7 +124,10 @@ export function OnboardingStep1() {
     >
       <Form {...form}>
         <form className="space-y-8 animate-in slide-in-from-bottom-2 duration-500">
-          <SectionHeader title="Primary Contact" icon={<User className="w-4 h-4" />} />
+          <SectionHeader
+            title="Primary Contact"
+            icon={<User className="w-4 h-4" />}
+          />
           <FieldGrid columns={1} smColumns={2} gap="md">
             <KFormField
               fieldType={KFormFieldType.INPUT}
@@ -165,7 +168,10 @@ export function OnboardingStep1() {
             )}
           </FieldGrid>
 
-          <SectionHeader title="Club Overview" icon={<Building2 className="w-4 h-4" />} />
+          <SectionHeader
+            title="Club Overview"
+            icon={<Building2 className="w-4 h-4" />}
+          />
           <FieldGrid columns={1} smColumns={2} gap="md">
             <KFormField
               fieldType={KFormFieldType.INPUT}
@@ -207,7 +213,10 @@ export function OnboardingStep1() {
             />
           </FieldGrid>
 
-          <SectionHeader title="Notes" icon={<ClipboardList className="w-4 h-4" />} />
+          <SectionHeader
+            title="Notes"
+            icon={<ClipboardList className="w-4 h-4" />}
+          />
           <KFormField
             fieldType={KFormFieldType.TEXTAREA}
             control={form.control}
@@ -221,13 +230,21 @@ export function OnboardingStep1() {
   );
 }
 
-function SectionHeader({ title, icon }: { title: string; icon: React.ReactNode }) {
+function SectionHeader({
+  title,
+  icon,
+}: {
+  title: string;
+  icon: React.ReactNode;
+}) {
   return (
     <div className="flex items-center gap-3 w-full text-secondary-blue-200">
       <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-secondary-blue-500/60 border border-secondary-blue-400">
         {icon}
       </span>
-      <span className="text-[11px] font-bold uppercase tracking-[0.2em]">{title}</span>
+      <span className="text-[11px] font-bold uppercase tracking-[0.2em]">
+        {title}
+      </span>
       <div className="h-px flex-1 bg-secondary-blue-400/40" />
     </div>
   );

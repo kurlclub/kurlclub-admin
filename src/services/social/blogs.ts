@@ -16,11 +16,15 @@ const normalizeBlogList = (payload: unknown): BlogListResult => {
     meta: { page: 1, pageSize: 10, total: 0, pageCount: 0 },
   };
   if (!payload) return fallback;
-  if (Array.isArray(payload)) return { blogs: payload as Blog[], meta: fallback.meta };
+  if (Array.isArray(payload))
+    return { blogs: payload as Blog[], meta: fallback.meta };
   if (typeof payload !== 'object') return fallback;
   const p = payload as Record<string, unknown>;
   const data = Array.isArray(p.data) ? p.data : [];
-  const meta = { ...fallback.meta, ...(p.meta as Partial<BlogListResult['meta']> ?? {}) };
+  const meta = {
+    ...fallback.meta,
+    ...((p.meta as Partial<BlogListResult['meta']>) ?? {}),
+  };
   return { blogs: data as Blog[], meta };
 };
 

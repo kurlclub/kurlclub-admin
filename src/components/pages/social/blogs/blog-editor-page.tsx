@@ -42,7 +42,9 @@ export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
         await updateMutation.mutateAsync({ id: blog.id, data: payload });
         toast.success('Article updated');
       } else {
-        toast.error('Unable to save: article data not loaded yet. Please try again.');
+        toast.error(
+          'Unable to save: article data not loaded yet. Please try again.',
+        );
       }
     } catch {
       toast.error('Failed to save article');

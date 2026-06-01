@@ -25,8 +25,8 @@ import { useForm, useWatch } from 'react-hook-form';
 
 import { useOnboardingContext } from '@/hooks/onboarding';
 import { useCountryRegion } from '@/hooks/use-country-region';
-import { gymDraftSchema, gymListSchema } from '@/schemas/onboarding.schema';
 import { readFileAsDataURL } from '@/lib/utils/onboarding.utils';
+import { gymDraftSchema, gymListSchema } from '@/schemas/onboarding.schema';
 import type { GymDraft } from '@/types/onboarding';
 
 import { StepWrapper } from './stepper-wrapper';
@@ -55,8 +55,12 @@ export function OnboardingStep4() {
     reValidateMode: 'onChange',
     defaultValues: INITIAL_GYM_STATE,
   });
-  const currentGym = useWatch({ control: gymForm.control }) ?? INITIAL_GYM_STATE;
-  const preview = useWatch({ control: gymForm.control, name: 'gymPhotoPreview' });
+  const currentGym =
+    useWatch({ control: gymForm.control }) ?? INITIAL_GYM_STATE;
+  const preview = useWatch({
+    control: gymForm.control,
+    name: 'gymPhotoPreview',
+  });
 
   const { lead } = formData;
   const gyms = formData.gyms.gyms;
@@ -162,7 +166,10 @@ export function OnboardingStep4() {
     gymForm.reset(INITIAL_GYM_STATE);
   };
 
-  const gymCount = useMemo(() => `${gyms.length} location${gyms.length !== 1 ? 's' : ''}`, [gyms.length]);
+  const gymCount = useMemo(
+    () => `${gyms.length} location${gyms.length !== 1 ? 's' : ''}`,
+    [gyms.length],
+  );
 
   return (
     <StepWrapper
@@ -211,7 +218,9 @@ export function OnboardingStep4() {
                       </button>
                     </div>
                   </div>
-                  <h4 className="font-bold text-white text-base truncate">{gym.gymName}</h4>
+                  <h4 className="font-bold text-white text-base truncate">
+                    {gym.gymName}
+                  </h4>
                   <div className="flex items-center gap-2 mt-1 text-secondary-blue-300">
                     <MapPin className="w-3 h-3" />
                     <span className="text-xs truncate">{gym.gymLocation}</span>
@@ -219,7 +228,9 @@ export function OnboardingStep4() {
                   {gym.gymContactNumber && (
                     <div className="flex items-center gap-2 mt-1 text-secondary-blue-300">
                       <Phone className="w-3 h-3" />
-                      <span className="text-xs truncate">{gym.gymContactNumber}</span>
+                      <span className="text-xs truncate">
+                        {gym.gymContactNumber}
+                      </span>
                     </div>
                   )}
                   {(gym.country || gym.region) && (
@@ -243,7 +254,9 @@ export function OnboardingStep4() {
               </div>
               <div>
                 <p className="text-sm font-bold text-white">Add Club</p>
-                <p className="text-[10px] text-secondary-blue-300 mt-1">Register another club</p>
+                <p className="text-[10px] text-secondary-blue-300 mt-1">
+                  Register another club
+                </p>
               </div>
             </button>
           )}
@@ -290,9 +303,13 @@ export function OnboardingStep4() {
                       name="gymPhotoFile"
                       renderSkeleton={(field) => (
                         <ProfileUploader
-                          files={field.value instanceof File ? field.value : null}
+                          files={
+                            field.value instanceof File ? field.value : null
+                          }
                           existingImageUrl={
-                            typeof preview === 'string' && preview ? preview : null
+                            typeof preview === 'string' && preview
+                              ? preview
+                              : null
                           }
                           onChange={(file) => {
                             if (!file) {

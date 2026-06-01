@@ -31,8 +31,12 @@ export function KanbanCard({
   const { adminFormData } = useAdminFormData();
 
   const assignedAdminName = (() => {
-    if (!adminFormData?.adminUsers || client.assignedAdminId == null) return null;
-    return adminFormData.adminUsers.find((a) => a.id === client.assignedAdminId)?.name ?? null;
+    if (!adminFormData?.adminUsers || client.assignedAdminId == null)
+      return null;
+    return (
+      adminFormData.adminUsers.find((a) => a.id === client.assignedAdminId)
+        ?.name ?? null
+    );
   })();
 
   const data = client.data as Record<string, unknown> | null;
@@ -42,7 +46,8 @@ export function KanbanCard({
     ? client.contactName || client.email || client.phoneNumber || ''
     : client.email || client.phoneNumber || '';
 
-  const gymLocation = typeof data?.gymLocation === 'string' ? data.gymLocation : '';
+  const gymLocation =
+    typeof data?.gymLocation === 'string' ? data.gymLocation : '';
   const gymCountry = typeof data?.country === 'string' ? data.country : '';
   const locationLine = [gymLocation, gymCountry].filter(Boolean).join(', ');
   const createdAtFormatted = formatOnboardingDate(client.createdAt);
@@ -53,7 +58,8 @@ export function KanbanCard({
     .map((w) => w[0]?.toUpperCase() ?? '')
     .join('');
 
-  const isTerminal = client.status === 'completed' || client.status === 'cancelled';
+  const isTerminal =
+    client.status === 'completed' || client.status === 'cancelled';
 
   return (
     <motion.div
@@ -113,7 +119,9 @@ export function KanbanCard({
             </p>
           )}
           {createdAtFormatted && (
-            <p className="text-[11px] text-secondary-blue-500 flex-none">{createdAtFormatted}</p>
+            <p className="text-[11px] text-secondary-blue-500 flex-none">
+              {createdAtFormatted}
+            </p>
           )}
         </div>
       )}
@@ -129,14 +137,19 @@ export function KanbanCard({
       <div className="flex items-center justify-between pt-2.5 border-t border-secondary-blue-600/50">
         <div className="min-w-0 flex-1">
           {canSeeAssignedAdmin && assignedAdminName && (
-            <p className="text-[10px] text-secondary-blue-500 truncate">{assignedAdminName}</p>
+            <p className="text-[10px] text-secondary-blue-500 truncate">
+              {assignedAdminName}
+            </p>
           )}
         </div>
 
         <div className="flex items-center gap-2 flex-none">
           {!isTerminal && (
             <button
-              onClick={(e) => { e.stopPropagation(); onResume(client); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onResume(client);
+              }}
               className={`flex items-center gap-1 px-2.5 py-1 rounded-md
                 text-[10px] font-semibold ${col.accentBg} ${col.accentText}
                 hover:opacity-80 transition-opacity`}
@@ -147,7 +160,10 @@ export function KanbanCard({
             </button>
           )}
           <button
-            onClick={(e) => { e.stopPropagation(); onView(client); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onView(client);
+            }}
             className="flex items-center gap-1 text-[10px] font-medium
               text-secondary-blue-400 hover:text-white transition-colors"
             type="button"

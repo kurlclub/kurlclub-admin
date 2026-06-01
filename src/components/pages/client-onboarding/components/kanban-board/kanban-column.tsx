@@ -40,7 +40,9 @@ export function KanbanColumn({
       {/* ── Column header ── */}
       <div className="sticky top-0 z-20 flex items-center justify-between px-1 pb-3">
         <div className="flex items-center gap-2">
-          <span className={`w-2 h-2 rounded-full flex-none ${col.accentSolid}`} />
+          <span
+            className={`w-2 h-2 rounded-full flex-none ${col.accentSolid}`}
+          />
           <span className="text-sm font-semibold text-white">{col.label}</span>
         </div>
         <span
@@ -81,7 +83,9 @@ export function KanbanColumn({
             <p className={`text-xs font-medium ${col.accentText} opacity-60`}>
               No {col.label.toLowerCase()} yet
             </p>
-            <p className="text-[11px] text-secondary-blue-500 mt-1">Drop a card here</p>
+            <p className="text-[11px] text-secondary-blue-500 mt-1">
+              Drop a card here
+            </p>
           </div>
         )}
       </div>
@@ -101,11 +105,17 @@ function SortableCard({
   onResume: (c: OnboardingRecord) => void;
   isDragging: boolean;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({
-      id: client.id,
-      data: { sortable: { containerId: client.status } },
-    });
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: client.id,
+    data: { sortable: { containerId: client.status } },
+  });
 
   const style: CSSProperties = {
     transform: CSS.Transform.toString(transform),

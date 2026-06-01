@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@kurlclub/ui-components';
 import {
   ArrowLeft,
   ArrowRight,
@@ -11,7 +12,6 @@ import {
   User,
   X,
 } from 'lucide-react';
-import { Button } from '@kurlclub/ui-components';
 
 import { useOnboardingContext } from '@/hooks/onboarding';
 import type { OnboardingRecord } from '@/types/onboarding';
@@ -30,11 +30,36 @@ interface OnboardingWizardProps {
 }
 
 const STEPS = [
-  { id: 1, name: 'Lead Intake', description: 'Capture lead details', icon: <Building2 className="w-4 h-4" /> },
-  { id: 2, name: 'Account Setup', description: 'Portal access', icon: <User className="w-4 h-4" /> },
-  { id: 3, name: 'Subscription', description: 'Assign plan', icon: <CreditCard className="w-4 h-4" /> },
-  { id: 4, name: 'Gyms', description: 'Setup locations', icon: <MapPin className="w-4 h-4" /> },
-  { id: 5, name: 'Review', description: 'Confirm & complete', icon: <CheckCircle className="w-4 h-4" /> },
+  {
+    id: 1,
+    name: 'Lead Intake',
+    description: 'Capture lead details',
+    icon: <Building2 className="w-4 h-4" />,
+  },
+  {
+    id: 2,
+    name: 'Account Setup',
+    description: 'Portal access',
+    icon: <User className="w-4 h-4" />,
+  },
+  {
+    id: 3,
+    name: 'Subscription',
+    description: 'Assign plan',
+    icon: <CreditCard className="w-4 h-4" />,
+  },
+  {
+    id: 4,
+    name: 'Gyms',
+    description: 'Setup locations',
+    icon: <MapPin className="w-4 h-4" />,
+  },
+  {
+    id: 5,
+    name: 'Review',
+    description: 'Confirm & complete',
+    icon: <CheckCircle className="w-4 h-4" />,
+  },
 ] as const;
 
 const STEP_COMPONENTS: Record<number, React.ReactNode> = {
@@ -45,7 +70,10 @@ const STEP_COMPONENTS: Record<number, React.ReactNode> = {
   5: <OnboardingStep5 />,
 };
 
-export function OnboardingWizard({ onClose, initialClient }: OnboardingWizardProps) {
+export function OnboardingWizard({
+  onClose,
+  initialClient,
+}: OnboardingWizardProps) {
   const {
     currentStep,
     setCurrentStep,
@@ -113,7 +141,9 @@ export function OnboardingWizard({ onClose, initialClient }: OnboardingWizardPro
                   {idx > 0 && (
                     <div
                       className={`w-10 h-px mx-1 transition-colors ${
-                        step.id <= currentStep ? 'bg-primary-green-500' : 'bg-secondary-blue-400'
+                        step.id <= currentStep
+                          ? 'bg-primary-green-500'
+                          : 'bg-secondary-blue-400'
                       }`}
                     />
                   )}
@@ -136,7 +166,11 @@ export function OnboardingWizard({ onClose, initialClient }: OnboardingWizardPro
                         }
                       `}
                     >
-                      {isCompleted ? <Check className="w-3.5 h-3.5" /> : step.icon}
+                      {isCompleted ? (
+                        <Check className="w-3.5 h-3.5" />
+                      ) : (
+                        step.icon
+                      )}
                       {isActive && (
                         <span className="absolute -inset-1 rounded-full border-2 border-primary-green-500/30 animate-pulse" />
                       )}
