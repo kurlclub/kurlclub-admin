@@ -15,10 +15,12 @@ const normalizeBlogList = (payload: unknown): BlogListResult => {
     blogs: [],
     meta: { page: 1, pageSize: 10, total: 0, pageCount: 0 },
   };
-  if (!payload || typeof payload !== 'object') return fallback;
+  if (!payload) return fallback;
+  if (Array.isArray(payload)) return { blogs: payload as Blog[], meta: fallback.meta };
+  if (typeof payload !== 'object') return fallback;
   const p = payload as Record<string, unknown>;
-  const data = Array.isArray(p.data) ? p.data : Array.isArray(p) ? p : [];
-  const meta = (p.meta ?? {}) as BlogListResult['meta'];
+  const data = Array.isArray(p.data) ? p.data : [];
+  const meta = { ...fallback.meta, ...(p.meta as Partial<BlogListResult['meta']> ?? {}) };
   return { blogs: data as Blog[], meta };
 };
 
@@ -31,7 +33,7 @@ export const fetchBlogs = async (
     ),
   ) as Record<string, string | number | boolean>;
   const response = await api.get<unknown>('/blogs', { params: queryParams });
-  return normalizeBlogList(response);
+  return normalizeBlogList(unwrap(response));
 };
 
 export const fetchBlogBySlug = async (slug: string): Promise<Blog> => {
@@ -59,9 +61,7 @@ export const deleteBlog = async (id: number): Promise<void> => {
   await api.delete(`/blogs/${id}`);
 };
 
-export const uploadBlogImage = async (
-  file: File,
-): Promise<{ src: string }> => {
+export const uploadBlogImage = async (file: File): Promise<{ src: string }> => {
   const formData = new FormData();
   formData.append('file', file);
   const response = await api.post<
