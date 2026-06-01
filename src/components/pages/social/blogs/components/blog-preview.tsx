@@ -4,7 +4,7 @@ import { format, parseISO } from 'date-fns';
 
 import type { BlogFormData } from '@/types/blog';
 
-// ── Inlined from landing site: src/icon/icon.tsx ─────────────────────────────
+// ── Inlined from landing: src/icon/icon.tsx ───────────────────────────────────
 const QuotaIcon = () => (
   <svg
     width="55"
@@ -20,7 +20,7 @@ const QuotaIcon = () => (
   </svg>
 );
 
-// ── Inlined from landing site: src/components/shared/avatar.tsx ──────────────
+// ── Inlined from landing: src/components/shared/avatar.tsx ───────────────────
 const BlogAvatar = ({
   name,
   size = 24,
@@ -38,7 +38,7 @@ const BlogAvatar = ({
     : '?';
   return (
     <div
-      className="flex items-center justify-center rounded-full bg-secondary-blue-400 font-medium text-white"
+      className="flex shrink-0 items-center justify-center rounded-full bg-secondary-blue-400 font-medium text-white"
       style={{ width: size, height: size, fontSize: 12 }}
     >
       {initials}
@@ -46,7 +46,7 @@ const BlogAvatar = ({
   );
 };
 
-// ── Preview ───────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 
 interface BlogPreviewProps {
   data: Partial<BlogFormData>;
@@ -86,16 +86,18 @@ export function BlogPreview({ data }: BlogPreviewProps) {
 
   return (
     <div className="text-white">
-      {/* ── BlogTitle ───────────────────────────────────────── */}
+      {/* ── BlogTitle — matches landing's blog-title.tsx ──── */}
       <div className="flex flex-col gap-4">
+        {/* Main title: landing uses text-[26px] sm:text-[40px] md:text-[71px] */}
         {title && (
-          <h1 className="text-[26px] font-medium leading-[109%]">{title}</h1>
+          <h1 className="text-[40px] leading-[109%]">{title}</h1>
         )}
 
+        {/* Date | Author — matches landing's meta row */}
         {(formattedDate || author?.name) && (
           <div className="flex flex-wrap items-center gap-2">
             {formattedDate && (
-              <span className="border-r border-white/40 pr-3.5 text-[14px] leading-[109%]">
+              <span className="border-r border-white pr-3.5 text-[14px] leading-[109%]">
                 {formattedDate}
               </span>
             )}
@@ -110,21 +112,25 @@ export function BlogPreview({ data }: BlogPreviewProps) {
           </div>
         )}
 
+        {/* Cover image — landing uses object-contain, h-60 sm:h-100 */}
         {coverImage?.src && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={coverImage.src}
             alt={coverImage.alt || title || 'Cover'}
-            className="h-60 w-full rounded-lg object-cover"
+            className="h-[240px] w-full rounded-lg object-contain"
           />
         )}
       </div>
 
-      {/* ── BlogDetail ──────────────────────────────────────── */}
-      <div className="mt-6 flex flex-col gap-[18px] sm:flex-row">
-        {/* Left sidebar */}
-        <div className="shrink-0 sm:w-[220px]">
-          <div className="flex flex-col gap-4 pt-5">
+      {/* ── BlogDetail — matches landing's blog-detail.tsx ── */}
+      {/* Landing: flex-col sm:flex-row gap-4.5 (18px) — always row in preview */}
+      <div className="mt-6 flex flex-row gap-[18px] pb-10">
+        {/* Left sidebar — landing: sm:w-100 (400px) md:w-113.75 (455px) */}
+        <div className="w-[240px] shrink-0">
+          {/* Landing: sticky top-28, pt-5 md:pt-9, gap-4 */}
+          <div className="sticky top-28 flex flex-col gap-4 pt-5">
+            {/* "See all articles" button — landing uses RightArrow rotated 180° */}
             <button
               type="button"
               className="flex w-fit cursor-default items-center gap-1 text-sm leading-[109%] text-secondary-blue-300"
@@ -147,70 +153,80 @@ export function BlogPreview({ data }: BlogPreviewProps) {
               See all articles
             </button>
 
+            {/* Left title — landing: font-medium text-[22px] md:text-[28px] */}
             {title && (
-              <span className="text-[18px] font-medium leading-[109%]">
+              <span className="text-[22px] font-medium leading-[109%]">
                 {title}
               </span>
             )}
           </div>
         </div>
 
-        {/* Right: article body */}
-        <div className="flex-1 pt-5">
-          <div className="flex flex-col gap-5">
+        {/* Right content — landing: flex-1 pt-5 sm:pt-10 md:pt-21 (84px) */}
+        <div className="flex-1 pt-[84px]">
+          {/* Landing: flex flex-col gap-4 sm:gap-5 md:gap-8 */}
+          <div className="flex flex-col gap-8">
+            {/* Main heading — landing: text-[20px] sm:text-[28px] md:text-[44px] */}
             {mainHeading && (
-              <span className="text-[20px] leading-[109%]">{mainHeading}</span>
+              <span className="text-[28px] leading-[109%]">{mainHeading}</span>
             )}
 
+            {/* Sections */}
             {sections?.map((section, idx) => (
-              <div key={idx} className="flex flex-col gap-4">
+              /* Landing: flex flex-col gap-4 md:gap-5.5 */
+              <div key={idx} className="flex flex-col gap-[22px]">
+                {/* Section heading — same sizes as main heading */}
                 {section.heading && (
-                  <span className="text-[20px] leading-[109%]">
+                  <span className="text-[28px] leading-[109%]">
                     {section.heading}
                   </span>
                 )}
 
+                {/* Paragraphs — landing: text-sm sm:text-[14px] md:text-base */}
                 {section.paragraphs
                   ?.filter((p) => p?.trim())
                   .map((para, pIdx) => (
                     <p
                       key={pIdx}
-                      className="text-[14px] leading-relaxed text-secondary-blue-100"
+                      className="text-base leading-relaxed"
                     >
                       {para}
                     </p>
                   ))}
 
+                {/* Pull quote — landing: Quota icon then italic text */}
                 {section.quote?.trim() && (
                   <>
                     <span>
                       <QuotaIcon />
                     </span>
-                    <p className="text-[15px] font-light italic leading-[109%]">
+                    {/* Landing: text-[15px] sm:text-[20px] md:text-[24px] italic font-light */}
+                    <p className="text-[20px] font-light italic leading-[109%]">
                       {section.quote}
                     </p>
                   </>
                 )}
 
+                {/* Divider — landing: w-full h-px bg-white/20 */}
                 <div className="h-px w-full bg-white/20" />
               </div>
             ))}
 
-            {/* Author */}
+            {/* Author — landing: flex flex-col gap-3 sm:gap-4 md:gap-5.5 */}
             {(author?.name || author?.bio) && (
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-[22px]">
                 {author.name && (
                   <div className="flex items-center gap-2">
                     <BlogAvatar name={author.name} size={24} />
-                    <span className="text-[14px] leading-[109%]">
+                    {/* Landing: text-[14px] md:text-base */}
+                    <span className="text-base leading-[109%]">
                       By {author.name}
                     </span>
                   </div>
                 )}
                 {author.bio && (
-                  <p className="text-[14px] leading-relaxed text-secondary-blue-200">
-                    {author.bio}
-                  </p>
+                  /* Landing: text-sm sm:text-[14px] md:text-base */
+                  <p className="text-base leading-relaxed">{author.bio}</p>
                 )}
               </div>
             )}
