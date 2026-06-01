@@ -9,8 +9,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { motion } from 'framer-motion';
 
-import type { OnboardingRecord } from '@/types/onboarding';
-import type { ColDef } from '@/types/onboarding';
+import type { ColDef, OnboardingRecord } from '@/types/onboarding';
 
 import { KanbanCard } from './kanban-card';
 
@@ -29,59 +28,37 @@ export function KanbanColumn({
   onSelectClient,
   onResumeClient,
 }: KanbanColumnProps) {
-  const { setNodeRef, isOver } = useDroppable({
-    id: col.id,
-  });
+  const { setNodeRef, isOver } = useDroppable({ id: col.id });
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: colIdx * 0.08, duration: 0.3, ease: 'easeOut' }}
-      className="flex-none w-82.5 flex flex-col gap-3"
+      transition={{ delay: colIdx * 0.06, duration: 0.25, ease: 'easeOut' }}
+      className="flex-none w-80 flex flex-col"
     >
-      {/* Column header */}
-      <div
-        className={`sticky top-0 z-20 rounded-2xl border ${col.accentBorder} bg-secondary-blue-700/35 backdrop-blur-lg px-3.5 py-3 shadow-[0_8px_20px_rgba(0,0,0,0.25)] overflow-hidden`}
-      >
-        <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-white/8 to-transparent" />
-        <div
-          className={`absolute left-0 top-0 h-full w-1.5 rounded-l-2xl ${col.accentSolid}`}
-        />
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <div
-              className={`w-9 h-9 rounded-xl flex items-center justify-center border ${col.accentBorder} ${col.accentBg} ${col.accentText}`}
-            >
-              {col.icon}
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-white leading-tight">
-                {col.label}
-              </p>
-              <p className="text-[11px] text-secondary-blue-200">
-                {col.description}
-              </p>
-            </div>
-          </div>
-          <span
-            className={`text-[11px] font-semibold tabular-nums px-2.5 py-1 rounded-full border ${col.accentBorder} ${col.accentBg} ${col.accentText}`}
-          >
-            {cards.length}
-          </span>
+      {/* ── Column header ── */}
+      <div className="sticky top-0 z-20 flex items-center justify-between px-1 pb-3">
+        <div className="flex items-center gap-2">
+          <span className={`w-2 h-2 rounded-full flex-none ${col.accentSolid}`} />
+          <span className="text-sm font-semibold text-white">{col.label}</span>
         </div>
+        <span
+          className={`text-xs font-semibold tabular-nums px-2 py-0.5 rounded-md
+            ${col.accentBg} ${col.accentText}`}
+        >
+          {cards.length}
+        </span>
       </div>
 
-      {/* Card list */}
+      {/* ── Drop zone ── */}
       <div
         ref={setNodeRef}
-        className={`relative flex flex-col gap-3 min-h-120 rounded-2xl border border-secondary-blue-400/25 bg-secondary-blue-700/20 backdrop-blur-md p-2.5 transition-all shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] ${
-          isOver
-            ? `bg-secondary-blue-600/45 ring-2 ${col.accentRing} border-secondary-blue-300/60`
-            : ''
-        }`}
+        className={`relative flex flex-col gap-2.5 min-h-[480px] rounded-xl border
+          border-secondary-blue-400/15 bg-secondary-blue-800/60
+          p-2.5 transition-all duration-150
+          ${isOver ? `ring-1 ${col.accentRing} bg-secondary-blue-700/40 border-secondary-blue-300/20` : ''}`}
       >
-        <div className="pointer-events-none absolute inset-0 rounded-2xl bg-linear-to-b from-white/6 to-transparent" />
         <SortableContext
           id={col.id}
           items={cards.map((c) => c.id)}
@@ -100,15 +77,11 @@ export function KanbanColumn({
         </SortableContext>
 
         {cards.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full rounded-xl border border-dashed border-secondary-blue-400/40 bg-secondary-blue-800/25 backdrop-blur-md py-12 text-center">
-            <div
-              className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-3 border ${col.accentBorder} ${col.accentBg} ${col.accentText}`}
-            >
-              <span className="text-sm font-semibold">+</span>
-            </div>
-            <p className="text-secondary-blue-200 text-xs font-medium">
-              Drag a card here to start
+          <div className="flex flex-col items-center justify-center flex-1 min-h-[200px] py-10 text-center">
+            <p className={`text-xs font-medium ${col.accentText} opacity-60`}>
+              No {col.label.toLowerCase()} yet
             </p>
+            <p className="text-[11px] text-secondary-blue-500 mt-1">Drop a card here</p>
           </div>
         )}
       </div>
@@ -128,17 +101,11 @@ function SortableCard({
   onResume: (c: OnboardingRecord) => void;
   isDragging: boolean;
 }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
-    id: client.id,
-    data: { sortable: { containerId: client.status } },
-  });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({
+      id: client.id,
+      data: { sortable: { containerId: client.status } },
+    });
 
   const style: CSSProperties = {
     transform: CSS.Transform.toString(transform),
