@@ -1,5 +1,3 @@
-// src/types/blog.ts
-
 export interface BlogCoverImage {
   src: string;
   alt: string;
@@ -24,6 +22,7 @@ export interface Blog {
   title: string;
   excerpt: string;
   tagLabel: string;
+  /** Raw YYYY-MM-DD date string returned by the API. Frontend formats it for display. */
   displayDate: string;
   coverImage: BlogCoverImage;
   mainHeading: string;
@@ -51,6 +50,8 @@ export interface BlogFormData {
   status: BlogStatus;
 }
 
+export type BlogUpdateData = Partial<BlogFormData>;
+
 export interface BlogListMeta {
   page: number;
   pageSize: number;
@@ -63,9 +64,11 @@ export interface BlogListResult {
   meta: BlogListMeta;
 }
 
+export type BlogListStatus = BlogStatus | 'all';
+
 export interface BlogListParams {
   limit?: number;
   page?: number;
-  status?: 'draft' | 'published' | 'all';
+  status?: BlogListStatus;
   tag?: string;
 }
