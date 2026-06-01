@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
-import { STALE_5M, unwrap, type ApiEnvelope } from '@/lib/api-types';
+import { type ApiEnvelope, STALE_5M, unwrap } from '@/lib/api-types';
 import type { Gym, GymFormData } from '@/types/gym';
 import type { GymMember, GymMembersResult } from '@/types/member';
 
@@ -25,7 +25,12 @@ const normalizeGymMembers = (payload: unknown): GymMembersResult => {
 
   if (!payload) return fallback;
   if (Array.isArray(payload)) {
-    return { members: payload as GymMember[], currentPage: 1, pageSize: payload.length, totalPages: 1 };
+    return {
+      members: payload as GymMember[],
+      currentPage: 1,
+      pageSize: payload.length,
+      totalPages: 1,
+    };
   }
   if (typeof payload !== 'object') return fallback;
 
@@ -33,7 +38,10 @@ const normalizeGymMembers = (payload: unknown): GymMembersResult => {
   const d = data as Record<string, unknown>;
   const members = d.members ?? d.items ?? d.data ?? d.results ?? [];
   const currentPage = d.currentPage ?? d.page ?? d.pageNumber ?? 1;
-  const pageSize = d.pageSize ?? d.size ?? (Array.isArray(members) ? members.length : fallback.pageSize);
+  const pageSize =
+    d.pageSize ??
+    d.size ??
+    (Array.isArray(members) ? members.length : fallback.pageSize);
   const totalPages = d.totalPages ?? d.totalPage ?? 1;
   const totalCount = d.totalCount ?? d.totalItems ?? d.count;
 
@@ -85,9 +93,14 @@ export const deleteGym = async (id: number) => {
   await api.delete(`/Gyms/${id}`);
 };
 
-export const fetchGymMembers = async (gymId: number, params: GymMembersParams = {}) => {
+export const fetchGymMembers = async (
+  gymId: number,
+  params: GymMembersParams = {},
+) => {
   const queryParams = Object.fromEntries(
-    Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== ''),
+    Object.entries(params).filter(
+      ([, v]) => v !== undefined && v !== null && v !== '',
+    ),
   ) as Record<string, string | number | boolean>;
 
   const response = await api.get<ApiEnvelope<unknown> | unknown>(
@@ -129,7 +142,8 @@ export const useCreateGym = () => {
 export const useUpdateGym = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: GymFormData }) => updateGym(id, data),
+    mutationFn: ({ id, data }: { id: number; data: GymFormData }) =>
+      updateGym(id, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['gyms'] });
       queryClient.invalidateQueries({ queryKey: ['gym', variables.id] });

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
-import { STALE_5M, unwrap, type ApiEnvelope } from '@/lib/api-types';
+import { type ApiEnvelope, STALE_5M, unwrap } from '@/lib/api-types';
 import type { Subscription, SubscriptionFormData } from '@/types/subscription';
 
 const buildSubscriptionFormData = (data: SubscriptionFormData) => {
@@ -47,14 +47,18 @@ const buildSubscriptionFormData = (data: SubscriptionFormData) => {
 };
 
 export const fetchSubscriptions = async () => {
-  const response = await api.get<ApiEnvelope<Subscription[]> | Subscription[]>('/Subscription');
+  const response = await api.get<ApiEnvelope<Subscription[]> | Subscription[]>(
+    '/Subscription',
+  );
   const data = unwrap(response);
   if (!data) throw new Error('Failed to load subscriptions');
   return data;
 };
 
 export const fetchSubscriptionById = async (id: number) => {
-  const response = await api.get<ApiEnvelope<Subscription> | Subscription>(`/Subscription/${id}`);
+  const response = await api.get<ApiEnvelope<Subscription> | Subscription>(
+    `/Subscription/${id}`,
+  );
   const data = unwrap(response);
   if (!data) throw new Error('Failed to load subscription');
   return data;
@@ -68,7 +72,10 @@ export const createSubscription = async (data: SubscriptionFormData) => {
   return unwrap(response);
 };
 
-export const updateSubscription = async (id: number, data: SubscriptionFormData) => {
+export const updateSubscription = async (
+  id: number,
+  data: SubscriptionFormData,
+) => {
   const response = await api.put<ApiEnvelope<Subscription> | Subscription>(
     `/Subscription/${id}`,
     buildSubscriptionFormData(data),
@@ -83,7 +90,11 @@ export const deleteSubscription = async (id: number) => {
 const QUERY_KEY = ['subscriptions'] as const;
 
 export const useSubscriptions = () =>
-  useQuery({ queryKey: QUERY_KEY, queryFn: fetchSubscriptions, staleTime: STALE_5M });
+  useQuery({
+    queryKey: QUERY_KEY,
+    queryFn: fetchSubscriptions,
+    staleTime: STALE_5M,
+  });
 
 export const useSubscription = (id: number) =>
   useQuery({

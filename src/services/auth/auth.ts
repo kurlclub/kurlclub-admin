@@ -7,7 +7,7 @@ import {
 } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
-import { STALE_5M, type ApiEnvelope } from '@/lib/api-types';
+import { type ApiEnvelope, STALE_5M } from '@/lib/api-types';
 import type { AppUser } from '@/types/user';
 
 interface LoginRequest {
@@ -49,13 +49,19 @@ type AuthMeData = {
 };
 
 type AuthMeResult = { user: AppUser; meta?: ApiEnvelope<AuthMeData>['meta'] };
-type AuthMeOptions = Omit<UseQueryOptions<AuthMeResult, Error>, 'queryKey' | 'queryFn'>;
+type AuthMeOptions = Omit<
+  UseQueryOptions<AuthMeResult, Error>,
+  'queryKey' | 'queryFn'
+>;
 
 const buildAuthUser = (payload: AuthMeData): AppUser => {
   const email = payload.email || '';
   const derivedUserName = email.includes('@') ? email.split('@')[0] : '';
   const resolvedName =
-    payload.name?.trim() || payload.userName?.trim() || derivedUserName || 'Admin User';
+    payload.name?.trim() ||
+    payload.userName?.trim() ||
+    derivedUserName ||
+    'Admin User';
 
   return {
     userId: payload.id,
@@ -75,7 +81,8 @@ export const login = async (credentials: LoginRequest) => {
       credentials,
       { skipAuth: true },
     );
-    const data = (response as ApiEnvelope<LoginData>).data ?? (response as LoginData);
+    const data =
+      (response as ApiEnvelope<LoginData>).data ?? (response as LoginData);
     const meta = (response as ApiEnvelope<LoginData>).meta;
     return { success: true, data, meta };
   } catch (error) {
@@ -88,8 +95,11 @@ export const login = async (credentials: LoginRequest) => {
 };
 
 export const fetchAuthMe = async (): Promise<AuthMeResult> => {
-  const response = await api.get<ApiEnvelope<AuthMeData> | AuthMeData>('/Auth/me');
-  const payload = (response as ApiEnvelope<AuthMeData>).data ?? (response as AuthMeData);
+  const response = await api.get<ApiEnvelope<AuthMeData> | AuthMeData>(
+    '/Auth/me',
+  );
+  const payload =
+    (response as ApiEnvelope<AuthMeData>).data ?? (response as AuthMeData);
   const meta = (response as ApiEnvelope<AuthMeData>).meta;
   if (!payload) throw new Error('Failed to get user');
   return { user: buildAuthUser(payload), meta };
@@ -107,7 +117,9 @@ export const getAuthMe = async () => {
   }
 };
 
-export const useAuthMe = (options?: AuthMeOptions): UseQueryResult<AuthMeResult, Error> =>
+export const useAuthMe = (
+  options?: AuthMeOptions,
+): UseQueryResult<AuthMeResult, Error> =>
   useQuery<AuthMeResult, Error>({
     queryKey: ['auth-me'],
     queryFn: fetchAuthMe,
@@ -123,7 +135,9 @@ type UpdateAdminProfilePayload = {
   photoFile?: File | null;
 };
 
-export const updateAdminProfile = async (payload: UpdateAdminProfilePayload) => {
+export const updateAdminProfile = async (
+  payload: UpdateAdminProfilePayload,
+) => {
   const formData = new FormData();
   formData.append('Name', payload.name ?? '');
   formData.append('Phone', payload.phoneNumber ?? '');
@@ -161,5 +175,13 @@ export const forgotPassword = async (email: string) =>
 export const verifyResetOtp = async (email: string, otp: string) =>
   api.post('/Auth/verify-reset-otp', { email, otp }, { skipAuth: true });
 
-export const resetPassword = async (email: string, otp: string, newPassword: string) =>
-  api.post('/Auth/reset-password', { email, otp, newPassword }, { skipAuth: true });
+export const resetPassword = async (
+  email: string,
+  otp: string,
+  newPassword: string,
+) =>
+  api.post(
+    '/Auth/reset-password',
+    { email, otp, newPassword },
+    { skipAuth: true },
+  );

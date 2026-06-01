@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
-import { STALE_5M, unwrap, type ApiEnvelope } from '@/lib/api-types';
+import { type ApiEnvelope, STALE_5M, unwrap } from '@/lib/api-types';
 import type { Client, ClientDetails } from '@/types/client';
 
 const normalizeClientList = (payload: unknown): Client[] => {
@@ -23,7 +23,9 @@ export const fetchClientById = async (id: number) => {
   const response = await api.get<ApiEnvelope<ClientDetails> | ClientDetails>(
     `/Client/${id}`,
   );
-  const payload = unwrap(response) as ClientDetails | { client?: ClientDetails };
+  const payload = unwrap(response) as
+    | ClientDetails
+    | { client?: ClientDetails };
   if (payload && typeof payload === 'object' && 'client' in payload) {
     return (payload as { client?: ClientDetails }).client as ClientDetails;
   }

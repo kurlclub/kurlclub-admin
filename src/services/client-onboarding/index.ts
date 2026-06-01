@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
-import { STALE_30S, unwrap, type ApiEnvelope } from '@/lib/api-types';
+import { type ApiEnvelope, STALE_30S, unwrap } from '@/lib/api-types';
 import type {
   GymDraft,
   LeadData,
@@ -26,8 +26,12 @@ const normalizeLeadData = (raw: unknown): LeadData | null => {
   return {
     ...parsed,
     gymName: typeof parsed.gymName === 'string' ? parsed.gymName : '',
-    gymLocation: typeof parsed.gymLocation === 'string' ? parsed.gymLocation : '',
-    gymContactNumber: typeof parsed.gymContactNumber === 'string' ? parsed.gymContactNumber : '',
+    gymLocation:
+      typeof parsed.gymLocation === 'string' ? parsed.gymLocation : '',
+    gymContactNumber:
+      typeof parsed.gymContactNumber === 'string'
+        ? parsed.gymContactNumber
+        : '',
     country: typeof parsed.country === 'string' ? parsed.country : '',
     region: typeof parsed.region === 'string' ? parsed.region : '',
   };
@@ -38,7 +42,8 @@ const normalizeRecord = (
   fallbackStatus?: OnboardingStatus,
 ): OnboardingRecord => ({
   id: Number(record.id ?? 0),
-  status: (record.status as OnboardingStatus | undefined) ?? fallbackStatus ?? 'lead',
+  status:
+    (record.status as OnboardingStatus | undefined) ?? fallbackStatus ?? 'lead',
   email: record.email ?? '',
   contactName: record.contactName ?? '',
   phoneNumber: record.phoneNumber ?? '',
@@ -58,8 +63,12 @@ const normalizeBoard = (
   if (!payload) return null;
   return {
     lead: payload.lead.map((r) => normalizeRecord(r, 'lead')),
-    inProgress: payload.inProgress.map((r) => normalizeRecord(r, 'in_progress')),
-    pendingReview: payload.pendingReview.map((r) => normalizeRecord(r, 'pending_review')),
+    inProgress: payload.inProgress.map((r) =>
+      normalizeRecord(r, 'in_progress'),
+    ),
+    pendingReview: payload.pendingReview.map((r) =>
+      normalizeRecord(r, 'pending_review'),
+    ),
     onHold: payload.onHold.map((r) => normalizeRecord(r, 'on_hold')),
     completed: payload.completed.map((r) => normalizeRecord(r, 'completed')),
     cancelled: payload.cancelled.map((r) => normalizeRecord(r, 'cancelled')),
@@ -79,13 +88,20 @@ export const flattenBoard = (board: OnboardingBoardData) => [
   ...board.cancelled,
 ];
 
-export const fetchOnboardingBoard = async (): Promise<OnboardingBoardData | null> => {
-  const response = await api.get<ApiEnvelope<OnboardingBoardData>>('/ClientOnboarding/board');
-  return normalizeBoard(unwrap(response));
-};
+export const fetchOnboardingBoard =
+  async (): Promise<OnboardingBoardData | null> => {
+    const response = await api.get<ApiEnvelope<OnboardingBoardData>>(
+      '/ClientOnboarding/board',
+    );
+    return normalizeBoard(unwrap(response));
+  };
 
-export const fetchOnboardingRecord = async (id: number): Promise<OnboardingRecord> => {
-  const response = await api.get<ApiEnvelope<OnboardingRecord>>(`/ClientOnboarding/${id}`);
+export const fetchOnboardingRecord = async (
+  id: number,
+): Promise<OnboardingRecord> => {
+  const response = await api.get<ApiEnvelope<OnboardingRecord>>(
+    `/ClientOnboarding/${id}`,
+  );
   return normalizeRecord(unwrap(response));
 };
 
@@ -100,10 +116,15 @@ export type OnboardingDraftPayload = {
 
 const serializeDraftPayload = (payload: OnboardingDraftPayload) => ({
   ...payload,
-  data: payload.data && typeof payload.data !== 'string' ? JSON.stringify(payload.data) : payload.data,
+  data:
+    payload.data && typeof payload.data !== 'string'
+      ? JSON.stringify(payload.data)
+      : payload.data,
 });
 
-export const createOnboardingDraft = async (payload: OnboardingDraftPayload) => {
+export const createOnboardingDraft = async (
+  payload: OnboardingDraftPayload,
+) => {
   const response = await api.post<ApiEnvelope<OnboardingRecord>>(
     '/ClientOnboarding/draft',
     serializeDraftPayload(payload),
@@ -112,7 +133,10 @@ export const createOnboardingDraft = async (payload: OnboardingDraftPayload) => 
   return normalizeRecord(unwrap(response));
 };
 
-export const updateOnboardingDraft = async (id: number, payload: OnboardingDraftPayload) => {
+export const updateOnboardingDraft = async (
+  id: number,
+  payload: OnboardingDraftPayload,
+) => {
   const response = await api.put<ApiEnvelope<OnboardingRecord>>(
     `/ClientOnboarding/${id}/draft`,
     serializeDraftPayload(payload),
@@ -126,7 +150,10 @@ export type OnboardingStatusPayload = {
   notes?: string;
 };
 
-export const updateOnboardingStatus = async (id: number, payload: OnboardingStatusPayload) => {
+export const updateOnboardingStatus = async (
+  id: number,
+  payload: OnboardingStatusPayload,
+) => {
   const response = await api.patch<ApiEnvelope<OnboardingRecord>>(
     `/ClientOnboarding/${id}/status`,
     payload,
@@ -175,7 +202,10 @@ export const buildCompleteFormData = (payload: OnboardingFormData) => {
   return formData;
 };
 
-export const completeOnboarding = async (id: number, payload: OnboardingFormData) => {
+export const completeOnboarding = async (
+  id: number,
+  payload: OnboardingFormData,
+) => {
   const response = await api.post<ApiEnvelope<OnboardingRecord>>(
     `/ClientOnboarding/${id}/complete`,
     buildCompleteFormData(payload),
@@ -204,9 +234,15 @@ export const useOnboardingRecord = (id: number | null) =>
 export const useUpdateOnboardingStatus = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: OnboardingStatusPayload }) =>
-      updateOnboardingStatus(id, payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: BOARD_QUERY_KEY }),
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: number;
+      payload: OnboardingStatusPayload;
+    }) => updateOnboardingStatus(id, payload),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: BOARD_QUERY_KEY }),
   });
 };
 
@@ -214,25 +250,38 @@ export const useCreateOnboardingDraft = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createOnboardingDraft,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: BOARD_QUERY_KEY }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: BOARD_QUERY_KEY }),
   });
 };
 
 export const useUpdateOnboardingDraft = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: OnboardingDraftPayload }) =>
-      updateOnboardingDraft(id, payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: BOARD_QUERY_KEY }),
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: number;
+      payload: OnboardingDraftPayload;
+    }) => updateOnboardingDraft(id, payload),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: BOARD_QUERY_KEY }),
   });
 };
 
 export const useCompleteOnboarding = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: OnboardingFormData }) =>
-      completeOnboarding(id, payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: BOARD_QUERY_KEY }),
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: number;
+      payload: OnboardingFormData;
+    }) => completeOnboarding(id, payload),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: BOARD_QUERY_KEY }),
   });
 };
 
