@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@kurlclub/ui-components';
+import { Button, Input, Textarea } from '@kurlclub/ui-components';
 import { Plus, Trash2 } from 'lucide-react';
 import {
   type Control,
@@ -10,11 +10,6 @@ import {
 } from 'react-hook-form';
 
 import type { BlogFormData } from '@/types/blog';
-
-const inputClass =
-  'w-full rounded border border-secondary-blue-700 bg-secondary-blue-900 px-3 py-1.5 text-sm text-white placeholder-secondary-blue-400 focus:outline-none focus:ring-1 focus:ring-white';
-
-const labelClass = 'block text-xs text-secondary-blue-300 mb-1';
 
 interface SectionCardProps {
   control: Control<BlogFormData>;
@@ -38,7 +33,7 @@ function SectionCard({ control, index, onRemove, errors }: SectionCardProps) {
   const sectionError = errors?.[index];
 
   return (
-    <div className="rounded-lg border border-secondary-blue-700 bg-secondary-blue-900 p-4 space-y-4">
+    <div className="space-y-4 rounded-lg border border-secondary-blue-700 bg-secondary-blue-900 p-4">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-secondary-blue-200">
           Section {index + 1}
@@ -55,53 +50,50 @@ function SectionCard({ control, index, onRemove, errors }: SectionCardProps) {
       </div>
 
       {/* Heading */}
-      <div>
-        <label className={labelClass}>
-          Heading <span className="opacity-50">(optional)</span>
-        </label>
-        <Controller
-          control={control}
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          name={`sections.${index}.heading` as any}
-          render={({ field }) => (
-            <input
-              {...field}
-              value={field.value ?? ''}
-              placeholder="Section heading"
-              className={inputClass}
-            />
-          )}
-        />
-      </div>
+      <Controller
+        control={control}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        name={`sections.${index}.heading` as any}
+        render={({ field }) => (
+          <Input
+            {...field}
+            value={field.value ?? ''}
+            label="Heading (optional)"
+            placeholder="Section heading"
+          />
+        )}
+      />
 
       {/* Paragraphs */}
-      <div className="space-y-2">
-        <label className={labelClass}>
+      <div className="space-y-3">
+        <p className="text-xs text-secondary-blue-300">
           Paragraphs <span className="text-red-400">*</span>
-        </label>
+        </p>
         {paraFields.map((para, pIdx) => (
           <div key={para.id} className="flex flex-col gap-1">
-            <div className="flex gap-2">
-              <Controller
-                control={control}
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                name={`sections.${index}.paragraphs.${pIdx}` as any}
-                render={({ field }) => (
-                  <textarea
-                    {...field}
-                    value={field.value ?? ''}
-                    placeholder={`Paragraph ${pIdx + 1}`}
-                    rows={3}
-                    className={`${inputClass} resize-y flex-1`}
-                  />
-                )}
-              />
+            <div className="flex items-start gap-2">
+              <div className="flex-1">
+                <Controller
+                  control={control}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  name={`sections.${index}.paragraphs.${pIdx}` as any}
+                  render={({ field }) => (
+                    <Textarea
+                      {...field}
+                      value={field.value ?? ''}
+                      label={`Paragraph ${pIdx + 1}`}
+                      placeholder={`Paragraph ${pIdx + 1}`}
+                      rows={3}
+                    />
+                  )}
+                />
+              </div>
               {paraFields.length > 1 && (
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="mt-1 h-7 w-7 shrink-0 p-0 text-secondary-blue-400"
+                  className="mt-6 h-7 w-7 shrink-0 p-0 text-secondary-blue-400"
                   onClick={() => removePara(pIdx)}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -133,24 +125,19 @@ function SectionCard({ control, index, onRemove, errors }: SectionCardProps) {
       </div>
 
       {/* Quote */}
-      <div>
-        <label className={labelClass}>
-          Pull Quote <span className="opacity-50">(optional)</span>
-        </label>
-        <Controller
-          control={control}
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          name={`sections.${index}.quote` as any}
-          render={({ field }) => (
-            <input
-              {...field}
-              value={field.value ?? ''}
-              placeholder="Pull quote text"
-              className={inputClass}
-            />
-          )}
-        />
-      </div>
+      <Controller
+        control={control}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        name={`sections.${index}.quote` as any}
+        render={({ field }) => (
+          <Input
+            {...field}
+            value={field.value ?? ''}
+            label="Pull Quote (optional)"
+            placeholder="Pull quote text"
+          />
+        )}
+      />
     </div>
   );
 }
@@ -177,7 +164,7 @@ export function BlogSectionBuilder({
       </h3>
 
       {fields.length === 0 && (
-        <p className="text-sm text-secondary-blue-400 italic">
+        <p className="text-sm italic text-secondary-blue-400">
           Add at least one section to the article.
         </p>
       )}

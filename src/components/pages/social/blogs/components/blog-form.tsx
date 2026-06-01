@@ -1,15 +1,26 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  FileUploader,
+  Input,
+  KDatePicker,
+  Textarea,
+} from '@kurlclub/ui-components';
+import { format } from 'date-fns';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { z } from 'zod';
 
+import { useUploadBlogImage } from '@/services/social/blogs';
 import type { Blog, BlogFormData } from '@/types/blog';
 
-import { BlogImageUpload } from './blog-image-upload';
+import { BlogPreview } from './blog-preview';
 import { BlogSectionBuilder } from './blog-section-builder';
+
+// ── Zod schema ───────────────────────────────────────────────────────────────
 
 const sectionSchema = z.object({
   heading: z.string().optional(),
@@ -46,6 +57,8 @@ export const blogFormSchema = z.object({
   status: z.enum(['draft', 'published']),
 });
 
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
 const slugify = (text: string) =>
   text
     .toLowerCase()
@@ -69,6 +82,8 @@ const DEFAULT_VALUES: BlogFormData = {
   status: 'draft',
 };
 
+// ── Component ─────────────────────────────────────────────────────────────────
+
 interface BlogFormProps {
   formId: string;
   defaultValues?: Blog;
@@ -76,6 +91,9 @@ interface BlogFormProps {
 }
 
 export function BlogForm({ formId, defaultValues, onSave }: BlogFormProps) {
+  const uploadMutation = useUploadBlogImage();
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+
   const {
     register,
     control,
@@ -105,7 +123,10 @@ export function BlogForm({ formId, defaultValues, onSave }: BlogFormProps) {
 
   const titleValue = watch('title');
   const slugValue = watch('slug');
+  const coverImage = watch('coverImage');
+  const formValues = watch();
 
+  // Auto-generate slug from title on create
   useEffect(() => {
     if (defaultValues) return;
     if (!titleValue) return;
@@ -116,25 +137,42 @@ export function BlogForm({ formId, defaultValues, onSave }: BlogFormProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [titleValue]);
 
-  const fieldClass =
-    'w-full rounded border border-secondary-blue-700 bg-secondary-blue-900 px-3 py-2 text-sm text-white placeholder-secondary-blue-400 focus:outline-none focus:ring-1 focus:ring-white';
-  const labelClass = 'block text-xs font-medium text-secondary-blue-300 mb-1';
+  const handleCoverFileChange = async (file: File | null) => {
+    setCoverFile(file);
+    if (file) {
+      try {
+        const { src } = await uploadMutation.mutateAsync(file);
+        setValue(
+          'coverImage',
+          {
+            src,
+            alt: coverImage.alt || file.name.replace(/\.[^.]+$/, ''),
+          },
+          { shouldValidate: true },
+        );
+      } catch {
+        toast.error('Image upload failed. Please try again.');
+        setCoverFile(null);
+      }
+    } else {
+      setValue('coverImage', { src: '', alt: '' }, { shouldValidate: true });
+    }
+  };
+
   const errorClass = 'mt-1 text-xs text-red-400';
 
   return (
     <form id={formId} onSubmit={handleSubmit(onSave)} className="h-full">
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
-        {/* ── Left: Content ─────────────────────────────────── */}
-        <div className="space-y-6">
+      <div className="grid h-full grid-cols-1 gap-0 lg:grid-cols-[1fr_45%]">
+        {/* ── Left: form fields ─────────────────────────────── */}
+        <div className="space-y-5 overflow-y-auto border-r border-secondary-blue-800 pr-8">
           {/* Title */}
           <div>
-            <label className={labelClass}>
-              Title <span className="text-red-400">*</span>
-            </label>
-            <input
+            <Input
               {...register('title')}
+              label="Title"
+              mandatory
               placeholder="Article title"
-              className={fieldClass}
             />
             {errors.title && (
               <p className={errorClass}>{errors.title.message}</p>
@@ -143,14 +181,11 @@ export function BlogForm({ formId, defaultValues, onSave }: BlogFormProps) {
 
           {/* Excerpt */}
           <div>
-            <label className={labelClass}>
-              Excerpt <span className="text-red-400">*</span>
-            </label>
-            <textarea
+            <Textarea
               {...register('excerpt')}
+              label="Excerpt"
               placeholder="Short summary shown on listing pages"
               rows={3}
-              className={`${fieldClass} resize-y`}
             />
             {errors.excerpt && (
               <p className={errorClass}>{errors.excerpt.message}</p>
@@ -159,13 +194,11 @@ export function BlogForm({ formId, defaultValues, onSave }: BlogFormProps) {
 
           {/* Main Heading */}
           <div>
-            <label className={labelClass}>
-              Main Heading (H1) <span className="text-red-400">*</span>
-            </label>
-            <input
+            <Input
               {...register('mainHeading')}
+              label="Main Heading (H1)"
+              mandatory
               placeholder="Article H1"
-              className={fieldClass}
             />
             {errors.mainHeading && (
               <p className={errorClass}>{errors.mainHeading.message}</p>
@@ -174,37 +207,51 @@ export function BlogForm({ formId, defaultValues, onSave }: BlogFormProps) {
 
           {/* Sections */}
           <BlogSectionBuilder control={control} errors={errors.sections} />
-        </div>
 
-        {/* ── Right: Settings ───────────────────────────────── */}
-        <div className="space-y-6">
           {/* Cover Image */}
-          <div>
-            <label className={labelClass}>
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-secondary-blue-300">
               Cover Image <span className="text-red-400">*</span>
-            </label>
-            <BlogImageUpload
-              value={watch('coverImage')}
-              onChange={(v) =>
-                setValue('coverImage', v, { shouldValidate: true })
-              }
-              error={
-                errors.coverImage?.src?.message ??
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (errors.coverImage as any)?.message
-              }
+            </p>
+            <FileUploader
+              file={coverFile}
+              onChange={handleCoverFileChange}
+              accept="image/*"
+              label="Upload Cover Image"
+              existingFileUrl={coverImage.src || null}
             />
+            {(errors.coverImage?.src?.message ||
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (errors.coverImage as any)?.message) && (
+              <p className={errorClass}>
+                {errors.coverImage?.src?.message ??
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  (errors.coverImage as any)?.message}
+              </p>
+            )}
+            {/* Alt text appears once an image is uploaded */}
+            {coverImage.src && (
+              <div>
+                <Input
+                  {...register('coverImage.alt')}
+                  label="Image Alt Text"
+                  mandatory
+                  placeholder="Describe the image"
+                />
+                {errors.coverImage?.alt && (
+                  <p className={errorClass}>{errors.coverImage.alt.message}</p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Slug */}
           <div>
-            <label className={labelClass}>
-              Slug <span className="text-red-400">*</span>
-            </label>
-            <input
+            <Input
               {...register('slug')}
+              label="Slug"
+              mandatory
               placeholder="url-friendly-slug"
-              className={fieldClass}
             />
             {errors.slug ? (
               <p className={errorClass}>{errors.slug.message}</p>
@@ -217,13 +264,11 @@ export function BlogForm({ formId, defaultValues, onSave }: BlogFormProps) {
 
           {/* Tag */}
           <div>
-            <label className={labelClass}>
-              Tag <span className="text-red-400">*</span>
-            </label>
-            <input
+            <Input
               {...register('tagLabel')}
+              label="Tag"
+              mandatory
               placeholder="e.g. Fitness"
-              className={fieldClass}
             />
             {errors.tagLabel && (
               <p className={errorClass}>{errors.tagLabel.message}</p>
@@ -232,13 +277,23 @@ export function BlogForm({ formId, defaultValues, onSave }: BlogFormProps) {
 
           {/* Display Date */}
           <div>
-            <label className={labelClass}>
-              Display Date <span className="text-red-400">*</span>
-            </label>
-            <input
-              {...register('displayDate')}
-              type="date"
-              className={fieldClass}
+            <KDatePicker
+              mode="single"
+              label="Display Date"
+              value={
+                watch('displayDate')
+                  ? new Date(`${watch('displayDate')}T00:00:00`)
+                  : undefined
+              }
+              onDateChange={(value) => {
+                if (value instanceof Date) {
+                  setValue('displayDate', format(value, 'yyyy-MM-dd'), {
+                    shouldValidate: true,
+                  });
+                } else if (!value) {
+                  setValue('displayDate', '', { shouldValidate: true });
+                }
+              }}
             />
             {errors.displayDate && (
               <p className={errorClass}>{errors.displayDate.message}</p>
@@ -246,30 +301,25 @@ export function BlogForm({ formId, defaultValues, onSave }: BlogFormProps) {
           </div>
 
           {/* Author */}
-          <div className="space-y-3 rounded-lg border border-secondary-blue-700 p-4">
+          <div className="space-y-4 rounded-lg border border-secondary-blue-700 p-4">
             <h3 className="text-sm font-semibold text-white">Author</h3>
             <div>
-              <label className={labelClass}>
-                Name <span className="text-red-400">*</span>
-              </label>
-              <input
+              <Input
                 {...register('author.name')}
+                label="Name"
+                mandatory
                 placeholder="Author name"
-                className={fieldClass}
               />
               {errors.author?.name && (
                 <p className={errorClass}>{errors.author.name.message}</p>
               )}
             </div>
             <div>
-              <label className={labelClass}>
-                Bio <span className="text-red-400">*</span>
-              </label>
-              <textarea
+              <Textarea
                 {...register('author.bio')}
+                label="Bio"
                 placeholder="Author bio"
                 rows={2}
-                className={`${fieldClass} resize-y`}
               />
               {errors.author?.bio && (
                 <p className={errorClass}>{errors.author.bio.message}</p>
@@ -278,25 +328,29 @@ export function BlogForm({ formId, defaultValues, onSave }: BlogFormProps) {
           </div>
 
           {/* SEO */}
-          <div className="space-y-3 rounded-lg border border-secondary-blue-700 p-4">
+          <div className="space-y-4 rounded-lg border border-secondary-blue-700 p-4">
             <h3 className="text-sm font-semibold text-white">SEO</h3>
-            <div>
-              <label className={labelClass}>Meta Title</label>
-              <input
-                {...register('metaTitle')}
-                placeholder="SEO title"
-                className={fieldClass}
-              />
-            </div>
-            <div>
-              <label className={labelClass}>Meta Description</label>
-              <textarea
-                {...register('metaDescription')}
-                placeholder="SEO description"
-                rows={2}
-                className={`${fieldClass} resize-y`}
-              />
-            </div>
+            <Input
+              {...register('metaTitle')}
+              label="Meta Title"
+              placeholder="SEO title"
+            />
+            <Textarea
+              {...register('metaDescription')}
+              label="Meta Description"
+              placeholder="SEO description"
+              rows={2}
+            />
+          </div>
+        </div>
+
+        {/* ── Right: live preview ───────────────────────────── */}
+        <div className="sticky top-0 flex flex-col overflow-hidden pl-8">
+          <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-secondary-blue-400">
+            Preview
+          </p>
+          <div className="flex-1 overflow-y-auto">
+            <BlogPreview data={formValues} />
           </div>
         </div>
       </div>
