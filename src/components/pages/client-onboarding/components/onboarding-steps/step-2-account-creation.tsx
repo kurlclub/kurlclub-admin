@@ -15,7 +15,10 @@ import { ShieldCheck } from 'lucide-react';
 import { useForm, useWatch } from 'react-hook-form';
 
 import { useOnboardingContext } from '@/hooks/onboarding';
-import { generatePassword } from '@/lib/utils/onboarding.utils';
+import {
+  generatePassword,
+  readFileAsDataURL,
+} from '@/lib/utils/onboarding.utils';
 import { accountSetupSchema } from '@/schemas/onboarding.schema';
 import type { AccountSetupData } from '@/types/onboarding';
 
@@ -111,19 +114,12 @@ export function OnboardingStep2() {
                       form.setValue('userPhotoPreview', '');
                       return;
                     }
-
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                      form.setValue(
-                        'userPhotoPreview',
-                        typeof reader.result === 'string' ? reader.result : '',
-                        {
-                          shouldDirty: true,
-                        },
-                      );
-                    };
-                    reader.readAsDataURL(file);
                     field.onChange(file);
+                    readFileAsDataURL(file, (url) =>
+                      form.setValue('userPhotoPreview', url, {
+                        shouldDirty: true,
+                      }),
+                    );
                   }}
                 />
               )}

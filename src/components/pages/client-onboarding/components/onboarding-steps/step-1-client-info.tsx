@@ -1,7 +1,7 @@
 'use client';
 
 import type React from 'react';
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -10,11 +10,11 @@ import {
   KFormField,
   KFormFieldType,
 } from '@kurlclub/ui-components';
-import { Country, State } from 'country-state-city';
 import { Building2, ClipboardList, User } from 'lucide-react';
 import { type DeepPartial, useForm, useWatch } from 'react-hook-form';
 
 import { useOnboardingContext } from '@/hooks/onboarding';
+import { useCountryRegion } from '@/hooks/use-country-region';
 import { useAdminFormData } from '@/hooks/use-admin-form-data';
 import { useAuth } from '@/providers/auth-provider';
 import type { LeadDraftSchemaInput } from '@/schemas/onboarding.schema';
@@ -67,54 +67,32 @@ export function OnboardingStep1() {
   const { adminFormData, loading: adminFormLoading } = useAdminFormData();
   const { lead } = formData;
   const canAssignAdmin = user?.userRole === 'super_admin';
+
   const form = useForm<LeadDraftSchemaInput, unknown, LeadDraftData>({
     resolver: zodResolver(leadDraftSchema),
     mode: 'onTouched',
     reValidateMode: 'onChange',
     defaultValues: lead,
   });
+
   const watchedLead = useWatch({ control: form.control });
-  const previousCountryRef = useRef<string | null>(null);
-  const countries = useMemo(() => Country.getAllCountries(), []);
-  const countryOptions = useMemo(
-    () =>
-      [...countries]
-        .sort((a, b) => a.name.localeCompare(b.name))
-        .map((country) => ({
-          label: country.name,
-          value: country.name,
-        })),
-    [countries],
+
+  const handleCountryChange = useCallback(() => {
+    form.setValue('leadData.region', '');
+  }, [form]);
+
+  const { countryOptions, regionOptions, regionDisabled } = useCountryRegion(
+    watchedLead?.leadData?.country,
+    handleCountryChange,
   );
-  const selectedCountry = useMemo(
-    () =>
-      countries.find(
-        (country) => country.name === watchedLead?.leadData?.country,
-      ),
-    [countries, watchedLead?.leadData?.country],
-  );
-  const regionOptions = useMemo(() => {
-    if (!selectedCountry) return [];
-    return State.getStatesOfCountry(selectedCountry.isoCode)
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map((region) => ({
-        label: region.name,
-        value: region.name,
-      }));
-  }, [selectedCountry]);
-  const regionDisabled =
-    !watchedLead?.leadData?.country || regionOptions.length === 0;
+
   const adminOptions = useMemo(() => {
     const admins = adminFormData?.adminUsers ?? [];
     return [...admins]
       .filter((admin) => typeof admin?.name === 'string')
       .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''))
-      .map((admin) => ({
-        label: admin.name,
-        value: String(admin.id),
-      }));
+      .map((admin) => ({ label: admin.name, value: String(admin.id) }));
   }, [adminFormData?.adminUsers]);
-  const adminOptionsEmpty = adminOptions.length === 0;
 
   useEffect(() => {
     const currentValues = form.getValues();
@@ -127,26 +105,9 @@ export function OnboardingStep1() {
   useEffect(() => {
     if (!watchedLead) return;
     const nextLead = normalizeLeadValues(watchedLead, lead);
-
     if (isLeadEqual(nextLead, lead)) return;
-
-    setFormData({
-      ...formData,
-      lead: nextLead,
-    });
+    setFormData({ ...formData, lead: nextLead });
   }, [formData, lead, setFormData, watchedLead]);
-
-  useEffect(() => {
-    const country = watchedLead?.leadData?.country ?? '';
-    if (previousCountryRef.current === null) {
-      previousCountryRef.current = country;
-      return;
-    }
-    if (previousCountryRef.current !== country) {
-      form.setValue('leadData.region', '');
-      previousCountryRef.current = country;
-    }
-  }, [form, watchedLead?.leadData?.country]);
 
   useEffect(() => {
     const unregister = registerStepValidator(1, () =>
@@ -163,10 +124,7 @@ export function OnboardingStep1() {
     >
       <Form {...form}>
         <form className="space-y-8 animate-in slide-in-from-bottom-2 duration-500">
-          <SectionHeader
-            title="Primary Contact"
-            icon={<User className="w-4 h-4" />}
-          />
+          <SectionHeader title="Primary Contact" icon={<User className="w-4 h-4" />} />
           <FieldGrid columns={1} smColumns={2} gap="md">
             <KFormField
               fieldType={KFormFieldType.INPUT}
@@ -197,7 +155,7 @@ export function OnboardingStep1() {
                 label="Assigned Team Member"
                 options={adminOptions}
                 floating={false}
-                disabled={adminFormLoading || adminOptionsEmpty}
+                disabled={adminFormLoading || adminOptions.length === 0}
                 placeholder={
                   adminFormLoading
                     ? 'Loading team members...'
@@ -207,10 +165,7 @@ export function OnboardingStep1() {
             )}
           </FieldGrid>
 
-          <SectionHeader
-            title="Club Overview"
-            icon={<Building2 className="w-4 h-4" />}
-          />
+          <SectionHeader title="Club Overview" icon={<Building2 className="w-4 h-4" />} />
           <FieldGrid columns={1} smColumns={2} gap="md">
             <KFormField
               fieldType={KFormFieldType.INPUT}
@@ -252,10 +207,7 @@ export function OnboardingStep1() {
             />
           </FieldGrid>
 
-          <SectionHeader
-            title="Notes"
-            icon={<ClipboardList className="w-4 h-4" />}
-          />
+          <SectionHeader title="Notes" icon={<ClipboardList className="w-4 h-4" />} />
           <KFormField
             fieldType={KFormFieldType.TEXTAREA}
             control={form.control}
@@ -269,21 +221,13 @@ export function OnboardingStep1() {
   );
 }
 
-function SectionHeader({
-  title,
-  icon,
-}: {
-  title: string;
-  icon: React.ReactNode;
-}) {
+function SectionHeader({ title, icon }: { title: string; icon: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 w-full text-secondary-blue-200">
       <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-secondary-blue-500/60 border border-secondary-blue-400">
         {icon}
       </span>
-      <span className="text-[11px] font-bold uppercase tracking-[0.2em]">
-        {title}
-      </span>
+      <span className="text-[11px] font-bold uppercase tracking-[0.2em]">{title}</span>
       <div className="h-px flex-1 bg-secondary-blue-400/40" />
     </div>
   );

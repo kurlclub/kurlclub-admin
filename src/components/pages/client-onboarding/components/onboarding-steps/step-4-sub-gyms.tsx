@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -11,7 +11,6 @@ import {
   KFormFieldType,
   ProfileUploader,
 } from '@kurlclub/ui-components';
-import { Country, State } from 'country-state-city';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Briefcase,
@@ -25,7 +24,9 @@ import {
 import { useForm, useWatch } from 'react-hook-form';
 
 import { useOnboardingContext } from '@/hooks/onboarding';
+import { useCountryRegion } from '@/hooks/use-country-region';
 import { gymDraftSchema, gymListSchema } from '@/schemas/onboarding.schema';
+import { readFileAsDataURL } from '@/lib/utils/onboarding.utils';
 import type { GymDraft } from '@/types/onboarding';
 
 import { StepWrapper } from './stepper-wrapper';
@@ -54,62 +55,25 @@ export function OnboardingStep4() {
     reValidateMode: 'onChange',
     defaultValues: INITIAL_GYM_STATE,
   });
-  const currentGym =
-    useWatch({
-      control: gymForm.control,
-    }) ?? INITIAL_GYM_STATE;
-  const preview = useWatch({
-    control: gymForm.control,
-    name: 'gymPhotoPreview',
-  });
-  const previousCountryRef = useRef<string | null>(null);
+  const currentGym = useWatch({ control: gymForm.control }) ?? INITIAL_GYM_STATE;
+  const preview = useWatch({ control: gymForm.control, name: 'gymPhotoPreview' });
+
   const { lead } = formData;
   const gyms = formData.gyms.gyms;
 
-  const countries = useMemo(() => Country.getAllCountries(), []);
-  const countryOptions = useMemo(
-    () =>
-      [...countries]
-        .sort((a, b) => a.name.localeCompare(b.name))
-        .map((country) => ({
-          label: country.name,
-          value: country.name,
-        })),
-    [countries],
+  const handleCountryChange = useCallback(() => {
+    gymForm.setValue('region', '');
+  }, [gymForm]);
+
+  const { countryOptions, regionOptions, regionDisabled } = useCountryRegion(
+    currentGym.country,
+    handleCountryChange,
   );
-  const selectedCountry = useMemo(
-    () =>
-      countries.find((country) => country.name === currentGym.country) ?? null,
-    [countries, currentGym.country],
-  );
-  const regionOptions = useMemo(() => {
-    if (!selectedCountry) return [];
-    return State.getStatesOfCountry(selectedCountry.isoCode)
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map((region) => ({
-        label: region.name,
-        value: region.name,
-      }));
-  }, [selectedCountry]);
-  const regionDisabled = !currentGym.country || regionOptions.length === 0;
 
   useEffect(() => {
     if (!showForm || editingIndex !== null) return;
     gymForm.reset(INITIAL_GYM_STATE);
-    previousCountryRef.current = null;
   }, [editingIndex, gymForm, showForm]);
-
-  useEffect(() => {
-    const country = currentGym.country ?? '';
-    if (previousCountryRef.current === null) {
-      previousCountryRef.current = country;
-      return;
-    }
-    if (previousCountryRef.current !== country) {
-      gymForm.setValue('region', '');
-      previousCountryRef.current = country;
-    }
-  }, [currentGym.country, gymForm]);
 
   const validateGymList = useCallback(async () => {
     const result = gymListSchema.safeParse(gyms);
@@ -143,7 +107,7 @@ export function OnboardingStep4() {
       leadGym.gymContactNumber,
       leadGym.country,
       leadGym.region,
-    ].some((value) => value !== '');
+    ].some((v) => v !== '');
     if (!hasLeadValues) return;
 
     const alreadyAdded = gyms.some(
@@ -159,10 +123,7 @@ export function OnboardingStep4() {
 
     setFormData({
       ...formData,
-      gyms: {
-        ...formData.gyms,
-        gyms: [leadGym, ...gyms],
-      },
+      gyms: { ...formData.gyms, gyms: [leadGym, ...gyms] },
     });
   }, [formData, gyms, lead.email, lead.leadData, setFormData]);
 
@@ -171,16 +132,6 @@ export function OnboardingStep4() {
     if (!isValid) return;
 
     const gymValues = gymForm.getValues();
-    if (
-      !gymValues.gymName ||
-      !gymValues.gymEmail ||
-      !gymValues.gymLocation ||
-      !gymValues.gymContactNumber ||
-      !gymValues.country ||
-      !gymValues.region
-    )
-      return;
-
     const updatedGyms = [...gyms];
     if (editingIndex !== null) {
       updatedGyms[editingIndex] = gymValues;
@@ -188,26 +139,20 @@ export function OnboardingStep4() {
       updatedGyms.push(gymValues);
     }
 
-    setFormData({
-      ...formData,
-      gyms: { ...formData.gyms, gyms: updatedGyms },
-    });
-
+    setFormData({ ...formData, gyms: { ...formData.gyms, gyms: updatedGyms } });
     closeForm();
   };
 
   const editGym = (index: number) => {
     gymForm.reset(gyms[index]);
-    previousCountryRef.current = gyms[index]?.country ?? '';
     setEditingIndex(index);
     setShowForm(true);
   };
 
   const removeGym = (index: number) => {
-    const updatedGyms = gyms.filter((_, i) => i !== index);
     setFormData({
       ...formData,
-      gyms: { ...formData.gyms, gyms: updatedGyms },
+      gyms: { ...formData.gyms, gyms: gyms.filter((_, i) => i !== index) },
     });
   };
 
@@ -215,23 +160,24 @@ export function OnboardingStep4() {
     setShowForm(false);
     setEditingIndex(null);
     gymForm.reset(INITIAL_GYM_STATE);
-    previousCountryRef.current = null;
   };
+
+  const gymCount = useMemo(() => `${gyms.length} location${gyms.length !== 1 ? 's' : ''}`, [gyms.length]);
 
   return (
     <StepWrapper
       title="Club Locations"
       description="Add club locations, contact details, and optional club profile photos."
       className="max-w-225 mx-auto"
-      gymCount={`${gyms.length} locations`}
+      gymCount={gymCount}
     >
       <div className="space-y-6">
-        {listError ? (
+        {listError && (
           <div className="rounded-2xl border border-alert-red-400/40 bg-alert-red-400/10 px-4 py-3 text-sm text-alert-red-200">
             {listError}
           </div>
-        ) : null}
-        {/* Gym List */}
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <AnimatePresence mode="popLayout">
             {gyms.map((gym, idx) => (
@@ -265,21 +211,17 @@ export function OnboardingStep4() {
                       </button>
                     </div>
                   </div>
-                  <h4 className="font-bold text-white text-base truncate">
-                    {gym.gymName}
-                  </h4>
+                  <h4 className="font-bold text-white text-base truncate">{gym.gymName}</h4>
                   <div className="flex items-center gap-2 mt-1 text-secondary-blue-300">
                     <MapPin className="w-3 h-3" />
                     <span className="text-xs truncate">{gym.gymLocation}</span>
                   </div>
-                  {gym.gymContactNumber ? (
+                  {gym.gymContactNumber && (
                     <div className="flex items-center gap-2 mt-1 text-secondary-blue-300">
                       <Phone className="w-3 h-3" />
-                      <span className="text-xs truncate">
-                        {gym.gymContactNumber}
-                      </span>
+                      <span className="text-xs truncate">{gym.gymContactNumber}</span>
                     </div>
-                  ) : null}
+                  )}
                   {(gym.country || gym.region) && (
                     <div className="text-[10px] text-secondary-blue-400 mt-1">
                       {[gym.country, gym.region].filter(Boolean).join(' · ')}
@@ -301,15 +243,12 @@ export function OnboardingStep4() {
               </div>
               <div>
                 <p className="text-sm font-bold text-white">Add Club</p>
-                <p className="text-[10px] text-secondary-blue-300 mt-1">
-                  Register another club
-                </p>
+                <p className="text-[10px] text-secondary-blue-300 mt-1">Register another club</p>
               </div>
             </button>
           )}
         </div>
 
-        {/* Add/Edit Form Overlay */}
         <AnimatePresence>
           {showForm && (
             <motion.div
@@ -351,13 +290,9 @@ export function OnboardingStep4() {
                       name="gymPhotoFile"
                       renderSkeleton={(field) => (
                         <ProfileUploader
-                          files={
-                            field.value instanceof File ? field.value : null
-                          }
+                          files={field.value instanceof File ? field.value : null}
                           existingImageUrl={
-                            typeof preview === 'string' && preview
-                              ? preview
-                              : null
+                            typeof preview === 'string' && preview ? preview : null
                           }
                           onChange={(file) => {
                             if (!file) {
@@ -365,21 +300,12 @@ export function OnboardingStep4() {
                               gymForm.setValue('gymPhotoPreview', '');
                               return;
                             }
-
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                              gymForm.setValue(
-                                'gymPhotoPreview',
-                                typeof reader.result === 'string'
-                                  ? reader.result
-                                  : '',
-                                {
-                                  shouldDirty: true,
-                                },
-                              );
-                            };
-                            reader.readAsDataURL(file);
                             field.onChange(file);
+                            readFileAsDataURL(file, (url) =>
+                              gymForm.setValue('gymPhotoPreview', url, {
+                                shouldDirty: true,
+                              }),
+                            );
                           }}
                         />
                       )}

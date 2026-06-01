@@ -101,8 +101,7 @@ export function OnboardingModule() {
   return (
     <>
       <StudioLayout>
-        <>
-          {/* ── KPIs ──────────────────────────────────── */}
+        {/* ── KPIs ──────────────────────────────────── */}
           {totals && (
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               <InfoCard
@@ -177,7 +176,6 @@ export function OnboardingModule() {
               onStatusChange={handleStatusChange}
             />
           ) : null}
-        </>
       </StudioLayout>
 
       {/* ── Detail Sheet ──────────────────────────── */}
