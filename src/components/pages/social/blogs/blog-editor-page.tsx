@@ -111,8 +111,8 @@ export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
         </div>
       </div>
 
-      {/* Content area */}
-      <div className="mx-auto max-w-7xl px-6 py-8">
+      {/* Content area — full width, no height constraint (preview uses sticky) */}
+      <div className="px-6 py-6">
         {mode === 'edit' && isLoading ? (
           <div className="flex items-center justify-center py-40">
             <Spinner />

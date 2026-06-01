@@ -162,10 +162,10 @@ export function BlogForm({ formId, defaultValues, onSave }: BlogFormProps) {
   const errorClass = 'mt-1 text-xs text-red-400';
 
   return (
-    <form id={formId} onSubmit={handleSubmit(onSave)} className="h-full">
-      <div className="grid h-full grid-cols-1 gap-0 lg:grid-cols-[1fr_45%]">
-        {/* ── Left: form fields ─────────────────────────────── */}
-        <div className="space-y-5 overflow-y-auto border-r border-secondary-blue-800 pr-8">
+    <form id={formId} onSubmit={handleSubmit(onSave)}>
+      <div className="grid grid-cols-1 gap-0 lg:grid-cols-[1fr_45%]">
+        {/* ── Left: form fields (scrolls with the page) ────── */}
+        <div className="space-y-5 border-r border-secondary-blue-800 pr-8 pb-20">
           {/* Title */}
           <div>
             <Input
@@ -344,12 +344,12 @@ export function BlogForm({ formId, defaultValues, onSave }: BlogFormProps) {
           </div>
         </div>
 
-        {/* ── Right: live preview ───────────────────────────── */}
-        <div className="sticky top-0 flex flex-col overflow-hidden pl-8">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-secondary-blue-400">
-            Preview
-          </p>
-          <div className="flex-1 overflow-y-auto">
+        {/* ── Right: sticky live preview ────────────────────── */}
+        <div className="pl-8">
+          <div className="sticky top-4 max-h-[calc(100vh-120px)] overflow-y-auto">
+            <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-secondary-blue-400">
+              Preview
+            </p>
             <BlogPreview data={formValues} />
           </div>
         </div>
