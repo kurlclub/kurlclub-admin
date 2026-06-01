@@ -1,9 +1,5 @@
 'use client';
 
-import type { ColumnDef } from '@tanstack/react-table';
-import { format } from 'date-fns';
-import { MoreHorizontal } from 'lucide-react';
-
 import {
   Badge,
   Button,
@@ -12,6 +8,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@kurlclub/ui-components';
+import type { ColumnDef } from '@tanstack/react-table';
+import { format } from 'date-fns';
+import { MoreHorizontal } from 'lucide-react';
 
 import type { Blog } from '@/types/blog';
 
@@ -30,11 +29,8 @@ export const createBlogColumns = ({
     cell: ({ row }) => {
       const { src, alt } = row.original.coverImage;
       return src ? (
-        <img
-          src={src}
-          alt={alt}
-          className="h-10 w-16 rounded object-cover"
-        />
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt={alt} className="h-10 w-16 rounded object-cover" />
       ) : (
         <div className="h-10 w-16 rounded bg-secondary-blue-800" />
       );
