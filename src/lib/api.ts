@@ -23,7 +23,7 @@ export const setNonGetRequestGuard = (guard: NonGetRequestGuard | null) => {
   nonGetRequestGuard = guard;
 };
 
-const NON_GET_CONFIRM_SKIP_PATHS = new Set<string>(['/Auth/refresh-token']);
+const NON_GET_CONFIRM_SKIP_PATHS = new Set<string>();
 const AUTH_ENVIRONMENT_HEADER_PATHS = new Set<string>([
   '/Auth/admin-form-data',
 ]);
@@ -282,7 +282,9 @@ const baseFetch: typeof fetch = async (url, options = {}) => {
     headers[API_ENV_HEADER] = 'Admin';
   }
   const shouldSkipConfirm =
-    skipConfirm || NON_GET_CONFIRM_SKIP_PATHS.has(requestPath);
+    skipConfirm ||
+    isAuthEndpoint ||
+    NON_GET_CONFIRM_SKIP_PATHS.has(requestPath);
 
   if (method !== 'GET' && !shouldSkipConfirm) {
     const isAllowed = nonGetRequestGuard

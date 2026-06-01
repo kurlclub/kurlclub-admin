@@ -7,6 +7,7 @@ import {
 } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
+import { type ApiEnvelope, STALE_5M } from '@/lib/api-types';
 import type { AppUser } from '@/types/user';
 
 interface LoginRequest {
@@ -14,26 +15,15 @@ interface LoginRequest {
   password: string;
 }
 
-type ApiMeta = {
-  timestamp: string;
-  apiVersion: string;
-  traceId: string;
-  requestId: string;
-};
-
-type ApiEnvelope<T> = {
-  success?: boolean;
-  statusCode?: number;
-  message?: string;
-  data: T;
-  meta?: ApiMeta;
-};
-
-type LegacyLoginData = {
+type LoginData = {
   accessToken: string;
   refreshToken: string;
-  expiresIn: number;
-  user: {
+  expiresIn?: number;
+  expiresAt?: string;
+  refreshTokenExpiresAt?: string;
+  email?: string;
+  role?: string;
+  user?: {
     id: number;
     uid: string;
     userName: string;
@@ -46,19 +36,6 @@ type LegacyLoginData = {
   };
 };
 
-type ModernLoginData = {
-  accessToken: string;
-  refreshToken: string;
-  email?: string;
-  role?: string;
-  expiresAt?: string;
-  refreshTokenExpiresAt?: string;
-};
-
-type LoginData = LegacyLoginData | ModernLoginData;
-
-type LoginResponse = ApiEnvelope<LoginData>;
-
 type AuthMeData = {
   id: number;
   email: string;
@@ -67,15 +44,19 @@ type AuthMeData = {
   userName?: string | null;
   phoneNumber?: string | null;
   photoPath?: string | null;
+  photoURL?: string | null;
   createdAt?: string;
 };
 
-type AuthMeResponse = ApiEnvelope<AuthMeData>;
+type AuthMeResult = { user: AppUser; meta?: ApiEnvelope<AuthMeData>['meta'] };
+type AuthMeOptions = Omit<
+  UseQueryOptions<AuthMeResult, Error>,
+  'queryKey' | 'queryFn'
+>;
 
 const buildAuthUser = (payload: AuthMeData): AppUser => {
   const email = payload.email || '';
-  const derivedUserName =
-    email && email.includes('@') ? email.split('@')[0] : '';
+  const derivedUserName = email.includes('@') ? email.split('@')[0] : '';
   const resolvedName =
     payload.name?.trim() ||
     payload.userName?.trim() ||
@@ -88,24 +69,21 @@ const buildAuthUser = (payload: AuthMeData): AppUser => {
     userEmail: email,
     userRole: payload.role || '',
     phoneNumber: payload.phoneNumber ?? '',
-    photoPath:
-      payload.photoPath ??
-      (payload as { photoURL?: string | null }).photoURL ??
-      null,
+    photoPath: payload.photoPath ?? payload.photoURL ?? null,
     createdAt: payload.createdAt,
   };
 };
 
 export const login = async (credentials: LoginRequest) => {
   try {
-    const response = await api.post<LoginResponse | LoginData>(
+    const response = await api.post<ApiEnvelope<LoginData> | LoginData>(
       '/Auth/login',
       credentials,
       { skipAuth: true },
     );
     const data =
-      (response as LoginResponse).data ?? (response as LoginData | undefined);
-    const meta = (response as LoginResponse).meta;
+      (response as ApiEnvelope<LoginData>).data ?? (response as LoginData);
+    const meta = (response as ApiEnvelope<LoginData>).meta;
     return { success: true, data, meta };
   } catch (error) {
     console.error('Login error:', error);
@@ -116,24 +94,21 @@ export const login = async (credentials: LoginRequest) => {
   }
 };
 
+export const fetchAuthMe = async (): Promise<AuthMeResult> => {
+  const response = await api.get<ApiEnvelope<AuthMeData> | AuthMeData>(
+    '/Auth/me',
+  );
+  const payload =
+    (response as ApiEnvelope<AuthMeData>).data ?? (response as AuthMeData);
+  const meta = (response as ApiEnvelope<AuthMeData>).meta;
+  if (!payload) throw new Error('Failed to get user');
+  return { user: buildAuthUser(payload), meta };
+};
+
 export const getAuthMe = async () => {
   try {
-    const response = await api.get<AuthMeResponse | AuthMeData>('/Auth/me');
-    const payload =
-      (response as AuthMeResponse).data ?? (response as AuthMeData | undefined);
-    const meta = (response as AuthMeResponse).meta;
-
-    if (!payload) {
-      return { success: false, error: 'Failed to get user' };
-    }
-
-    const user = buildAuthUser(payload);
-
-    return {
-      success: true,
-      data: user,
-      meta,
-    };
+    const result = await fetchAuthMe();
+    return { success: true, data: result.user, meta: result.meta };
   } catch (error) {
     return {
       success: false,
@@ -142,40 +117,16 @@ export const getAuthMe = async () => {
   }
 };
 
-type AuthMeResult = { user: AppUser; meta?: ApiMeta };
-
-export const fetchAuthMe = async (): Promise<AuthMeResult> => {
-  const response = await api.get<AuthMeResponse | AuthMeData>('/Auth/me');
-  const payload =
-    (response as AuthMeResponse).data ?? (response as AuthMeData | undefined);
-  const meta = (response as AuthMeResponse).meta;
-
-  if (!payload) {
-    throw new Error('Failed to get user');
-  }
-
-  return {
-    user: buildAuthUser(payload),
-    meta,
-  };
-};
-
-type AuthMeOptions = Omit<
-  UseQueryOptions<AuthMeResult, Error>,
-  'queryKey' | 'queryFn'
->;
-
 export const useAuthMe = (
   options?: AuthMeOptions,
-): UseQueryResult<AuthMeResult, Error> => {
-  return useQuery<AuthMeResult, Error>({
+): UseQueryResult<AuthMeResult, Error> =>
+  useQuery<AuthMeResult, Error>({
     queryKey: ['auth-me'],
     queryFn: fetchAuthMe,
-    staleTime: 1000 * 60 * 5,
+    staleTime: STALE_5M,
     refetchOnWindowFocus: false,
     ...options,
   });
-};
 
 type UpdateAdminProfilePayload = {
   id: number;
@@ -184,20 +135,13 @@ type UpdateAdminProfilePayload = {
   photoFile?: File | null;
 };
 
-const buildAdminProfileFormData = (payload: UpdateAdminProfilePayload) => {
-  const formData = new FormData();
-  formData.append('Name', payload.name ?? '');
-  formData.append('Phone', payload.phoneNumber ?? '');
-  if (payload.photoFile) {
-    formData.append('Photo', payload.photoFile);
-  }
-  return formData;
-};
-
 export const updateAdminProfile = async (
   payload: UpdateAdminProfilePayload,
 ) => {
-  const formData = buildAdminProfileFormData(payload);
+  const formData = new FormData();
+  formData.append('Name', payload.name ?? '');
+  formData.append('Phone', payload.phoneNumber ?? '');
+  if (payload.photoFile) formData.append('Photo', payload.photoFile);
   await api.put(`/Auth/admins/${payload.id}`, formData);
   return true;
 };
@@ -206,9 +150,7 @@ export const useUpdateAdminProfile = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: updateAdminProfile,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['auth-me'] });
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['auth-me'] }),
   });
 };
 
@@ -218,7 +160,6 @@ export const logout = () => {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('appUser');
-
       document.cookie = 'accessToken=; path=/; max-age=0';
       document.cookie = 'refreshToken=; path=/; max-age=0';
     } catch (error) {
@@ -228,33 +169,19 @@ export const logout = () => {
   return { success: true };
 };
 
-export const forgotPassword = async (email: string) => {
-  const response = await api.post(
-    '/Auth/forgot-password',
-    { email },
-    { skipAuth: true },
-  );
-  return response;
-};
+export const forgotPassword = async (email: string) =>
+  api.post('/Auth/forgot-password', { email }, { skipAuth: true });
 
-export const verifyResetOtp = async (email: string, otp: string) => {
-  const response = await api.post(
-    '/Auth/verify-reset-otp',
-    { email, otp },
-    { skipAuth: true },
-  );
-  return response;
-};
+export const verifyResetOtp = async (email: string, otp: string) =>
+  api.post('/Auth/verify-reset-otp', { email, otp }, { skipAuth: true });
 
 export const resetPassword = async (
   email: string,
   otp: string,
   newPassword: string,
-) => {
-  const response = await api.post(
+) =>
+  api.post(
     '/Auth/reset-password',
     { email, otp, newPassword },
     { skipAuth: true },
   );
-  return response;
-};

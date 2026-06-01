@@ -3,6 +3,8 @@ import {
   CreditCard,
   Home,
   LifeBuoy,
+  Link,
+  Newspaper,
   UserRound,
   Users,
 } from 'lucide-react';
@@ -75,6 +77,21 @@ export const navGroups: NavGroup[] = [
         url: '/support-tickets',
         icon: LifeBuoy,
         roles: ['admin', 'super_admin'],
+      },
+    ],
+  },
+  {
+    label: 'SOCIAL',
+    items: [
+      {
+        title: 'Blogs',
+        url: '/social/blogs',
+        icon: Newspaper,
+      },
+      {
+        title: 'Links (Coming Soon)',
+        url: '/social/links',
+        icon: Link,
       },
     ],
   },

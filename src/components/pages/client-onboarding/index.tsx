@@ -101,83 +101,81 @@ export function OnboardingModule() {
   return (
     <>
       <StudioLayout>
-        <>
-          {/* ── KPIs ──────────────────────────────────── */}
-          {totals && (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <InfoCard
-                item={{
-                  id: '1',
-                  icon: <Users className="w-5 h-5" />,
-                  color: 'semantic-blue-500',
-                  title: 'Leads',
-                  count: totals.totalLeads,
-                }}
-              />
-              <InfoCard
-                item={{
-                  id: '2',
-                  icon: <Clock className="w-5 h-5" />,
-                  color: 'secondary-pink-500',
-                  title: 'In Progress',
-                  count: totals.totalInProgress,
-                }}
-              />
-              <InfoCard
-                item={{
-                  id: '3',
-                  icon: <PauseCircle className="w-5 h-5" />,
-                  color: 'alert-red-400',
-                  title: 'Pending Review',
-                  count: totals.totalPendingReview,
-                }}
-              />
-              <InfoCard
-                item={{
-                  id: '4',
-                  icon: <CheckCircle className="w-5 h-5" />,
-                  color: 'primary-green-500',
-                  title: 'Completion Rate',
-                  count: `${totals.completionRate}%`,
-                }}
-              />
-            </div>
-          )}
-
-          {/* ── Board header ──────────────────────────── */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-xl font-semibold text-white">
-                Client Onboarding Board
-              </h2>
-              <p className="text-sm text-secondary-blue-200 mt-0.5">
-                Drag cards between columns to update status
-              </p>
-            </div>
-            <Button onClick={openNewWizard} className="gap-2">
-              <Plus className="w-4 h-4" />
-              Add new lead
-            </Button>
-          </div>
-
-          {/* ── Kanban board ──────────────────────────── */}
-          {isLoading ? (
-            <div className="flex justify-center py-16">
-              <Spinner />
-            </div>
-          ) : isError ? (
-            <div className="rounded-2xl border border-alert-red-400/40 bg-alert-red-400/10 p-6 text-sm text-alert-red-200">
-              Failed to load onboarding board. Please try again.
-            </div>
-          ) : board && clients ? (
-            <KanbanBoard
-              clients={clients}
-              onSelectClient={setSelectedClient}
-              onResumeClient={openResumeWizard}
-              onStatusChange={handleStatusChange}
+        {/* ── KPIs ──────────────────────────────────── */}
+        {totals && (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <InfoCard
+              item={{
+                id: '1',
+                icon: <Users className="w-5 h-5" />,
+                color: 'semantic-blue-500',
+                title: 'Leads',
+                count: totals.totalLeads,
+              }}
             />
-          ) : null}
-        </>
+            <InfoCard
+              item={{
+                id: '2',
+                icon: <Clock className="w-5 h-5" />,
+                color: 'secondary-pink-500',
+                title: 'In Progress',
+                count: totals.totalInProgress,
+              }}
+            />
+            <InfoCard
+              item={{
+                id: '3',
+                icon: <PauseCircle className="w-5 h-5" />,
+                color: 'alert-red-400',
+                title: 'Pending Review',
+                count: totals.totalPendingReview,
+              }}
+            />
+            <InfoCard
+              item={{
+                id: '4',
+                icon: <CheckCircle className="w-5 h-5" />,
+                color: 'primary-green-500',
+                title: 'Completion Rate',
+                count: `${totals.completionRate}%`,
+              }}
+            />
+          </div>
+        )}
+
+        {/* ── Board header ──────────────────────────── */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-xl font-semibold text-white">
+              Client Onboarding Board
+            </h2>
+            <p className="text-sm text-secondary-blue-200 mt-0.5">
+              Drag cards between columns to update status
+            </p>
+          </div>
+          <Button onClick={openNewWizard} className="gap-2">
+            <Plus className="w-4 h-4" />
+            Add new lead
+          </Button>
+        </div>
+
+        {/* ── Kanban board ──────────────────────────── */}
+        {isLoading ? (
+          <div className="flex justify-center py-16">
+            <Spinner />
+          </div>
+        ) : isError ? (
+          <div className="rounded-2xl border border-alert-red-400/40 bg-alert-red-400/10 p-6 text-sm text-alert-red-200">
+            Failed to load onboarding board. Please try again.
+          </div>
+        ) : board && clients ? (
+          <KanbanBoard
+            clients={clients}
+            onSelectClient={setSelectedClient}
+            onResumeClient={openResumeWizard}
+            onStatusChange={handleStatusChange}
+          />
+        ) : null}
       </StudioLayout>
 
       {/* ── Detail Sheet ──────────────────────────── */}

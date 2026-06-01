@@ -1,7 +1,3 @@
-/**
- * Business logic utilities for onboarding
- * Credential generation, tier management, calculations
- */
 import type { OnboardingStatus } from '@/types/onboarding';
 
 export const generatePassword = (): string => {
@@ -56,4 +52,15 @@ export const formatOnboardingDate = (value?: string | null): string => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
   return date.toLocaleDateString();
+};
+
+export const readFileAsDataURL = (
+  file: File,
+  onResult: (dataUrl: string) => void,
+) => {
+  const reader = new FileReader();
+  reader.onloadend = () => {
+    onResult(typeof reader.result === 'string' ? reader.result : '');
+  };
+  reader.readAsDataURL(file);
 };

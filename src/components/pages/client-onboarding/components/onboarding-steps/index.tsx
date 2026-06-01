@@ -1,7 +1,17 @@
 'use client';
 
 import { Button } from '@kurlclub/ui-components';
-import { ArrowLeft, ArrowRight, Check, X } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Building2,
+  Check,
+  CheckCircle,
+  CreditCard,
+  MapPin,
+  User,
+  X,
+} from 'lucide-react';
 
 import { useOnboardingContext } from '@/hooks/onboarding';
 import type { OnboardingRecord } from '@/types/onboarding';
@@ -24,108 +34,41 @@ const STEPS = [
     id: 1,
     name: 'Lead Intake',
     description: 'Capture lead details',
-    icon: (
-      <svg
-        className="w-4 h-4"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={2}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-        />
-      </svg>
-    ),
+    icon: <Building2 className="w-4 h-4" />,
   },
   {
     id: 2,
     name: 'Account Setup',
     description: 'Portal access',
-    icon: (
-      <svg
-        className="w-4 h-4"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={2}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-        />
-      </svg>
-    ),
+    icon: <User className="w-4 h-4" />,
   },
   {
     id: 3,
     name: 'Subscription',
     description: 'Assign plan',
-    icon: (
-      <svg
-        className="w-4 h-4"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={2}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-        />
-      </svg>
-    ),
+    icon: <CreditCard className="w-4 h-4" />,
   },
   {
     id: 4,
     name: 'Gyms',
     description: 'Setup locations',
-    icon: (
-      <svg
-        className="w-4 h-4"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={2}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-        />
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-        />
-      </svg>
-    ),
+    icon: <MapPin className="w-4 h-4" />,
   },
   {
     id: 5,
     name: 'Review',
     description: 'Confirm & complete',
-    icon: (
-      <svg
-        className="w-4 h-4"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={2}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-        />
-      </svg>
-    ),
+    icon: <CheckCircle className="w-4 h-4" />,
   },
 ] as const;
+
+const STEP_COMPONENTS: Record<number, React.ReactNode> = {
+  1: <OnboardingStep1 />,
+  2: <OnboardingStep2 />,
+  3: <OnboardingStep3 />,
+  4: <OnboardingStep4 />,
+  5: <OnboardingStep5 />,
+};
 
 export function OnboardingWizard({
   onClose,
@@ -148,9 +91,7 @@ export function OnboardingWizard({
 
     if (currentStep === 1) {
       const success = await saveDraft();
-      if (success) {
-        setCurrentStep(2);
-      }
+      if (success) setCurrentStep(2);
       return;
     }
 
@@ -160,9 +101,7 @@ export function OnboardingWizard({
     }
 
     const success = await submitForm();
-    if (success) {
-      onClose();
-    }
+    if (success) onClose();
   };
 
   const handlePrevious = () => {
@@ -174,37 +113,15 @@ export function OnboardingWizard({
     if (stepId <= currentStep) setCurrentStep(stepId);
   };
 
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 1:
-        return <OnboardingStep1 />;
-      case 2:
-        return <OnboardingStep2 />;
-      case 3:
-        return <OnboardingStep3 />;
-      case 4:
-        return <OnboardingStep4 />;
-      case 5:
-        return <OnboardingStep5 />;
-      default:
-        return null;
-    }
-  };
-
   return (
     <div className="h-full flex flex-col bg-primary-blue-500 overflow-hidden">
       {/* ── Top Bar ───────────────────────────────────── */}
       <div className="shrink-0 bg-secondary-blue-600 border-b border-secondary-blue-400">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          {/* Left: title */}
           <div>
             <h1 className="text-lg font-semibold text-white">
               {initialClient
-                ? `Resuming: ${
-                    initialClient.data?.gymName ||
-                    initialClient.contactName ||
-                    `#${initialClient.id}`
-                  }`
+                ? `Resuming: ${initialClient.data?.gymName || initialClient.contactName || `#${initialClient.id}`}`
                 : 'New Client Onboarding'}
             </h1>
             <p className="text-xs text-secondary-blue-200 mt-0.5">
@@ -221,7 +138,6 @@ export function OnboardingWizard({
 
               return (
                 <div key={step.id} className="flex items-center">
-                  {/* Connector */}
                   {idx > 0 && (
                     <div
                       className={`w-10 h-px mx-1 transition-colors ${
@@ -231,14 +147,12 @@ export function OnboardingWizard({
                       }`}
                     />
                   )}
-
                   <button
                     onClick={() => handleStepClick(step.id)}
                     disabled={!isAccessible}
                     className="flex items-center gap-2 group outline-none"
                     title={step.description}
                   >
-                    {/* Circle */}
                     <div
                       className={`
                         relative w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold
@@ -255,14 +169,12 @@ export function OnboardingWizard({
                       {isCompleted ? (
                         <Check className="w-3.5 h-3.5" />
                       ) : (
-                        <span className="text-inherit">{step.icon}</span>
+                        step.icon
                       )}
                       {isActive && (
                         <span className="absolute -inset-1 rounded-full border-2 border-primary-green-500/30 animate-pulse" />
                       )}
                     </div>
-
-                    {/* Label — only for active */}
                     {isActive && (
                       <span className="text-xs font-semibold text-white hidden lg:block whitespace-nowrap">
                         {step.name}
@@ -274,7 +186,6 @@ export function OnboardingWizard({
             })}
           </nav>
 
-          {/* Right: close */}
           <button
             onClick={onClose}
             className="p-2 rounded-lg text-secondary-blue-200 hover:text-white hover:bg-secondary-blue-500 transition-colors"
@@ -304,7 +215,7 @@ export function OnboardingWizard({
 
       <div className="flex-1 overflow-y-auto min-h-0">
         <div className="max-w-5xl mx-auto px-6 py-8 animate-in fade-in duration-300">
-          {renderStepContent()}
+          {STEP_COMPONENTS[currentStep]}
         </div>
       </div>
 

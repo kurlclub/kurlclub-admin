@@ -1,7 +1,7 @@
 'use client';
 
 import type React from 'react';
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -10,12 +10,12 @@ import {
   KFormField,
   KFormFieldType,
 } from '@kurlclub/ui-components';
-import { Country, State } from 'country-state-city';
 import { Building2, ClipboardList, User } from 'lucide-react';
 import { type DeepPartial, useForm, useWatch } from 'react-hook-form';
 
 import { useOnboardingContext } from '@/hooks/onboarding';
 import { useAdminFormData } from '@/hooks/use-admin-form-data';
+import { useCountryRegion } from '@/hooks/use-country-region';
 import { useAuth } from '@/providers/auth-provider';
 import type { LeadDraftSchemaInput } from '@/schemas/onboarding.schema';
 import { leadDraftSchema } from '@/schemas/onboarding.schema';
@@ -67,54 +67,32 @@ export function OnboardingStep1() {
   const { adminFormData, loading: adminFormLoading } = useAdminFormData();
   const { lead } = formData;
   const canAssignAdmin = user?.userRole === 'super_admin';
+
   const form = useForm<LeadDraftSchemaInput, unknown, LeadDraftData>({
     resolver: zodResolver(leadDraftSchema),
     mode: 'onTouched',
     reValidateMode: 'onChange',
     defaultValues: lead,
   });
+
   const watchedLead = useWatch({ control: form.control });
-  const previousCountryRef = useRef<string | null>(null);
-  const countries = useMemo(() => Country.getAllCountries(), []);
-  const countryOptions = useMemo(
-    () =>
-      [...countries]
-        .sort((a, b) => a.name.localeCompare(b.name))
-        .map((country) => ({
-          label: country.name,
-          value: country.name,
-        })),
-    [countries],
+
+  const handleCountryChange = useCallback(() => {
+    form.setValue('leadData.region', '');
+  }, [form]);
+
+  const { countryOptions, regionOptions, regionDisabled } = useCountryRegion(
+    watchedLead?.leadData?.country,
+    handleCountryChange,
   );
-  const selectedCountry = useMemo(
-    () =>
-      countries.find(
-        (country) => country.name === watchedLead?.leadData?.country,
-      ),
-    [countries, watchedLead?.leadData?.country],
-  );
-  const regionOptions = useMemo(() => {
-    if (!selectedCountry) return [];
-    return State.getStatesOfCountry(selectedCountry.isoCode)
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map((region) => ({
-        label: region.name,
-        value: region.name,
-      }));
-  }, [selectedCountry]);
-  const regionDisabled =
-    !watchedLead?.leadData?.country || regionOptions.length === 0;
+
   const adminOptions = useMemo(() => {
     const admins = adminFormData?.adminUsers ?? [];
     return [...admins]
       .filter((admin) => typeof admin?.name === 'string')
       .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''))
-      .map((admin) => ({
-        label: admin.name,
-        value: String(admin.id),
-      }));
+      .map((admin) => ({ label: admin.name, value: String(admin.id) }));
   }, [adminFormData?.adminUsers]);
-  const adminOptionsEmpty = adminOptions.length === 0;
 
   useEffect(() => {
     const currentValues = form.getValues();
@@ -127,26 +105,9 @@ export function OnboardingStep1() {
   useEffect(() => {
     if (!watchedLead) return;
     const nextLead = normalizeLeadValues(watchedLead, lead);
-
     if (isLeadEqual(nextLead, lead)) return;
-
-    setFormData({
-      ...formData,
-      lead: nextLead,
-    });
+    setFormData({ ...formData, lead: nextLead });
   }, [formData, lead, setFormData, watchedLead]);
-
-  useEffect(() => {
-    const country = watchedLead?.leadData?.country ?? '';
-    if (previousCountryRef.current === null) {
-      previousCountryRef.current = country;
-      return;
-    }
-    if (previousCountryRef.current !== country) {
-      form.setValue('leadData.region', '');
-      previousCountryRef.current = country;
-    }
-  }, [form, watchedLead?.leadData?.country]);
 
   useEffect(() => {
     const unregister = registerStepValidator(1, () =>
@@ -197,7 +158,7 @@ export function OnboardingStep1() {
                 label="Assigned Team Member"
                 options={adminOptions}
                 floating={false}
-                disabled={adminFormLoading || adminOptionsEmpty}
+                disabled={adminFormLoading || adminOptions.length === 0}
                 placeholder={
                   adminFormLoading
                     ? 'Loading team members...'

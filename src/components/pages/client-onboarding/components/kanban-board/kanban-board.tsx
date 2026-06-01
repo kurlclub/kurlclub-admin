@@ -154,34 +154,20 @@ export function KanbanBoard({
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
     >
-      {/* Board shell */}
-      <div className="relative rounded-3xl border border-secondary-blue-400/30 bg-secondary-blue-800/45 p-4 md:p-5 shadow-[0_18px_50px_rgba(0,0,0,0.35)] overflow-visible">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-70 rounded-3xl"
-          style={{
-            backgroundImage:
-              'radial-gradient(circle at top, rgba(255,255,255,0.12), transparent 55%), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(0deg, rgba(255,255,255,0.06) 1px, transparent 1px)',
-            backgroundSize: '100% 100%, 28px 28px, 28px 28px',
-            backgroundPosition: 'center, top left, top left',
-          }}
-        />
-
-        {/* Horizontal scroll container for columns */}
-        <div className="relative flex gap-5 items-start overflow-x-auto overflow-y-visible pb-4 pr-2">
-          {COLUMNS.map((col, colIdx) => {
-            const cards = colItems(col.id);
-            return (
-              <KanbanColumn
-                key={col.id}
-                col={col}
-                cards={cards}
-                colIdx={colIdx}
-                onSelectClient={onSelectClient}
-                onResumeClient={onResumeClient}
-              />
-            );
-          })}
-        </div>
+      <div className="relative flex gap-4 items-start overflow-x-auto overflow-y-visible pb-6">
+        {COLUMNS.map((col, colIdx) => {
+          const cards = colItems(col.id);
+          return (
+            <KanbanColumn
+              key={col.id}
+              col={col}
+              cards={cards}
+              colIdx={colIdx}
+              onSelectClient={onSelectClient}
+              onResumeClient={onResumeClient}
+            />
+          );
+        })}
       </div>
 
       {/* Drag overlay — ghost card */}
