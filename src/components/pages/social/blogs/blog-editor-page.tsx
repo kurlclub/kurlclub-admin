@@ -63,9 +63,9 @@ export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
   const isPublished = currentStatus === 'published';
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background-dark">
       {/* Sticky top bar */}
-      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-secondary-blue-800 bg-background px-6 py-3">
+      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-secondary-blue-800 bg-background-dark px-6 py-3">
         <div className="flex items-center gap-3">
           <Button
             type="button"

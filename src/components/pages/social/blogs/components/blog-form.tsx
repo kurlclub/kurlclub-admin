@@ -163,9 +163,9 @@ export function BlogForm({ formId, defaultValues, onSave }: BlogFormProps) {
 
   return (
     <form id={formId} onSubmit={handleSubmit(onSave)}>
-      <div className="grid grid-cols-1 gap-0 lg:grid-cols-[1fr_45%]">
+      <div className="grid grid-cols-[25%_1fr] gap-0">
         {/* ── Left: form fields (scrolls with the page) ────── */}
-        <div className="space-y-5 border-r border-secondary-blue-800 pr-8 pb-20">
+        <div className="space-y-5 border-r border-secondary-blue-800 pr-6 pb-20">
           {/* Title */}
           <div>
             <Input
@@ -345,8 +345,8 @@ export function BlogForm({ formId, defaultValues, onSave }: BlogFormProps) {
         </div>
 
         {/* ── Right: sticky live preview ────────────────────── */}
-        <div className="pl-8">
-          <div className="sticky top-4 max-h-[calc(100vh-120px)] overflow-y-auto">
+        <div className="pl-6">
+          <div className="sticky top-14 max-h-[calc(100vh-80px)] overflow-y-auto">
             <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-secondary-blue-400">
               Preview
             </p>
