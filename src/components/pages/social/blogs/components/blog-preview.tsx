@@ -21,13 +21,7 @@ const QuotaIcon = () => (
 );
 
 // ── Inlined from landing: src/components/shared/avatar.tsx ───────────────────
-const BlogAvatar = ({
-  name,
-  size = 24,
-}: {
-  name?: string;
-  size?: number;
-}) => {
+const BlogAvatar = ({ name, size = 24 }: { name?: string; size?: number }) => {
   const initials = name
     ? name
         .split(' ')
@@ -89,9 +83,7 @@ export function BlogPreview({ data }: BlogPreviewProps) {
       {/* ── BlogTitle — matches landing's blog-title.tsx ──── */}
       <div className="flex flex-col gap-4">
         {/* Main title: landing uses text-[26px] sm:text-[40px] md:text-[71px] */}
-        {title && (
-          <h1 className="text-[40px] leading-[109%]">{title}</h1>
-        )}
+        {title && <h1 className="text-[40px] leading-[109%]">{title}</h1>}
 
         {/* Date | Author — matches landing's meta row */}
         {(formattedDate || author?.name) && (
@@ -186,10 +178,7 @@ export function BlogPreview({ data }: BlogPreviewProps) {
                 {section.paragraphs
                   ?.filter((p) => p?.trim())
                   .map((para, pIdx) => (
-                    <p
-                      key={pIdx}
-                      className="text-base leading-relaxed"
-                    >
+                    <p key={pIdx} className="text-base leading-relaxed">
                       {para}
                     </p>
                   ))}
