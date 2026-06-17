@@ -33,7 +33,7 @@ function SectionCard({ control, index, onRemove, errors }: SectionCardProps) {
   const sectionError = errors?.[index];
 
   return (
-    <div className="space-y-4 rounded-lg border border-secondary-blue-700 bg-secondary-blue-900 p-4">
+    <div className="space-y-4 rounded-lg border border-secondary-blue-500  p-3">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-secondary-blue-200">
           Section {index + 1}

@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { useBlog, useCreateBlog, useUpdateBlog } from '@/services/social/blogs';
 import type { BlogFormData, BlogStatus } from '@/types/blog';
 
-import { BlogForm } from './components/blog-form';
+import { BlogForm, type BlogFormHandle } from './components/blog-form';
 
 interface BlogEditorPageProps {
   mode: 'create' | 'edit';
@@ -27,6 +27,7 @@ export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
 
   const pendingStatusRef = useRef<BlogStatus>('draft');
   const [pendingStatus, setPendingStatus] = useState<BlogStatus>('draft');
+  const formRef = useRef<BlogFormHandle>(null);
 
   const isPending = createMutation.isPending || updateMutation.isPending;
   const currentStatus = blog?.status ?? 'draft';
@@ -51,6 +52,10 @@ export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
     }
   };
 
+  const handleReset = () => {
+    formRef.current?.reset();
+  };
+
   const triggerSubmit = (status: BlogStatus) => {
     pendingStatusRef.current = status;
     setPendingStatus(status);
@@ -65,7 +70,7 @@ export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
   return (
     <div className="min-h-screen bg-background-dark">
       {/* Sticky top bar */}
-      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-secondary-blue-800 bg-background-dark px-6 py-3">
+      <div className="sticky top-16 z-20 flex items-center justify-between border-b border-secondary-blue-700 bg-background-dark px-6 py-3">
         <div className="flex items-center gap-3">
           <Button
             type="button"
@@ -90,6 +95,15 @@ export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
             variant="outline"
             size="sm"
             disabled={isPending}
+            onClick={handleReset}
+          >
+            Reset
+          </Button>
+          <Button
+            type="button"
+            variant="outlinePrimary"
+            size="sm"
+            disabled={isPending}
             onClick={() => triggerSubmit('draft')}
           >
             {isPending && pendingStatus === 'draft'
@@ -112,7 +126,7 @@ export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
       </div>
 
       {/* Content area — full width, no height constraint (preview uses sticky) */}
-      <div className="px-6 py-6">
+      <div className="px-6 py-4">
         {mode === 'edit' && isLoading ? (
           <div className="flex items-center justify-center py-40">
             <Spinner />
@@ -123,6 +137,7 @@ export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
           </div>
         ) : (
           <BlogForm
+            ref={formRef}
             formId="blog-editor-form"
             defaultValues={blog}
             onSave={handleSave}

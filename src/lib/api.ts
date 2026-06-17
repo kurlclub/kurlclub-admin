@@ -130,6 +130,12 @@ const clearStorage = (): void => {
   } catch (error) {
     console.error('Failed to clear storage:', error);
   }
+  // Also expire the auth cookies the middleware reads — otherwise a stale
+  // accessToken cookie bounces /auth/login back to /dashboard (see proxy.ts).
+  if (typeof document !== 'undefined') {
+    document.cookie = 'accessToken=; path=/; max-age=0; SameSite=Strict';
+    document.cookie = 'refreshToken=; path=/; max-age=0; SameSite=Strict';
+  }
 };
 
 const redirectToLogin = (): void => {
@@ -161,7 +167,9 @@ const refreshAccessToken = async (): Promise<string | null> => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          [API_ENV_HEADER]: getStoredApiEnvironment(),
+          // Admin auth (login/refresh) lives in the Admin database — must match
+          // baseFetch's auth-endpoint logic, otherwise refresh 401s and logs out.
+          [API_ENV_HEADER]: 'Admin',
         },
         body: JSON.stringify({ refreshToken }),
         signal: requestController.signal,
