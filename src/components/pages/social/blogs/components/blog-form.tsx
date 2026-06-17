@@ -59,6 +59,21 @@ export const blogFormSchema = z.object({
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
+// Walk a react-hook-form errors object (which nests by field/array) and return
+// the first human-readable message, so we can show it in a toast.
+const findFirstErrorMessage = (node: unknown): string | undefined => {
+  if (!node || typeof node !== 'object') return undefined;
+  const record = node as Record<string, unknown>;
+  if (typeof record.message === 'string' && record.message) {
+    return record.message;
+  }
+  for (const value of Object.values(record)) {
+    const message = findFirstErrorMessage(value);
+    if (message) return message;
+  }
+  return undefined;
+};
+
 const slugify = (text: string) =>
   text
     .toLowerCase()
@@ -176,8 +191,18 @@ export const BlogForm = forwardRef<BlogFormHandle, BlogFormProps>(
 
     const errorClass = 'mt-1 text-xs text-red-400';
 
+    // Surface validation failures: the action bar is sticky at the top while
+    // the inline field errors render in the scrolling column below, so without
+    // this the Publish / Save Draft buttons appear to do nothing.
+    const onInvalid = (formErrors: typeof errors) => {
+      const firstMessage = findFirstErrorMessage(formErrors);
+      toast.error(
+        firstMessage ?? 'Please fix the highlighted fields before saving.',
+      );
+    };
+
     return (
-      <form id={formId} onSubmit={handleSubmit(onSave)}>
+      <form id={formId} onSubmit={handleSubmit(onSave, onInvalid)}>
         <div className="grid grid-cols-[30%_1fr] gap-0">
           {/* ── Left: form fields (scrolls with the page) ────── */}
           <div className="space-y-4 border-r border-secondary-blue-500 pr-6">
