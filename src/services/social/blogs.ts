@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { api } from '@/lib/api';
+import { API_ENV_HEADER } from '@/lib/api-environment';
 import { type ApiEnvelope, STALE_5M, unwrap } from '@/lib/api-types';
 import type {
   Blog,
@@ -9,6 +10,12 @@ import type {
   BlogListResult,
   BlogUpdateData,
 } from '@/types/blog';
+
+const BLOG_API_OPTIONS = {
+  headers: {
+    [API_ENV_HEADER]: 'Dev',
+  },
+} as const;
 
 const normalizeBlogList = (payload: unknown): BlogListResult => {
   const fallback: BlogListResult = {
@@ -46,7 +53,11 @@ export const fetchBlogBySlug = async (slug: string): Promise<Blog> => {
 };
 
 export const createBlog = async (data: BlogFormData): Promise<Blog> => {
-  const response = await api.post<ApiEnvelope<Blog> | Blog>('/blogs', data);
+  const response = await api.post<ApiEnvelope<Blog> | Blog>(
+    '/blogs',
+    data,
+    BLOG_API_OPTIONS,
+  );
   return unwrap(response) as Blog;
 };
 
@@ -57,6 +68,7 @@ export const updateBlog = async (
   const response = await api.patch<ApiEnvelope<Blog> | Blog>(
     `/blogs/${id}`,
     data as Record<string, unknown>,
+    BLOG_API_OPTIONS,
   );
   return unwrap(response) as Blog;
 };
@@ -65,13 +77,49 @@ export const deleteBlog = async (id: number): Promise<void> => {
   await api.delete(`/blogs/${id}`);
 };
 
+type UploadResponseObject = {
+  src?: string;
+  url?: string;
+  path?: string;
+  fileUrl?: string;
+  fileName?: string;
+  imageUrl?: string;
+  location?: string;
+  Location?: string;
+};
+
+const extractUploadedSrc = (payload: unknown): string | undefined => {
+  // Some endpoints return the URL as a bare string rather than an object.
+  if (typeof payload === 'string') return payload.trim() || undefined;
+  if (!payload || typeof payload !== 'object') return undefined;
+  const p = payload as UploadResponseObject;
+  return (
+    p.src ??
+    p.url ??
+    p.path ??
+    p.fileUrl ??
+    p.imageUrl ??
+    p.location ??
+    p.Location ??
+    p.fileName
+  );
+};
+
 export const uploadBlogImage = async (file: File): Promise<{ src: string }> => {
   const formData = new FormData();
   formData.append('file', file);
-  const response = await api.post<
-    ApiEnvelope<{ src: string }> | { src: string }
-  >('/uploads', formData);
-  return unwrap(response) as { src: string };
+  const response = await api.post<ApiEnvelope<unknown> | unknown>(
+    '/blogs/uploads',
+    formData,
+    BLOG_API_OPTIONS,
+  );
+  const src = extractUploadedSrc(unwrap(response));
+
+  if (!src) {
+    throw new Error('Upload response did not include an image URL.');
+  }
+
+  return { src };
 };
 
 // ─── React Query Hooks ──────────────────────────────────────────────────────
