@@ -78,6 +78,14 @@ export function BlogPreview({ data }: BlogPreviewProps) {
     }
   }
 
+  // Build the "On this page" table of contents from section headings.
+  const toc = (sections ?? [])
+    .map((section, idx) => ({
+      id: `section-${idx}`,
+      heading: section.heading?.trim() ?? '',
+    }))
+    .filter((item) => item.heading);
+
   return (
     <div className="text-white">
       {/* ── BlogTitle — matches landing's blog-title.tsx ──── */}
@@ -151,6 +159,27 @@ export function BlogPreview({ data }: BlogPreviewProps) {
                 {title}
               </span>
             )}
+
+            {/* "On this page" table of contents — matches landing's blog-detail.tsx */}
+            {toc.length > 0 && (
+              <nav aria-label="Table of contents">
+                <p className="text-[13px] font-semibold uppercase tracking-wide text-primary-green-100">
+                  On this page
+                </p>
+                <ul className="mt-3 flex flex-col gap-2 border-l border-white/15 pl-4">
+                  {toc.map((item) => (
+                    <li key={item.id}>
+                      <a
+                        href={`#${item.id}`}
+                        className="text-sm leading-[130%] text-white/70 hover:text-primary-green-500 k-transition"
+                      >
+                        {item.heading}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            )}
           </div>
         </div>
 
@@ -159,9 +188,9 @@ export function BlogPreview({ data }: BlogPreviewProps) {
           {/* Landing: flex flex-col gap-4 sm:gap-5 md:gap-8 */}
           <div className="flex flex-col gap-8">
             {/* Main heading — landing: text-[20px] sm:text-[28px] md:text-[44px] */}
-            {mainHeading && (
+            {/* {mainHeading && (
               <span className="text-[28px] leading-[109%]">{mainHeading}</span>
-            )}
+            )} */}
 
             {/* Sections */}
             {sections?.map((section, idx) => (
@@ -169,7 +198,10 @@ export function BlogPreview({ data }: BlogPreviewProps) {
               <div key={idx} className="flex flex-col gap-[22px]">
                 {/* Section heading — same sizes as main heading */}
                 {section.heading && (
-                  <span className="text-[28px] leading-[109%]">
+                  <span
+                    id={`section-${idx}`}
+                    className="scroll-mt-28 text-[28px] leading-[109%]"
+                  >
                     {section.heading}
                   </span>
                 )}
@@ -219,6 +251,22 @@ export function BlogPreview({ data }: BlogPreviewProps) {
                 )}
               </div>
             )}
+
+            {/* Footer CTA card — static content, non-navigating in preview */}
+            <div className="mt-2 rounded-[16px] border border-white/8 bg-secondary-blue-500/40 p-5 sm:p-6">
+              <p className="text-sm sm:text-base text-white/80">
+                See how KurlClub gym management software can streamline
+                memberships, attendance and billing for your fitness business.{' '}
+                <span className="text-primary-green-500 underline-offset-4 hover:underline">
+                  Book a free demo
+                </span>{' '}
+                or{' '}
+                <span className="text-primary-green-500 underline-offset-4 hover:underline">
+                  read more articles
+                </span>
+                .
+              </p>
+            </div>
           </div>
         </div>
       </div>

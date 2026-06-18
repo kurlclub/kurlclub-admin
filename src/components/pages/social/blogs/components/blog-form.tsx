@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -59,6 +59,21 @@ export const blogFormSchema = z.object({
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
+// Walk a react-hook-form errors object (which nests by field/array) and return
+// the first human-readable message, so we can show it in a toast.
+const findFirstErrorMessage = (node: unknown): string | undefined => {
+  if (!node || typeof node !== 'object') return undefined;
+  const record = node as Record<string, unknown>;
+  if (typeof record.message === 'string' && record.message) {
+    return record.message;
+  }
+  for (const value of Object.values(record)) {
+    const message = findFirstErrorMessage(value);
+    if (message) return message;
+  }
+  return undefined;
+};
+
 const slugify = (text: string) =>
   text
     .toLowerCase()
@@ -90,270 +105,307 @@ interface BlogFormProps {
   onSave: (data: BlogFormData) => Promise<void>;
 }
 
-export function BlogForm({ formId, defaultValues, onSave }: BlogFormProps) {
-  const uploadMutation = useUploadBlogImage();
-  const [coverFile, setCoverFile] = useState<File | null>(null);
+export interface BlogFormHandle {
+  reset: () => void;
+}
 
-  const {
-    register,
-    control,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm<BlogFormData>({
-    resolver: zodResolver(blogFormSchema),
-    defaultValues: defaultValues
-      ? {
-          title: defaultValues.title,
-          slug: defaultValues.slug,
-          excerpt: defaultValues.excerpt,
-          tagLabel: defaultValues.tagLabel,
-          displayDate: defaultValues.displayDate,
-          coverImage: defaultValues.coverImage,
-          mainHeading: defaultValues.mainHeading,
-          sections: defaultValues.sections,
-          author: defaultValues.author,
-          metaTitle: defaultValues.metaTitle ?? '',
-          metaDescription: defaultValues.metaDescription ?? '',
-          status: defaultValues.status,
-        }
-      : DEFAULT_VALUES,
-  });
+export const BlogForm = forwardRef<BlogFormHandle, BlogFormProps>(
+  function BlogForm({ formId, defaultValues, onSave }, ref) {
+    const uploadMutation = useUploadBlogImage();
+    const [coverFile, setCoverFile] = useState<File | null>(null);
 
-  const titleValue = watch('title');
-  const slugValue = watch('slug');
-  const coverImage = watch('coverImage');
-  const formValues = watch();
+    const {
+      register,
+      control,
+      handleSubmit,
+      reset,
+      setValue,
+      watch,
+      formState: { errors },
+    } = useForm<BlogFormData>({
+      resolver: zodResolver(blogFormSchema),
+      defaultValues: defaultValues
+        ? {
+            title: defaultValues.title,
+            slug: defaultValues.slug,
+            excerpt: defaultValues.excerpt,
+            tagLabel: defaultValues.tagLabel,
+            displayDate: defaultValues.displayDate,
+            coverImage: defaultValues.coverImage,
+            mainHeading: defaultValues.mainHeading ?? '',
+            sections: defaultValues.sections,
+            author: defaultValues.author,
+            metaTitle: defaultValues.metaTitle ?? '',
+            metaDescription: defaultValues.metaDescription ?? '',
+            status: defaultValues.status,
+          }
+        : DEFAULT_VALUES,
+    });
 
-  // Auto-generate slug from title on create
-  useEffect(() => {
-    if (defaultValues) return;
-    if (!titleValue) return;
-    const autoSlug = slugify(titleValue);
-    if (!slugValue || slugValue === slugify(titleValue.slice(0, -1))) {
-      setValue('slug', autoSlug, { shouldValidate: false });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [titleValue]);
+    const titleValue = watch('title');
+    const slugValue = watch('slug');
+    const coverImage = watch('coverImage');
+    const formValues = watch();
 
-  const handleCoverFileChange = async (file: File | null) => {
-    setCoverFile(file);
-    if (file) {
-      try {
-        const { src } = await uploadMutation.mutateAsync(file);
-        setValue(
-          'coverImage',
-          {
-            src,
-            alt: coverImage.alt || file.name.replace(/\.[^.]+$/, ''),
-          },
-          { shouldValidate: true },
-        );
-      } catch {
-        toast.error('Image upload failed. Please try again.');
+    // Expose a reset handler so the parent's action bar can clear the form.
+    // Reverts to the loaded article (edit) or empty defaults (create).
+    useImperativeHandle(ref, () => ({
+      reset: () => {
+        reset();
         setCoverFile(null);
+      },
+    }));
+
+    // Auto-generate slug from title on create
+    useEffect(() => {
+      if (defaultValues) return;
+      if (!titleValue) return;
+      const autoSlug = slugify(titleValue);
+      if (!slugValue || slugValue === slugify(titleValue.slice(0, -1))) {
+        setValue('slug', autoSlug, { shouldValidate: false });
       }
-    } else {
-      setValue('coverImage', { src: '', alt: '' }, { shouldValidate: true });
-    }
-  };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [titleValue]);
 
-  const errorClass = 'mt-1 text-xs text-red-400';
+    const handleCoverFileChange = async (file: File | null) => {
+      setCoverFile(file);
+      if (file) {
+        try {
+          const { src } = await uploadMutation.mutateAsync(file);
+          setValue(
+            'coverImage',
+            {
+              src,
+              alt: coverImage.alt || file.name.replace(/\.[^.]+$/, ''),
+            },
+            { shouldValidate: true },
+          );
+        } catch {
+          toast.error('Image upload failed. Please try again.');
+          setCoverFile(null);
+        }
+      } else {
+        setValue('coverImage', { src: '', alt: '' }, { shouldValidate: true });
+      }
+    };
 
-  return (
-    <form id={formId} onSubmit={handleSubmit(onSave)}>
-      <div className="grid grid-cols-[25%_1fr] gap-0">
-        {/* ── Left: form fields (scrolls with the page) ────── */}
-        <div className="space-y-5 border-r border-secondary-blue-800 pr-6 pb-20">
-          {/* Title */}
-          <div>
-            <Input
-              {...register('title')}
-              label="Title"
-              mandatory
-              placeholder="Article title"
-            />
-            {errors.title && (
-              <p className={errorClass}>{errors.title.message}</p>
-            )}
-          </div>
+    const errorClass = 'mt-1 text-xs text-red-400';
 
-          {/* Excerpt */}
-          <div>
-            <Textarea
-              {...register('excerpt')}
-              label="Excerpt"
-              placeholder="Short summary shown on listing pages"
-              rows={3}
-            />
-            {errors.excerpt && (
-              <p className={errorClass}>{errors.excerpt.message}</p>
-            )}
-          </div>
+    // Surface validation failures: the action bar is sticky at the top while
+    // the inline field errors render in the scrolling column below, so without
+    // this the Publish / Save Draft buttons appear to do nothing.
+    const onInvalid = (formErrors: typeof errors) => {
+      const firstMessage = findFirstErrorMessage(formErrors);
+      toast.error(
+        firstMessage ?? 'Please fix the highlighted fields before saving.',
+      );
+    };
 
-          {/* Main Heading */}
-          <div>
-            <Input
-              {...register('mainHeading')}
-              label="Main Heading (H1)"
-              mandatory
-              placeholder="Article H1"
-            />
-            {errors.mainHeading && (
-              <p className={errorClass}>{errors.mainHeading.message}</p>
-            )}
-          </div>
-
-          {/* Sections */}
-          <BlogSectionBuilder control={control} errors={errors.sections} />
-
-          {/* Cover Image */}
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-secondary-blue-300">
-              Cover Image <span className="text-red-400">*</span>
-            </p>
-            <FileUploader
-              file={coverFile}
-              onChange={handleCoverFileChange}
-              accept="image/*"
-              label="Upload Cover Image"
-              existingFileUrl={coverImage.src || null}
-            />
-            {(errors.coverImage?.src?.message ||
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              (errors.coverImage as any)?.message) && (
-              <p className={errorClass}>
-                {errors.coverImage?.src?.message ??
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  (errors.coverImage as any)?.message}
-              </p>
-            )}
-            {/* Alt text appears once an image is uploaded */}
-            {coverImage.src && (
-              <div>
-                <Input
-                  {...register('coverImage.alt')}
-                  label="Image Alt Text"
-                  mandatory
-                  placeholder="Describe the image"
-                />
-                {errors.coverImage?.alt && (
-                  <p className={errorClass}>{errors.coverImage.alt.message}</p>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Slug */}
-          <div>
-            <Input
-              {...register('slug')}
-              label="Slug"
-              mandatory
-              placeholder="url-friendly-slug"
-            />
-            {errors.slug ? (
-              <p className={errorClass}>{errors.slug.message}</p>
-            ) : slugValue ? (
-              <p className="mt-1 text-xs text-secondary-blue-400">
-                /blogs/{slugValue}
-              </p>
-            ) : null}
-          </div>
-
-          {/* Tag */}
-          <div>
-            <Input
-              {...register('tagLabel')}
-              label="Tag"
-              mandatory
-              placeholder="e.g. Fitness"
-            />
-            {errors.tagLabel && (
-              <p className={errorClass}>{errors.tagLabel.message}</p>
-            )}
-          </div>
-
-          {/* Display Date */}
-          <div>
-            <KDatePicker
-              mode="single"
-              label="Display Date"
-              value={
-                watch('displayDate')
-                  ? new Date(`${watch('displayDate')}T00:00:00`)
-                  : undefined
-              }
-              onDateChange={(value) => {
-                if (value instanceof Date) {
-                  setValue('displayDate', format(value, 'yyyy-MM-dd'), {
-                    shouldValidate: true,
-                  });
-                } else if (!value) {
-                  setValue('displayDate', '', { shouldValidate: true });
-                }
-              }}
-            />
-            {errors.displayDate && (
-              <p className={errorClass}>{errors.displayDate.message}</p>
-            )}
-          </div>
-
-          {/* Author */}
-          <div className="space-y-4 rounded-lg border border-secondary-blue-700 p-4">
-            <h3 className="text-sm font-semibold text-white">Author</h3>
+    return (
+      <form id={formId} onSubmit={handleSubmit(onSave, onInvalid)}>
+        <div className="grid grid-cols-[30%_1fr] gap-0">
+          {/* ── Left: form fields (scrolls with the page) ────── */}
+          <div className="space-y-4 border-r border-secondary-blue-500 pr-6">
+            {/* Title */}
             <div>
               <Input
-                {...register('author.name')}
-                label="Name"
+                {...register('title')}
+                value={formValues.title ?? ''}
+                label="Title"
                 mandatory
-                placeholder="Author name"
+                placeholder="Article title"
               />
-              {errors.author?.name && (
-                <p className={errorClass}>{errors.author.name.message}</p>
+              {errors.title && (
+                <p className={errorClass}>{errors.title.message}</p>
               )}
             </div>
+
+            {/* Excerpt */}
             <div>
               <Textarea
-                {...register('author.bio')}
-                label="Bio"
-                placeholder="Author bio"
+                {...register('excerpt')}
+                value={formValues.excerpt ?? ''}
+                label="Excerpt"
+                // placeholder="Short summary shown on listing pages"
+                rows={3}
+              />
+              {errors.excerpt && (
+                <p className={errorClass}>{errors.excerpt.message}</p>
+              )}
+            </div>
+
+            {/* Main Heading */}
+            <div>
+              <Input
+                {...register('mainHeading')}
+                value={formValues.mainHeading ?? ''}
+                label="Card Heading"
+                mandatory
+                placeholder="Article"
+              />
+              {errors.mainHeading && (
+                <p className={errorClass}>{errors.mainHeading.message}</p>
+              )}
+            </div>
+
+            {/* Sections */}
+            <BlogSectionBuilder control={control} errors={errors.sections} />
+
+            {/* Cover Image */}
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-secondary-blue-300">
+                Cover Image <span className="text-red-400">*</span>
+              </p>
+              <FileUploader
+                file={coverFile}
+                onChange={handleCoverFileChange}
+                accept="image/*"
+                label="Upload Cover Image"
+                existingFileUrl={coverImage.src || null}
+              />
+              {(errors.coverImage?.src?.message ||
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (errors.coverImage as any)?.message) && (
+                <p className={errorClass}>
+                  {errors.coverImage?.src?.message ??
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (errors.coverImage as any)?.message}
+                </p>
+              )}
+              {/* Alt text appears once an image is uploaded */}
+              {coverImage.src && (
+                <div>
+                  <Input
+                    {...register('coverImage.alt')}
+                    value={formValues.coverImage?.alt ?? ''}
+                    label="Image Alt Text"
+                    mandatory
+                    placeholder="Describe the image"
+                  />
+                  {errors.coverImage?.alt && (
+                    <p className={errorClass}>
+                      {errors.coverImage.alt.message}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Slug */}
+            <div>
+              <Input
+                {...register('slug')}
+                value={formValues.slug ?? ''}
+                label="Slug"
+                mandatory
+                placeholder="url-friendly-slug"
+              />
+              {errors.slug ? (
+                <p className={errorClass}>{errors.slug.message}</p>
+              ) : slugValue ? (
+                <p className="mt-1 text-xs text-secondary-blue-400">
+                  /blogs/{slugValue}
+                </p>
+              ) : null}
+            </div>
+
+            {/* Tag */}
+            <div>
+              <Input
+                {...register('tagLabel')}
+                value={formValues.tagLabel ?? ''}
+                label="Tag"
+                mandatory
+                placeholder="e.g. Fitness"
+              />
+              {errors.tagLabel && (
+                <p className={errorClass}>{errors.tagLabel.message}</p>
+              )}
+            </div>
+
+            {/* Display Date */}
+            <div>
+              <KDatePicker
+                mode="single"
+                label="Display Date"
+                value={
+                  watch('displayDate')
+                    ? new Date(`${watch('displayDate')}T00:00:00`)
+                    : undefined
+                }
+                onDateChange={(value) => {
+                  if (value instanceof Date) {
+                    setValue('displayDate', format(value, 'yyyy-MM-dd'), {
+                      shouldValidate: true,
+                    });
+                  } else if (!value) {
+                    setValue('displayDate', '', { shouldValidate: true });
+                  }
+                }}
+              />
+              {errors.displayDate && (
+                <p className={errorClass}>{errors.displayDate.message}</p>
+              )}
+            </div>
+
+            {/* Author */}
+            <div className="space-y-4 rounded-lg border border-secondary-blue-500 py-3 px-3">
+              <h3 className="text-sm font-semibold text-white">Author</h3>
+              <div>
+                <Input
+                  {...register('author.name')}
+                  value={formValues.author?.name ?? ''}
+                  label="Name"
+                  mandatory
+                  placeholder="Author name"
+                />
+                {errors.author?.name && (
+                  <p className={errorClass}>{errors.author.name.message}</p>
+                )}
+              </div>
+              <div>
+                <Textarea
+                  {...register('author.bio')}
+                  value={formValues.author?.bio ?? ''}
+                  label="Bio"
+                  // placeholder="Author bio"
+                  rows={2}
+                />
+                {errors.author?.bio && (
+                  <p className={errorClass}>{errors.author.bio.message}</p>
+                )}
+              </div>
+            </div>
+
+            {/* SEO */}
+            <div className="space-y-4 rounded-lg border border-secondary-blue-500 px-4 py-3">
+              <h3 className="text-sm font-semibold text-white">SEO</h3>
+              <Input
+                {...register('metaTitle')}
+                value={formValues.metaTitle ?? ''}
+                label="Meta Title"
+                placeholder="SEO title"
+              />
+              <Textarea
+                {...register('metaDescription')}
+                value={formValues.metaDescription ?? ''}
+                label="Meta Description"
+                // placeholder="SEO description"
                 rows={2}
               />
-              {errors.author?.bio && (
-                <p className={errorClass}>{errors.author.bio.message}</p>
-              )}
             </div>
           </div>
 
-          {/* SEO */}
-          <div className="space-y-4 rounded-lg border border-secondary-blue-700 p-4">
-            <h3 className="text-sm font-semibold text-white">SEO</h3>
-            <Input
-              {...register('metaTitle')}
-              label="Meta Title"
-              placeholder="SEO title"
-            />
-            <Textarea
-              {...register('metaDescription')}
-              label="Meta Description"
-              placeholder="SEO description"
-              rows={2}
-            />
+          <div className="pl-6">
+            <div className="sticky top-32">
+              <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-secondary-blue-400">
+                Preview
+              </p>
+              <BlogPreview data={formValues} />
+            </div>
           </div>
         </div>
-
-        {/* ── Right: sticky live preview ────────────────────── */}
-        <div className="pl-6">
-          <div className="sticky top-14 max-h-[calc(100vh-80px)] overflow-y-auto">
-            <p className="mb-4 text-xs font-semibold uppercase tracking-widest text-secondary-blue-400">
-              Preview
-            </p>
-            <BlogPreview data={formValues} />
-          </div>
-        </div>
-      </div>
-    </form>
-  );
-}
+      </form>
+    );
+  },
+);

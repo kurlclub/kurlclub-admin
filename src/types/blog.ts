@@ -25,7 +25,7 @@ export interface Blog {
   /** Raw YYYY-MM-DD date string returned by the API. Frontend formats it for display. */
   displayDate: string;
   coverImage: BlogCoverImage;
-  mainHeading: string;
+  mainHeading?: string;
   sections: BlogSection[];
   author: BlogAuthor;
   metaTitle?: string;

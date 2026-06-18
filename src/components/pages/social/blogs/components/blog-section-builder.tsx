@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+
 import { Button, Input, Textarea } from '@kurlclub/ui-components';
 import { Plus, Trash2 } from 'lucide-react';
 import {
@@ -30,10 +32,19 @@ function SectionCard({ control, index, onRemove, errors }: SectionCardProps) {
     name: `sections.${index}.paragraphs` as any,
   });
 
+  // A section must always have one paragraph visible (it's mandatory). A nested
+  // field array over primitive strings can mount empty, so seed one paragraph
+  // whenever the array is empty — the plus button then adds any extras.
+  useEffect(() => {
+    if (paraFields.length === 0) {
+      addPara('');
+    }
+  }, [paraFields.length, addPara]);
+
   const sectionError = errors?.[index];
 
   return (
-    <div className="space-y-4 rounded-lg border border-secondary-blue-700 bg-secondary-blue-900 p-4">
+    <div className="space-y-4 rounded-lg border border-secondary-blue-500  p-3">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-secondary-blue-200">
           Section {index + 1}
