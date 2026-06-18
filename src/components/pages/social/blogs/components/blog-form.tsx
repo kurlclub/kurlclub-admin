@@ -46,7 +46,7 @@ export const blogFormSchema = z.object({
     src: z.string().min(1, 'Cover image is required'),
     alt: z.string().min(1, 'Alt text is required'),
   }),
-  mainHeading: z.string().optional(),
+  mainHeading: z.string().min(1, 'Main heading is required'),
   sections: z.array(sectionSchema).min(1, 'At least one section is required'),
   author: z.object({
     name: z.string().min(1, 'Author name is required'),
@@ -132,7 +132,7 @@ export const BlogForm = forwardRef<BlogFormHandle, BlogFormProps>(
             tagLabel: defaultValues.tagLabel,
             displayDate: defaultValues.displayDate,
             coverImage: defaultValues.coverImage,
-            mainHeading: defaultValues.mainHeading,
+            mainHeading: defaultValues.mainHeading ?? '',
             sections: defaultValues.sections,
             author: defaultValues.author,
             metaTitle: defaultValues.metaTitle ?? '',
@@ -239,8 +239,9 @@ export const BlogForm = forwardRef<BlogFormHandle, BlogFormProps>(
               <Input
                 {...register('mainHeading')}
                 value={formValues.mainHeading ?? ''}
-                label="Main Heading (H1)"
-                placeholder="Article H1"
+                label="Card Heading"
+                mandatory
+                placeholder="Article"
               />
               {errors.mainHeading && (
                 <p className={errorClass}>{errors.mainHeading.message}</p>

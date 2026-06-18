@@ -42,7 +42,7 @@ export interface BlogFormData {
   tagLabel: string;
   displayDate: string;
   coverImage: BlogCoverImage;
-  mainHeading?: string;
+  mainHeading: string;
   sections: BlogSection[];
   author: BlogAuthor;
   metaTitle?: string;
