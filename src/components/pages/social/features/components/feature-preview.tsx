@@ -1,9 +1,9 @@
 'use client';
 
-import type { FeatureAnnouncementFormData } from '@/types/feature-announcement';
+import type { FeatureItem } from '@/types/feature-announcement';
 
 interface FeaturePreviewProps {
-  data: Partial<FeatureAnnouncementFormData>;
+  data: Partial<FeatureItem>;
 }
 
 /**

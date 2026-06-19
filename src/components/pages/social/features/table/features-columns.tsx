@@ -13,6 +13,7 @@ import { format, parseISO } from 'date-fns';
 import { MoreHorizontal } from 'lucide-react';
 
 import type { FeatureAnnouncement } from '@/types/feature-announcement';
+import { getFeatureItems } from '@/types/feature-announcement';
 
 interface FeatureColumnActions {
   onEdit: (id: number) => void;
@@ -27,29 +28,46 @@ export const createFeatureColumns = ({
     id: 'image',
     header: 'Image',
     cell: ({ row }) => {
-      const { src, title } = row.original;
-      return src ? (
+      const first = getFeatureItems(row.original)[0];
+      return first?.src ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={src} alt={title} className="h-10 w-16 rounded object-cover" />
+        <img
+          src={first.src}
+          alt={first.title}
+          className="h-10 w-16 rounded object-cover"
+        />
       ) : (
         <div className="h-10 w-16 rounded bg-secondary-blue-800" />
       );
     },
   },
   {
-    accessorKey: 'title',
+    id: 'title',
     header: 'Title',
-    cell: ({ row }) => (
-      <span className="line-clamp-2 max-w-xs font-medium text-white">
-        {row.original.title}
-      </span>
-    ),
+    cell: ({ row }) => {
+      const items = getFeatureItems(row.original);
+      const extra = items.length - 1;
+      return (
+        <div className="max-w-xs">
+          <span className="line-clamp-2 font-medium text-white">
+            {items[0]?.title}
+          </span>
+          {extra > 0 && (
+            <span className="text-xs text-secondary-blue-300">
+              +{extra} more {extra === 1 ? 'feature' : 'features'}
+            </span>
+          )}
+        </div>
+      );
+    },
   },
   {
-    accessorKey: 'tag',
+    id: 'tag',
     header: 'Tag',
     cell: ({ row }) => (
-      <span className="text-secondary-blue-200">{row.original.tag}</span>
+      <span className="text-secondary-blue-200">
+        {getFeatureItems(row.original)[0]?.tag}
+      </span>
     ),
   },
   {
@@ -100,7 +118,12 @@ export const createFeatureColumns = ({
             </DropdownMenuItem>
             <DropdownMenuItem
               className="text-red-500"
-              onClick={() => onDelete(feature.id, feature.title)}
+              onClick={() =>
+                onDelete(
+                  feature.id,
+                  getFeatureItems(feature)[0]?.title ?? 'this announcement',
+                )
+              }
             >
               Delete
             </DropdownMenuItem>

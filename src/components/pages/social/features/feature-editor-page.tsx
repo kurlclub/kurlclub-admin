@@ -18,7 +18,7 @@ import type {
   FeatureAnnouncementStatus,
 } from '@/types/feature-announcement';
 
-import { FeatureForm } from './components/feature-form';
+import { FeatureForm, type FeatureFormHandle } from './components/feature-form';
 
 interface FeatureEditorPageProps {
   mode: 'create' | 'edit';
@@ -35,6 +35,7 @@ export function FeatureEditorPage({ mode, id }: FeatureEditorPageProps) {
   const pendingStatusRef = useRef<FeatureAnnouncementStatus>('draft');
   const [pendingStatus, setPendingStatus] =
     useState<FeatureAnnouncementStatus>('draft');
+  const formRef = useRef<FeatureFormHandle>(null);
 
   const isPending = createMutation.isPending || updateMutation.isPending;
   const currentStatus = feature?.status ?? 'draft';
@@ -62,6 +63,10 @@ export function FeatureEditorPage({ mode, id }: FeatureEditorPageProps) {
     }
   };
 
+  const handleReset = () => {
+    formRef.current?.reset();
+  };
+
   const triggerSubmit = (status: FeatureAnnouncementStatus) => {
     pendingStatusRef.current = status;
     setPendingStatus(status);
@@ -76,7 +81,7 @@ export function FeatureEditorPage({ mode, id }: FeatureEditorPageProps) {
   return (
     <div className="min-h-screen bg-background-dark">
       {/* Sticky top bar */}
-      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-secondary-blue-800 bg-background-dark px-6 py-3">
+      <div className="sticky top-16 z-20 flex items-center justify-between border-b border-secondary-blue-800 bg-background-dark px-6 py-3">
         <div className="flex items-center gap-3">
           <Button
             type="button"
@@ -99,6 +104,15 @@ export function FeatureEditorPage({ mode, id }: FeatureEditorPageProps) {
           <Button
             type="button"
             variant="outline"
+            size="sm"
+            disabled={isPending}
+            onClick={handleReset}
+          >
+            Reset
+          </Button>
+          <Button
+            type="button"
+            variant="outlinePrimary"
             size="sm"
             disabled={isPending}
             onClick={() => triggerSubmit('draft')}
@@ -134,6 +148,7 @@ export function FeatureEditorPage({ mode, id }: FeatureEditorPageProps) {
           </div>
         ) : (
           <FeatureForm
+            ref={formRef}
             formId="feature-editor-form"
             defaultValues={feature}
             onSave={handleSave}

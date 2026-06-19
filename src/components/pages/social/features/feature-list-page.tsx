@@ -22,6 +22,7 @@ import type {
   FeatureAnnouncement,
   FeatureAnnouncementStatus,
 } from '@/types/feature-announcement';
+import { getFeatureItems } from '@/types/feature-announcement';
 
 import { createFeatureColumns } from './table/features-columns';
 
@@ -38,12 +39,20 @@ const filterFeatures = (
   }
   const normalized = term.trim().toLowerCase();
   if (!normalized) return result;
-  return result.filter((f) =>
-    [f.title, f.tag, f.description]
+  return result.filter((f) => {
+    const haystack = [
+      f.version,
+      ...getFeatureItems(f).flatMap((item) => [
+        item.title,
+        item.tag,
+        item.description,
+      ]),
+    ]
+      .filter(Boolean)
       .join(' ')
-      .toLowerCase()
-      .includes(normalized),
-  );
+      .toLowerCase();
+    return haystack.includes(normalized);
+  });
 };
 
 export function FeatureListPage() {
