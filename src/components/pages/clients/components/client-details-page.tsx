@@ -10,6 +10,7 @@ import {
   DataTable,
   DataTableToolbar,
   Spinner,
+  useAppDialog,
 } from '@kurlclub/ui-components';
 import { Sheet } from '@kurlclub/ui-components';
 import { ChevronLeft } from 'lucide-react';
@@ -40,6 +41,7 @@ interface ClientDetailsPageProps {
 
 export function ClientDetailsPage({ clientId }: ClientDetailsPageProps) {
   const router = useRouter();
+  const { showConfirm } = useAppDialog();
   const resolvedClientId =
     typeof clientId === 'string' ? Number(clientId) : clientId;
   const isValidClientId =
@@ -79,12 +81,21 @@ export function ClientDetailsPage({ clientId }: ClientDetailsPageProps) {
   }, [gymOptions, gymSearch]);
 
   const handleDeleteGym = useCallback(
-    async (gymId: number) => {
-      if (confirm('Are you sure you want to delete this gym?')) {
-        await deleteGymMutation.mutateAsync(gymId);
-      }
+    (gymId: number) => {
+      showConfirm({
+        title: 'Delete Gym',
+        description: 'Are you sure you want to delete this gym?',
+        variant: 'destructive',
+        confirmLabel: 'Delete',
+        cancelLabel: 'Cancel',
+        // Fire-and-forget: awaiting here keeps this dialog in its loading state
+        // and blocks the global Prod request-guard dialog (shared instance).
+        onConfirm: () => {
+          deleteGymMutation.mutate(gymId);
+        },
+      });
     },
-    [deleteGymMutation],
+    [deleteGymMutation, showConfirm],
   );
 
   const handleUpdateGym = async (data: GymFormData) => {

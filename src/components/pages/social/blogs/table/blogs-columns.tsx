@@ -17,11 +17,13 @@ import type { Blog } from '@/types/blog';
 interface BlogColumnActions {
   onEdit: (slug: string) => void;
   onDelete: (id: number, title: string) => void;
+  onToggleStatus: (blog: Blog) => void;
 }
 
 export const createBlogColumns = ({
   onEdit,
   onDelete,
+  onToggleStatus,
 }: BlogColumnActions): ColumnDef<Blog>[] => [
   {
     id: 'cover',
@@ -87,6 +89,7 @@ export const createBlogColumns = ({
     id: 'actions',
     cell: ({ row }) => {
       const blog = row.original;
+      const isPublished = blog.status === 'published';
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -97,6 +100,9 @@ export const createBlogColumns = ({
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => onEdit(blog.slug)}>
               Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onToggleStatus(blog)}>
+              {isPublished ? 'Move to draft' : 'Publish'}
             </DropdownMenuItem>
             <DropdownMenuItem
               className="text-red-500"
