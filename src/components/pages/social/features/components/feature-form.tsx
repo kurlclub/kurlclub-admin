@@ -40,6 +40,7 @@ export const featureFormSchema = z.object({
   features: z
     .array(featureItemSchema)
     .min(1, 'At least one feature is required'),
+  status: z.enum(['draft', 'published']),
 });
 
 // ── Defaults ─────────────────────────────────────────────────────────────────
@@ -55,6 +56,7 @@ const DEFAULT_VALUES: FeatureAnnouncementFormData = {
   version: '',
   minimumVersion: '',
   features: [{ ...EMPTY_FEATURE }],
+  status: 'draft',
 };
 
 const errorClass = 'mt-1 text-xs text-red-400';
@@ -311,6 +313,7 @@ export const FeatureForm = forwardRef<FeatureFormHandle, FeatureFormProps>(
             features: getFeatureItems(defaultValues).length
               ? getFeatureItems(defaultValues)
               : [{ ...EMPTY_FEATURE }],
+            status: defaultValues.status,
           }
         : DEFAULT_VALUES,
     });

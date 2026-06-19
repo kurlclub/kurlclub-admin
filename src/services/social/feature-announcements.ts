@@ -42,6 +42,7 @@ const fromApi = (raw: unknown): FeatureAnnouncement => {
     version: (r.latestVersion as string) ?? (r.version as string) ?? '',
     minimumVersion: (r.minimumVersion as string) ?? '',
     features: rawFeatures.map(featureFromApi),
+    status: (r.status as FeatureAnnouncement['status']) ?? 'draft',
     createdAt: (r.createdAt as string) ?? '',
     updatedAt: (r.updatedAt as string) ?? '',
   };
@@ -54,6 +55,7 @@ const toApiPayload = (
   if (data.version !== undefined) payload.latestVersion = data.version;
   if (data.minimumVersion !== undefined)
     payload.minimumVersion = data.minimumVersion;
+  if (data.status !== undefined) payload.status = data.status;
   if (data.features !== undefined)
     payload.features = data.features.map((f) => ({
       image: f.src,
@@ -88,7 +90,7 @@ export const fetchFeatureAnnouncements = async (
   params: FeatureAnnouncementListParams = {},
 ): Promise<FeatureAnnouncementListResult> => {
   const queryParams = Object.fromEntries(
-    Object.entries({ limit: 100, ...params }).filter(
+    Object.entries({ status: 'all', limit: 100, ...params }).filter(
       ([, v]) => v !== undefined,
     ),
   ) as Record<string, string | number | boolean>;

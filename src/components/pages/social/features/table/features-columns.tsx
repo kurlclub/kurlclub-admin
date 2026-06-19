@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  Badge,
   Button,
   DropdownMenu,
   DropdownMenuContent,
@@ -68,6 +69,18 @@ export const createFeatureColumns = ({
         {getFeatureItems(row.original)[0]?.tag}
       </span>
     ),
+  },
+  {
+    accessorKey: 'status',
+    header: 'Status',
+    cell: ({ row }) => {
+      const published = row.original.status === 'published';
+      return (
+        <Badge variant={published ? 'default' : 'secondary'}>
+          {published ? 'Published' : 'Draft'}
+        </Badge>
+      );
+    },
   },
   {
     accessorKey: 'updatedAt',
