@@ -1,5 +1,3 @@
-export type FeatureAnnouncementStatus = 'draft' | 'published';
-
 /** A single announcement slide. An announcement can bundle several of these,
  *  all sharing the same version / minimum version. */
 export interface FeatureItem {
@@ -19,7 +17,6 @@ export interface FeatureAnnouncement {
   minimumVersion: string;
   /** One or more slides shown to users. */
   features: FeatureItem[];
-  status: FeatureAnnouncementStatus;
   createdAt: string;
   updatedAt: string;
   // ── Legacy single-slide fields, kept optional so older API records still
@@ -34,7 +31,6 @@ export interface FeatureAnnouncementFormData {
   version: string;
   minimumVersion: string;
   features: FeatureItem[];
-  status: FeatureAnnouncementStatus;
 }
 
 /** Returns an announcement's slides, falling back to the legacy top-level
@@ -74,10 +70,7 @@ export interface FeatureAnnouncementListResult {
   meta: FeatureAnnouncementListMeta;
 }
 
-export type FeatureAnnouncementListStatus = FeatureAnnouncementStatus | 'all';
-
 export interface FeatureAnnouncementListParams {
   limit?: number;
   page?: number;
-  status?: FeatureAnnouncementListStatus;
 }

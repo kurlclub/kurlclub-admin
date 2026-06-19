@@ -1,10 +1,10 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 
 import { useRouter } from 'next/navigation';
 
-import { Badge, Button, Spinner } from '@kurlclub/ui-components';
+import { Button, Spinner } from '@kurlclub/ui-components';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -13,10 +13,7 @@ import {
   useFeatureAnnouncement,
   useUpdateFeatureAnnouncement,
 } from '@/services/social/feature-announcements';
-import type {
-  FeatureAnnouncementFormData,
-  FeatureAnnouncementStatus,
-} from '@/types/feature-announcement';
+import type { FeatureAnnouncementFormData } from '@/types/feature-announcement';
 
 import { FeatureForm, type FeatureFormHandle } from './components/feature-form';
 
@@ -32,26 +29,18 @@ export function FeatureEditorPage({ mode, id }: FeatureEditorPageProps) {
 
   const { data: feature, isLoading } = useFeatureAnnouncement(id ?? 0);
 
-  const pendingStatusRef = useRef<FeatureAnnouncementStatus>('draft');
-  const [pendingStatus, setPendingStatus] =
-    useState<FeatureAnnouncementStatus>('draft');
   const formRef = useRef<FeatureFormHandle>(null);
 
   const isPending = createMutation.isPending || updateMutation.isPending;
-  const currentStatus = feature?.status ?? 'draft';
 
   const handleSave = async (data: FeatureAnnouncementFormData) => {
-    const payload: FeatureAnnouncementFormData = {
-      ...data,
-      status: pendingStatusRef.current,
-    };
     try {
       if (mode === 'create') {
-        const created = await createMutation.mutateAsync(payload);
+        const created = await createMutation.mutateAsync(data);
         toast.success('Feature saved');
         router.push(`/social/features/${created.id}/edit`);
       } else if (feature) {
-        await updateMutation.mutateAsync({ id: feature.id, data: payload });
+        await updateMutation.mutateAsync({ id: feature.id, data });
         toast.success('Feature updated');
       } else {
         toast.error(
@@ -66,17 +55,6 @@ export function FeatureEditorPage({ mode, id }: FeatureEditorPageProps) {
   const handleReset = () => {
     formRef.current?.reset();
   };
-
-  const triggerSubmit = (status: FeatureAnnouncementStatus) => {
-    pendingStatusRef.current = status;
-    setPendingStatus(status);
-    const form = document.getElementById(
-      'feature-editor-form',
-    ) as HTMLFormElement | null;
-    form?.requestSubmit();
-  };
-
-  const isPublished = currentStatus === 'published';
 
   return (
     <div className="min-h-screen bg-background-dark">
@@ -93,11 +71,6 @@ export function FeatureEditorPage({ mode, id }: FeatureEditorPageProps) {
             <ArrowLeft className="h-4 w-4" />
             Back to Features
           </Button>
-          {mode === 'edit' && (
-            <Badge variant={isPublished ? 'default' : 'secondary'}>
-              {isPublished ? 'Published' : 'Draft'}
-            </Badge>
-          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -111,27 +84,16 @@ export function FeatureEditorPage({ mode, id }: FeatureEditorPageProps) {
             Reset
           </Button>
           <Button
-            type="button"
-            variant="outlinePrimary"
+            type="submit"
+            form="feature-editor-form"
             size="sm"
             disabled={isPending}
-            onClick={() => triggerSubmit('draft')}
           >
-            {isPending && pendingStatus === 'draft'
+            {isPending
               ? 'Saving...'
-              : 'Save Draft'}
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            disabled={isPending}
-            onClick={() => triggerSubmit(isPublished ? 'draft' : 'published')}
-          >
-            {isPending && pendingStatus !== 'draft'
-              ? 'Publishing...'
-              : isPublished
-                ? 'Unpublish'
-                : 'Publish'}
+              : mode === 'create'
+                ? 'Save'
+                : 'Save Changes'}
           </Button>
         </div>
       </div>

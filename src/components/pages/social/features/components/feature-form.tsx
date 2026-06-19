@@ -1,10 +1,10 @@
 'use client';
 
-import { forwardRef, useImperativeHandle, useState } from 'react';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, FileUploader, Input, Textarea } from '@kurlclub/ui-components';
-import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react';
+import { Button, Input, Spinner, Textarea } from '@kurlclub/ui-components';
+import { ChevronDown, ChevronUp, Plus, Trash2, Upload, X } from 'lucide-react';
 import {
   type FieldErrors,
   type UseFormRegister,
@@ -15,6 +15,7 @@ import {
 import { toast } from 'sonner';
 import { z } from 'zod';
 
+import { useUploadFeatureImage } from '@/services/social/feature-announcements';
 import {
   type FeatureAnnouncement,
   type FeatureAnnouncementFormData,
@@ -39,7 +40,6 @@ export const featureFormSchema = z.object({
   features: z
     .array(featureItemSchema)
     .min(1, 'At least one feature is required'),
-  status: z.enum(['draft', 'published']),
 });
 
 // ── Defaults ─────────────────────────────────────────────────────────────────
@@ -55,7 +55,6 @@ const DEFAULT_VALUES: FeatureAnnouncementFormData = {
   version: '',
   minimumVersion: '',
   features: [{ ...EMPTY_FEATURE }],
-  status: 'draft',
 };
 
 const errorClass = 'mt-1 text-xs text-red-400';
@@ -80,8 +79,8 @@ interface FeatureCardProps {
   // the field has content (they key off the `value` prop, and register() alone
   // leaves the input uncontrolled).
   value: FeatureItem | undefined;
-  file: File | null;
   imageSrc: string;
+  uploading: boolean;
   canRemove: boolean;
   onImageChange: (file: File | null) => void;
   onRemove: () => void;
@@ -92,14 +91,24 @@ function FeatureCard({
   register,
   errors,
   value,
-  file,
   imageSrc,
+  uploading,
   canRemove,
   onImageChange,
   onRemove,
 }: FeatureCardProps) {
   const itemErrors = errors?.[index];
   const hasError = !!itemErrors;
+  // Own ref per card — avoids the shared-DOM-id collision that a label-based
+  // file input would cause when several uploaders are mounted at once.
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+    onImageChange(file);
+    // Reset so picking the same file again still fires onChange.
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
   // Collapsed by default once a feature is filled in; new/empty features start
   // expanded so there's something to fill.
@@ -158,13 +167,61 @@ function FeatureCard({
             <p className="text-xs font-medium text-secondary-blue-300">
               Image <span className="text-red-400">*</span>
             </p>
-            <FileUploader
-              file={file}
-              onChange={onImageChange}
+
+            <input
+              ref={fileInputRef}
+              type="file"
               accept="image/*"
-              label="Upload Image"
-              existingFileUrl={imageSrc || null}
+              className="hidden"
+              onChange={handleFileSelected}
             />
+
+            {imageSrc ? (
+              <div className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={imageSrc}
+                  alt={value?.title || 'Feature image'}
+                  className="h-40 w-full rounded-lg object-cover"
+                />
+                {uploading && (
+                  <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50">
+                    <Spinner />
+                  </div>
+                )}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-2 top-2 h-6 w-6 bg-black/50 p-0 hover:bg-black/70"
+                  onClick={() => onImageChange(null)}
+                >
+                  <X className="h-3 w-3 text-white" />
+                </Button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="flex h-32 w-full flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-secondary-blue-700 text-secondary-blue-300 transition-colors hover:border-secondary-blue-500 hover:text-secondary-blue-200 disabled:opacity-50"
+              >
+                {uploading ? (
+                  <Spinner />
+                ) : (
+                  <>
+                    <Upload className="h-5 w-5" />
+                    <span className="text-sm font-medium text-secondary-blue-100">
+                      Upload Image
+                    </span>
+                    <span className="text-xs text-secondary-blue-400">
+                      JPG, PNG (Max 4MB)
+                    </span>
+                  </>
+                )}
+              </button>
+            )}
+
             {itemErrors?.src && (
               <p className={errorClass}>{itemErrors.src.message}</p>
             )}
@@ -230,11 +287,13 @@ export interface FeatureFormHandle {
 
 export const FeatureForm = forwardRef<FeatureFormHandle, FeatureFormProps>(
   function FeatureForm({ formId, defaultValues, onSave }, ref) {
-    // Selected File per row, keyed by the field array's stable id so removing a
-    // row doesn't mismatch files with the wrong index.
-    const [imageFiles, setImageFiles] = useState<Record<string, File | null>>(
-      {},
-    );
+    // Rows with an upload currently in flight, keyed by the field array's stable
+    // id so removing a row doesn't mismatch the flag with the wrong index.
+    const [uploadingFields, setUploadingFields] = useState<
+      Record<string, boolean>
+    >({});
+
+    const uploadImage = useUploadFeatureImage();
 
     const {
       register,
@@ -252,7 +311,6 @@ export const FeatureForm = forwardRef<FeatureFormHandle, FeatureFormProps>(
             features: getFeatureItems(defaultValues).length
               ? getFeatureItems(defaultValues)
               : [{ ...EMPTY_FEATURE }],
-            status: defaultValues.status,
           }
         : DEFAULT_VALUES,
     });
@@ -270,32 +328,30 @@ export const FeatureForm = forwardRef<FeatureFormHandle, FeatureFormProps>(
     useImperativeHandle(ref, () => ({
       reset: () => {
         reset();
-        setImageFiles({});
       },
     }));
 
-    // No upload API for now — read the file locally into a data URL.
-    const handleImageChange = (
+    // Upload the selected file to the backend and store the returned URL in the
+    // row's `src` field.
+    const handleImageChange = async (
       index: number,
       fieldId: string,
       file: File | null,
     ) => {
-      setImageFiles((prev) => ({ ...prev, [fieldId]: file }));
       if (!file) {
         setValue(`features.${index}.src`, '', { shouldValidate: true });
         return;
       }
-      const reader = new FileReader();
-      reader.onload = () => {
-        setValue(`features.${index}.src`, reader.result as string, {
-          shouldValidate: true,
-        });
-      };
-      reader.onerror = () => {
-        toast.error('Could not read the image. Please try again.');
-        setImageFiles((prev) => ({ ...prev, [fieldId]: null }));
-      };
-      reader.readAsDataURL(file);
+      setUploadingFields((prev) => ({ ...prev, [fieldId]: true }));
+      try {
+        const { src } = await uploadImage.mutateAsync(file);
+        setValue(`features.${index}.src`, src, { shouldValidate: true });
+      } catch {
+        toast.error('Image upload failed. Please try again.');
+        setValue(`features.${index}.src`, '', { shouldValidate: true });
+      } finally {
+        setUploadingFields((prev) => ({ ...prev, [fieldId]: false }));
+      }
     };
 
     const canAddFeature = isFeatureComplete(features[features.length - 1]);
@@ -346,8 +402,8 @@ export const FeatureForm = forwardRef<FeatureFormHandle, FeatureFormProps>(
                   register={register}
                   errors={errors.features}
                   value={features[index]}
-                  file={imageFiles[field.id] ?? null}
                   imageSrc={features[index]?.src ?? ''}
+                  uploading={uploadingFields[field.id] ?? false}
                   canRemove={fields.length > 1}
                   onImageChange={(file) =>
                     handleImageChange(index, field.id, file)
@@ -384,9 +440,7 @@ export const FeatureForm = forwardRef<FeatureFormHandle, FeatureFormProps>(
               <p className="text-xs font-semibold uppercase tracking-widest text-secondary-blue-400">
                 Preview
               </p>
-              {features.map((feature, index) => (
-                <FeaturePreview key={index} data={feature} />
-              ))}
+              <FeaturePreview features={features} />
             </div>
           </div>
         </div>

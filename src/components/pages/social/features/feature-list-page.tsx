@@ -9,7 +9,6 @@ import {
   DataTable,
   DataTableToolbar,
   Spinner,
-  Tabs,
 } from '@kurlclub/ui-components';
 import { Plus } from 'lucide-react';
 
@@ -18,28 +17,18 @@ import {
   useDeleteFeatureAnnouncement,
   useFeatureAnnouncements,
 } from '@/services/social/feature-announcements';
-import type {
-  FeatureAnnouncement,
-  FeatureAnnouncementStatus,
-} from '@/types/feature-announcement';
+import type { FeatureAnnouncement } from '@/types/feature-announcement';
 import { getFeatureItems } from '@/types/feature-announcement';
 
 import { createFeatureColumns } from './table/features-columns';
 
-type StatusFilter = 'all' | FeatureAnnouncementStatus;
-
 const filterFeatures = (
   features: FeatureAnnouncement[],
   term: string,
-  status: StatusFilter,
 ): FeatureAnnouncement[] => {
-  let result = features;
-  if (status !== 'all') {
-    result = result.filter((f) => f.status === status);
-  }
   const normalized = term.trim().toLowerCase();
-  if (!normalized) return result;
-  return result.filter((f) => {
+  if (!normalized) return features;
+  return features.filter((f) => {
     const haystack = [
       f.version,
       ...getFeatureItems(f).flatMap((item) => [
@@ -61,28 +50,12 @@ export function FeatureListPage() {
   const deleteMutation = useDeleteFeatureAnnouncement();
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
   const features = useMemo(() => data?.features ?? [], [data?.features]);
 
   const filtered = useMemo(
-    () => filterFeatures(features, searchTerm, statusFilter),
-    [features, searchTerm, statusFilter],
-  );
-
-  const tabItems = useMemo(
-    () => [
-      { id: 'all', label: 'All' },
-      {
-        id: 'published',
-        label: `Published (${features.filter((f) => f.status === 'published').length})`,
-      },
-      {
-        id: 'draft',
-        label: `Draft (${features.filter((f) => f.status === 'draft').length})`,
-      },
-    ],
-    [features],
+    () => filterFeatures(features, searchTerm),
+    [features, searchTerm],
   );
 
   const handleDelete = useCallback(
@@ -122,13 +95,6 @@ export function FeatureListPage() {
           </Button>
         </div>
 
-        <Tabs
-          items={tabItems}
-          variant="underline"
-          value={statusFilter}
-          onTabChange={(id) => setStatusFilter(id as StatusFilter)}
-        />
-
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
             <Spinner />
@@ -149,9 +115,7 @@ export function FeatureListPage() {
           <div className="py-20 text-center text-secondary-blue-300">
             {searchTerm
               ? 'No features match your search.'
-              : statusFilter !== 'all'
-                ? `No ${statusFilter} features.`
-                : 'No features yet. Create your first announcement.'}
+              : 'No features yet. Create your first announcement.'}
           </div>
         )}
       </div>
