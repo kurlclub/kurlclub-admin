@@ -23,6 +23,10 @@ interface BlogEditorPageProps {
   slug?: string;
 }
 
+// Which action bar button triggered the in-flight submit — drives the per-button
+// loading label so only the clicked button shows a spinner.
+type PendingAction = 'save' | 'draft' | 'publish-toggle';
+
 export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
   const router = useRouter();
   const { showConfirm } = useAppDialog();
@@ -33,29 +37,36 @@ export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
   const { data: blog, isLoading } = useBlog(slug ?? '');
 
   const pendingStatusRef = useRef<BlogStatus>('draft');
-  const [pendingStatus, setPendingStatus] = useState<BlogStatus>('draft');
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(
+    null,
+  );
+  const [isDirty, setIsDirty] = useState(false);
   const formRef = useRef<BlogFormHandle>(null);
 
   const isPending = createMutation.isPending || updateMutation.isPending;
   const currentStatus = blog?.status ?? 'draft';
 
-  const handleSave = async (data: BlogFormData) => {
+  const handleSave = async (data: BlogFormData): Promise<boolean> => {
     const payload: BlogFormData = { ...data, status: pendingStatusRef.current };
     try {
       if (mode === 'create') {
         const created = await createMutation.mutateAsync(payload);
         toast.success('Article saved');
         router.push(`/social/blogs/${created.slug}/edit`);
+        return true;
       } else if (blog) {
         await updateMutation.mutateAsync({ id: blog.id, data: payload });
         toast.success('Article updated');
+        return true;
       } else {
         toast.error(
           'Unable to save: article data not loaded yet. Please try again.',
         );
+        return false;
       }
     } catch {
       toast.error('Failed to save article');
+      return false;
     }
   };
 
@@ -63,9 +74,9 @@ export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
     formRef.current?.reset();
   };
 
-  const triggerSubmit = (status: BlogStatus) => {
+  const triggerSubmit = (status: BlogStatus, action: PendingAction) => {
     pendingStatusRef.current = status;
-    setPendingStatus(status);
+    setPendingAction(action);
     const form = document.getElementById(
       'blog-editor-form',
     ) as HTMLFormElement | null;
@@ -74,9 +85,13 @@ export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
 
   const isPublished = currentStatus === 'published';
 
+  // Save the edits without changing the article's status: a draft stays a draft,
+  // a published article stays published.
+  const handleSaveEdit = () => triggerSubmit(currentStatus, 'save');
+
   // Switching a published article back to draft hides it from the site,
   // Save Draft only exists in create mode, so this is always a fresh draft.
-  const handleSaveDraft = () => triggerSubmit('draft');
+  const handleSaveDraft = () => triggerSubmit('draft', 'draft');
 
   const handlePublishToggle = () => {
     if (isPublished) {
@@ -88,7 +103,7 @@ export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
         variant: 'destructive',
         confirmLabel: 'Unpublish',
         cancelLabel: 'Cancel',
-        onConfirm: () => triggerSubmit('draft'),
+        onConfirm: () => triggerSubmit('draft', 'publish-toggle'),
       });
       return;
     }
@@ -97,7 +112,7 @@ export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
       description: 'This article will be visible to everyone on kurlclub.com.',
       confirmLabel: 'Publish',
       cancelLabel: 'Cancel',
-      onConfirm: () => triggerSubmit('published'),
+      onConfirm: () => triggerSubmit('published', 'publish-toggle'),
     });
   };
 
@@ -176,9 +191,20 @@ export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
               disabled={isPending}
               onClick={handleSaveDraft}
             >
-              {isPending && pendingStatus === 'draft'
+              {isPending && pendingAction === 'draft'
                 ? 'Saving...'
                 : 'Save Draft'}
+            </Button>
+          )}
+          {mode === 'edit' && isDirty && (
+            <Button
+              type="button"
+              variant="outlinePrimary"
+              size="sm"
+              disabled={isPending}
+              onClick={handleSaveEdit}
+            >
+              {isPending && pendingAction === 'save' ? 'Saving...' : 'Save'}
             </Button>
           )}
           <Button
@@ -187,8 +213,10 @@ export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
             disabled={isPending}
             onClick={handlePublishToggle}
           >
-            {isPending && pendingStatus !== 'draft'
-              ? 'Publishing...'
+            {isPending && pendingAction === 'publish-toggle'
+              ? isPublished
+                ? 'Unpublishing...'
+                : 'Publishing...'
               : isPublished
                 ? 'Unpublish'
                 : 'Publish'}
@@ -212,6 +240,7 @@ export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
             formId="blog-editor-form"
             defaultValues={blog}
             onSave={handleSave}
+            onDirtyChange={setIsDirty}
           />
         )}
       </div>
