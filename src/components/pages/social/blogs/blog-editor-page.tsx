@@ -204,7 +204,9 @@ export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
               disabled={isPending}
               onClick={handleSaveEdit}
             >
-              {isPending && pendingAction === 'save' ? 'Saving...' : 'Save'}
+              {isPending && pendingAction === 'save'
+                ? 'Saving...'
+                : 'Save Changes'}
             </Button>
           )}
           <Button

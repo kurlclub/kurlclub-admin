@@ -18,11 +18,13 @@ import { getFeatureItems } from '@/types/feature-announcement';
 interface FeatureColumnActions {
   onEdit: (id: number) => void;
   onDelete: (id: number, title: string) => void;
+  onToggleStatus: (feature: FeatureAnnouncement) => void;
 }
 
 export const createFeatureColumns = ({
   onEdit,
   onDelete,
+  onToggleStatus,
 }: FeatureColumnActions): ColumnDef<FeatureAnnouncement>[] => [
   {
     id: 'image',
@@ -105,6 +107,7 @@ export const createFeatureColumns = ({
     id: 'actions',
     cell: ({ row }) => {
       const feature = row.original;
+      const isPublished = feature.status === 'published';
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -115,6 +118,9 @@ export const createFeatureColumns = ({
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => onEdit(feature.id)}>
               Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onToggleStatus(feature)}>
+              {isPublished ? 'Move to draft' : 'Publish'}
             </DropdownMenuItem>
             <DropdownMenuItem
               className="text-red-500"

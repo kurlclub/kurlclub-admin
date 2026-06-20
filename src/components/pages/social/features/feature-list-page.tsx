@@ -10,6 +10,7 @@ import {
   DataTableToolbar,
   Spinner,
   Tabs,
+  useAppDialog,
 } from '@kurlclub/ui-components';
 import { Plus } from 'lucide-react';
 
@@ -17,6 +18,7 @@ import { StudioLayout } from '@/components/shared/layout';
 import {
   useDeleteFeatureAnnouncement,
   useFeatureAnnouncements,
+  useUpdateFeatureAnnouncement,
 } from '@/services/social/feature-announcements';
 import type {
   FeatureAnnouncement,
@@ -57,8 +59,10 @@ const filterFeatures = (
 
 export function FeatureListPage() {
   const router = useRouter();
+  const { showConfirm } = useAppDialog();
   const { data, isLoading } = useFeatureAnnouncements();
   const deleteMutation = useDeleteFeatureAnnouncement();
+  const updateMutation = useUpdateFeatureAnnouncement();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -86,12 +90,56 @@ export function FeatureListPage() {
   );
 
   const handleDelete = useCallback(
-    async (id: number, title: string) => {
-      if (confirm(`Delete "${title}"? This cannot be undone.`)) {
-        await deleteMutation.mutateAsync(id);
-      }
+    (id: number, title: string) => {
+      showConfirm({
+        title: 'Delete Feature',
+        description: `Delete "${title}"? This cannot be undone.`,
+        variant: 'destructive',
+        confirmLabel: 'Delete',
+        cancelLabel: 'Cancel',
+        // Fire-and-forget: don't await here, otherwise this dialog stays in its
+        // loading state and blocks the global Prod request-guard dialog (they
+        // share a single dialog instance).
+        onConfirm: () => {
+          deleteMutation.mutate(id);
+        },
+      });
     },
-    [deleteMutation],
+    [deleteMutation, showConfirm],
+  );
+
+  const handleToggleStatus = useCallback(
+    (feature: FeatureAnnouncement) => {
+      const nextStatus: FeatureAnnouncementStatus =
+        feature.status === 'published' ? 'draft' : 'published';
+      const publishing = nextStatus === 'published';
+      const label =
+        getFeatureItems(feature)[0]?.title || `Version ${feature.version}`;
+      showConfirm({
+        title: publishing ? 'Publish Feature' : 'Move to Draft',
+        description: publishing
+          ? `Publish "${label}"? It will be shown to users in the app.`
+          : `Move "${label}" back to draft? It will be hidden from users.`,
+        confirmLabel: publishing ? 'Publish' : 'Move to draft',
+        cancelLabel: 'Cancel',
+        // Fire-and-forget so this dialog closes immediately and frees the shared
+        // dialog instance for the global Prod request-guard confirmation.
+        // The PUT endpoint requires the full record (version / minimumVersion /
+        // features), so send them alongside the flipped status.
+        onConfirm: () => {
+          updateMutation.mutate({
+            id: feature.id,
+            data: {
+              version: feature.version,
+              minimumVersion: feature.minimumVersion,
+              features: getFeatureItems(feature),
+              status: nextStatus,
+            },
+          });
+        },
+      });
+    },
+    [updateMutation, showConfirm],
   );
 
   const columns = useMemo(
@@ -99,8 +147,9 @@ export function FeatureListPage() {
       createFeatureColumns({
         onEdit: (id) => router.push(`/social/features/${id}/edit`),
         onDelete: handleDelete,
+        onToggleStatus: handleToggleStatus,
       }),
-    [router, handleDelete],
+    [router, handleDelete, handleToggleStatus],
   );
 
   return (

@@ -37,10 +37,16 @@ export function FeaturePreview({ features }: FeaturePreviewProps) {
 
   const activeIndex = Math.min(current, slides.length - 1);
   const { src, tag, title, description } = slides[activeIndex] ?? {};
-  const multiple = slides.length > 1;
+  const isFirst = activeIndex === 0;
+  const isLast = activeIndex === slides.length - 1;
 
   const go = (dir: -1 | 1) =>
-    setCurrent((c) => (c + dir + slides.length) % slides.length);
+    setCurrent((c) =>
+      Math.min(
+        Math.max(Math.min(c, slides.length - 1) + dir, 0),
+        slides.length - 1,
+      ),
+    );
 
   return (
     <div className="mx-auto max-w-[542px] overflow-hidden rounded-2xl border border-secondary-blue-700 bg-secondary-blue-800">
@@ -107,7 +113,7 @@ export function FeaturePreview({ features }: FeaturePreviewProps) {
           <button
             type="button"
             aria-label="Previous slide"
-            disabled={!multiple}
+            disabled={isFirst}
             onClick={() => go(-1)}
             className="flex h-11 w-11 items-center justify-center rounded-full bg-secondary-blue-700 text-white transition-colors hover:bg-secondary-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
           >
@@ -116,7 +122,7 @@ export function FeaturePreview({ features }: FeaturePreviewProps) {
           <button
             type="button"
             aria-label="Next slide"
-            disabled={!multiple}
+            disabled={isLast}
             onClick={() => go(1)}
             className="flex h-11 w-11 items-center justify-center rounded-full bg-secondary-blue-700 text-white transition-colors hover:bg-secondary-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
           >

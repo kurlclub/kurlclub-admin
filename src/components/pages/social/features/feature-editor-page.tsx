@@ -36,15 +36,24 @@ export function FeatureEditorPage({ mode, id }: FeatureEditorPageProps) {
   const { data: feature, isLoading } = useFeatureAnnouncement(id ?? 0);
 
   const pendingStatusRef = useRef<FeatureAnnouncementStatus>('draft');
-  const [pendingStatus, setPendingStatus] =
-    useState<FeatureAnnouncementStatus>('draft');
+  // Which button triggered the in-flight submit, so each shows its own busy
+  // label (a "Save Changes" on a published feature also targets 'published',
+  // which would otherwise light up the Unpublish button).
+  const [pendingAction, setPendingAction] = useState<
+    'draft' | 'publish' | 'save' | null
+  >(null);
+  // Tracks whether the edit form has unsaved changes, so "Save Changes" only
+  // appears once the user has actually edited something.
+  const [isDirty, setIsDirty] = useState(false);
   const formRef = useRef<FeatureFormHandle>(null);
 
   const isPending = createMutation.isPending || updateMutation.isPending;
   const currentStatus = feature?.status ?? 'draft';
   const isPublished = currentStatus === 'published';
 
-  const handleSave = async (data: FeatureAnnouncementFormData) => {
+  const handleSave = async (
+    data: FeatureAnnouncementFormData,
+  ): Promise<boolean> => {
     const payload: FeatureAnnouncementFormData = {
       ...data,
       status: pendingStatusRef.current,
@@ -61,9 +70,12 @@ export function FeatureEditorPage({ mode, id }: FeatureEditorPageProps) {
         toast.error(
           'Unable to save: feature data not loaded yet. Please try again.',
         );
+        return false;
       }
+      return true;
     } catch {
       toast.error('Failed to save feature');
+      return false;
     }
   };
 
@@ -71,16 +83,23 @@ export function FeatureEditorPage({ mode, id }: FeatureEditorPageProps) {
     formRef.current?.reset();
   };
 
-  const triggerSubmit = (status: FeatureAnnouncementStatus) => {
+  const triggerSubmit = (
+    status: FeatureAnnouncementStatus,
+    action: 'draft' | 'publish' | 'save',
+  ) => {
     pendingStatusRef.current = status;
-    setPendingStatus(status);
+    setPendingAction(action);
     const form = document.getElementById(
       'feature-editor-form',
     ) as HTMLFormElement | null;
     form?.requestSubmit();
   };
 
-  const handleSaveDraft = () => triggerSubmit('draft');
+  const handleSaveDraft = () => triggerSubmit('draft', 'draft');
+
+  // Edit mode: persist changes while keeping the feature's current status
+  // (a published announcement stays published, a draft stays a draft).
+  const handleSaveChanges = () => triggerSubmit(currentStatus, 'save');
 
   const handlePublishToggle = () => {
     if (isPublished) {
@@ -92,7 +111,7 @@ export function FeatureEditorPage({ mode, id }: FeatureEditorPageProps) {
         variant: 'destructive',
         confirmLabel: 'Unpublish',
         cancelLabel: 'Cancel',
-        onConfirm: () => triggerSubmit('draft'),
+        onConfirm: () => triggerSubmit('draft', 'publish'),
       });
       return;
     }
@@ -101,7 +120,7 @@ export function FeatureEditorPage({ mode, id }: FeatureEditorPageProps) {
       description: 'This announcement will be shown to users in the app.',
       confirmLabel: 'Publish',
       cancelLabel: 'Cancel',
-      onConfirm: () => triggerSubmit('published'),
+      onConfirm: () => triggerSubmit('published', 'publish'),
     });
   };
 
@@ -180,9 +199,22 @@ export function FeatureEditorPage({ mode, id }: FeatureEditorPageProps) {
               disabled={isPending}
               onClick={handleSaveDraft}
             >
-              {isPending && pendingStatus === 'draft'
+              {isPending && pendingAction === 'draft'
                 ? 'Saving...'
                 : 'Save Draft'}
+            </Button>
+          )}
+          {mode === 'edit' && isDirty && (
+            <Button
+              type="button"
+              variant="outlinePrimary"
+              size="sm"
+              disabled={isPending}
+              onClick={handleSaveChanges}
+            >
+              {isPending && pendingAction === 'save'
+                ? 'Saving...'
+                : 'Save Changes'}
             </Button>
           )}
           <Button
@@ -191,7 +223,7 @@ export function FeatureEditorPage({ mode, id }: FeatureEditorPageProps) {
             disabled={isPending}
             onClick={handlePublishToggle}
           >
-            {isPending && pendingStatus !== 'draft'
+            {isPending && pendingAction === 'publish'
               ? 'Publishing...'
               : isPublished
                 ? 'Unpublish'
@@ -216,6 +248,7 @@ export function FeatureEditorPage({ mode, id }: FeatureEditorPageProps) {
             formId="feature-editor-form"
             defaultValues={feature}
             onSave={handleSave}
+            onDirtyChange={setIsDirty}
           />
         )}
       </div>

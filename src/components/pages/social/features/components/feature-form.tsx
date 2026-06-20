@@ -1,6 +1,12 @@
 'use client';
 
-import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, Input, Spinner, Textarea } from '@kurlclub/ui-components';
@@ -280,7 +286,12 @@ function FeatureCard({
 interface FeatureFormProps {
   formId: string;
   defaultValues?: FeatureAnnouncement;
-  onSave: (data: FeatureAnnouncementFormData) => Promise<void>;
+  // Returns `true` once the save succeeded so the form can re-baseline (clear
+  // its dirty state); a falsy result keeps the form dirty (e.g. save failed).
+  onSave: (data: FeatureAnnouncementFormData) => Promise<boolean | void>;
+  // Notifies the parent whenever the form's dirty state changes, so the action
+  // bar can show "Save Changes" only once the user has edited something.
+  onDirtyChange?: (dirty: boolean) => void;
 }
 
 export interface FeatureFormHandle {
@@ -288,7 +299,7 @@ export interface FeatureFormHandle {
 }
 
 export const FeatureForm = forwardRef<FeatureFormHandle, FeatureFormProps>(
-  function FeatureForm({ formId, defaultValues, onSave }, ref) {
+  function FeatureForm({ formId, defaultValues, onSave, onDirtyChange }, ref) {
     // Rows with an upload currently in flight, keyed by the field array's stable
     // id so removing a row doesn't mismatch the flag with the wrong index.
     const [uploadingFields, setUploadingFields] = useState<
@@ -303,7 +314,7 @@ export const FeatureForm = forwardRef<FeatureFormHandle, FeatureFormProps>(
       handleSubmit,
       reset,
       setValue,
-      formState: { errors },
+      formState: { errors, isDirty },
     } = useForm<FeatureAnnouncementFormData>({
       resolver: zodResolver(featureFormSchema),
       defaultValues: defaultValues
@@ -334,6 +345,11 @@ export const FeatureForm = forwardRef<FeatureFormHandle, FeatureFormProps>(
       },
     }));
 
+    // Surface dirty state to the parent (gates the "Save Changes" button).
+    useEffect(() => {
+      onDirtyChange?.(isDirty);
+    }, [isDirty, onDirtyChange]);
+
     // Upload the selected file to the backend and store the returned URL in the
     // row's `src` field.
     const handleImageChange = async (
@@ -342,16 +358,25 @@ export const FeatureForm = forwardRef<FeatureFormHandle, FeatureFormProps>(
       file: File | null,
     ) => {
       if (!file) {
-        setValue(`features.${index}.src`, '', { shouldValidate: true });
+        setValue(`features.${index}.src`, '', {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
         return;
       }
       setUploadingFields((prev) => ({ ...prev, [fieldId]: true }));
       try {
         const { src } = await uploadImage.mutateAsync(file);
-        setValue(`features.${index}.src`, src, { shouldValidate: true });
+        setValue(`features.${index}.src`, src, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
       } catch {
         toast.error('Image upload failed. Please try again.');
-        setValue(`features.${index}.src`, '', { shouldValidate: true });
+        setValue(`features.${index}.src`, '', {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
       } finally {
         setUploadingFields((prev) => ({ ...prev, [fieldId]: false }));
       }
@@ -359,8 +384,15 @@ export const FeatureForm = forwardRef<FeatureFormHandle, FeatureFormProps>(
 
     const canAddFeature = isFeatureComplete(features[features.length - 1]);
 
+    // On a successful save, re-baseline the form to the just-saved values so
+    // `isDirty` resets to false (hides "Save Changes" until the next edit).
+    const submit = handleSubmit(async (data) => {
+      const saved = await onSave(data);
+      if (saved !== false) reset(data);
+    });
+
     return (
-      <form id={formId} onSubmit={handleSubmit(onSave)}>
+      <form id={formId} onSubmit={submit}>
         <div className="grid grid-cols-[35%_1fr] gap-0">
           {/* ── Left: form fields ─────────────────────────────── */}
           <div className="space-y-5 border-r border-secondary-blue-800 pr-6">
