@@ -46,7 +46,7 @@ export const blogFormSchema = z.object({
     src: z.string().min(1, 'Cover image is required'),
     alt: z.string().min(1, 'Alt text is required'),
   }),
-  mainHeading: z.string().min(1, 'Main heading is required'),
+  mainHeading: z.string().min(1, 'Card heading is required'),
   sections: z.array(sectionSchema).min(1, 'At least one section is required'),
   author: z.object({
     name: z.string().min(1, 'Author name is required'),
@@ -102,7 +102,12 @@ const DEFAULT_VALUES: BlogFormData = {
 interface BlogFormProps {
   formId: string;
   defaultValues?: Blog;
-  onSave: (data: BlogFormData) => Promise<void>;
+  /** Persists the form. Return `false` to signal the save failed so the form
+   *  keeps its dirty state; any other value (incl. void) counts as success. */
+  onSave: (data: BlogFormData) => Promise<boolean | void>;
+  /** Notifies the parent whenever the form's dirty state changes, so the
+   *  action bar can show "Save" only when something has actually changed. */
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export interface BlogFormHandle {
@@ -110,7 +115,7 @@ export interface BlogFormHandle {
 }
 
 export const BlogForm = forwardRef<BlogFormHandle, BlogFormProps>(
-  function BlogForm({ formId, defaultValues, onSave }, ref) {
+  function BlogForm({ formId, defaultValues, onSave, onDirtyChange }, ref) {
     const uploadMutation = useUploadBlogImage();
     const [coverFile, setCoverFile] = useState<File | null>(null);
 
@@ -121,7 +126,7 @@ export const BlogForm = forwardRef<BlogFormHandle, BlogFormProps>(
       reset,
       setValue,
       watch,
-      formState: { errors },
+      formState: { errors, isDirty },
     } = useForm<BlogFormData>({
       resolver: zodResolver(blogFormSchema),
       defaultValues: defaultValues
@@ -156,6 +161,11 @@ export const BlogForm = forwardRef<BlogFormHandle, BlogFormProps>(
       },
     }));
 
+    // Keep the parent in sync with the form's dirty state.
+    useEffect(() => {
+      onDirtyChange?.(isDirty);
+    }, [isDirty, onDirtyChange]);
+
     // Auto-generate slug from title on create
     useEffect(() => {
       if (defaultValues) return;
@@ -168,6 +178,13 @@ export const BlogForm = forwardRef<BlogFormHandle, BlogFormProps>(
     }, [titleValue]);
 
     const handleCoverFileChange = async (file: File | null) => {
+      // Block removal while the upload is still in flight: clearing now would
+      // race with the pending upload's setValue, so the "deleted" image would
+      // reappear once the request resolves.
+      if (!file && uploadMutation.isPending) {
+        toast.info('Please wait for the image upload to finish.');
+        return;
+      }
       setCoverFile(file);
       if (file) {
         try {
@@ -178,14 +195,18 @@ export const BlogForm = forwardRef<BlogFormHandle, BlogFormProps>(
               src,
               alt: coverImage.alt || file.name.replace(/\.[^.]+$/, ''),
             },
-            { shouldValidate: true },
+            { shouldValidate: true, shouldDirty: true },
           );
         } catch {
           toast.error('Image upload failed. Please try again.');
           setCoverFile(null);
         }
       } else {
-        setValue('coverImage', { src: '', alt: '' }, { shouldValidate: true });
+        setValue(
+          'coverImage',
+          { src: '', alt: '' },
+          { shouldValidate: true, shouldDirty: true },
+        );
       }
     };
 
@@ -201,56 +222,20 @@ export const BlogForm = forwardRef<BlogFormHandle, BlogFormProps>(
       );
     };
 
+    const handleValidSubmit = async (data: BlogFormData) => {
+      const result = await onSave(data);
+      // Re-baseline to the saved values on success so the form is no longer
+      // dirty (the Save button hides again until the next edit).
+      if (result !== false) {
+        reset(data);
+      }
+    };
+
     return (
-      <form id={formId} onSubmit={handleSubmit(onSave, onInvalid)}>
+      <form id={formId} onSubmit={handleSubmit(handleValidSubmit, onInvalid)}>
         <div className="grid grid-cols-[30%_1fr] gap-0">
           {/* ── Left: form fields (scrolls with the page) ────── */}
           <div className="space-y-4 border-r border-secondary-blue-500 pr-6">
-            {/* Title */}
-            <div>
-              <Input
-                {...register('title')}
-                value={formValues.title ?? ''}
-                label="Title"
-                mandatory
-                placeholder="Article title"
-              />
-              {errors.title && (
-                <p className={errorClass}>{errors.title.message}</p>
-              )}
-            </div>
-
-            {/* Excerpt */}
-            <div>
-              <Textarea
-                {...register('excerpt')}
-                value={formValues.excerpt ?? ''}
-                label="Excerpt"
-                // placeholder="Short summary shown on listing pages"
-                rows={3}
-              />
-              {errors.excerpt && (
-                <p className={errorClass}>{errors.excerpt.message}</p>
-              )}
-            </div>
-
-            {/* Main Heading */}
-            <div>
-              <Input
-                {...register('mainHeading')}
-                value={formValues.mainHeading ?? ''}
-                label="Card Heading"
-                mandatory
-                placeholder="Article"
-              />
-              {errors.mainHeading && (
-                <p className={errorClass}>{errors.mainHeading.message}</p>
-              )}
-            </div>
-
-            {/* Sections */}
-            <BlogSectionBuilder control={control} errors={errors.sections} />
-
             {/* Cover Image */}
             <div className="space-y-2">
               <p className="text-xs font-medium text-secondary-blue-300">
@@ -291,22 +276,18 @@ export const BlogForm = forwardRef<BlogFormHandle, BlogFormProps>(
               )}
             </div>
 
-            {/* Slug */}
+            {/* Main Heading */}
             <div>
               <Input
-                {...register('slug')}
-                value={formValues.slug ?? ''}
-                label="Slug"
+                {...register('mainHeading')}
+                value={formValues.mainHeading ?? ''}
+                label="Card Heading"
                 mandatory
-                placeholder="url-friendly-slug"
+                placeholder="Article"
               />
-              {errors.slug ? (
-                <p className={errorClass}>{errors.slug.message}</p>
-              ) : slugValue ? (
-                <p className="mt-1 text-xs text-secondary-blue-400">
-                  /blogs/{slugValue}
-                </p>
-              ) : null}
+              {errors.mainHeading && (
+                <p className={errorClass}>{errors.mainHeading.message}</p>
+              )}
             </div>
 
             {/* Tag */}
@@ -346,6 +327,55 @@ export const BlogForm = forwardRef<BlogFormHandle, BlogFormProps>(
               {errors.displayDate && (
                 <p className={errorClass}>{errors.displayDate.message}</p>
               )}
+            </div>
+
+            {/* Title */}
+            <div>
+              <Input
+                {...register('title')}
+                value={formValues.title ?? ''}
+                label="Title"
+                mandatory
+                placeholder="Article title"
+              />
+              {errors.title && (
+                <p className={errorClass}>{errors.title.message}</p>
+              )}
+            </div>
+
+            {/* Excerpt */}
+            <div>
+              <Textarea
+                {...register('excerpt')}
+                value={formValues.excerpt ?? ''}
+                label="Excerpt"
+                // placeholder="Short summary shown on listing pages"
+                rows={3}
+              />
+              {errors.excerpt && (
+                <p className={errorClass}>{errors.excerpt.message}</p>
+              )}
+            </div>
+
+            {/* Sections */}
+            <BlogSectionBuilder control={control} errors={errors.sections} />
+
+            {/* Slug */}
+            <div>
+              <Input
+                {...register('slug')}
+                value={formValues.slug ?? ''}
+                label="Slug"
+                mandatory
+                placeholder="url-friendly-slug"
+              />
+              {errors.slug ? (
+                <p className={errorClass}>{errors.slug.message}</p>
+              ) : slugValue ? (
+                <p className="mt-1 text-xs text-secondary-blue-400">
+                  /blogs/{slugValue}
+                </p>
+              ) : null}
             </div>
 
             {/* Author */}

@@ -9,6 +9,7 @@ import {
   DataTable,
   DataTableToolbar,
   Spinner,
+  useAppDialog,
 } from '@kurlclub/ui-components';
 import { Sheet } from '@kurlclub/ui-components';
 import { Plus } from 'lucide-react';
@@ -51,6 +52,7 @@ const filterGyms = (gyms: GymRow[], term: string) => {
 
 export function GymListPage() {
   const router = useRouter();
+  const { showConfirm } = useAppDialog();
   const { data: gyms, isLoading } = useGyms();
   const { data: clients } = useClients();
 
@@ -101,12 +103,21 @@ export function GymListPage() {
   };
 
   const handleDelete = useCallback(
-    async (id: number) => {
-      if (confirm('Are you sure you want to delete this gym?')) {
-        await deleteMutation.mutateAsync(id);
-      }
+    (id: number) => {
+      showConfirm({
+        title: 'Delete Gym',
+        description: 'Are you sure you want to delete this gym?',
+        variant: 'destructive',
+        confirmLabel: 'Delete',
+        cancelLabel: 'Cancel',
+        // Fire-and-forget: awaiting here keeps this dialog in its loading state
+        // and blocks the global Prod request-guard dialog (shared instance).
+        onConfirm: () => {
+          deleteMutation.mutate(id);
+        },
+      });
     },
-    [deleteMutation],
+    [deleteMutation, showConfirm],
   );
 
   const columns = useMemo(

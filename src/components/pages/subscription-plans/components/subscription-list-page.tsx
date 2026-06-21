@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { Button, Sheet, Spinner } from '@kurlclub/ui-components';
+import { Button, Sheet, Spinner, useAppDialog } from '@kurlclub/ui-components';
 import { Plus } from 'lucide-react';
 
 import { StudioLayout } from '@/components/shared/layout';
@@ -97,6 +97,7 @@ const toSubscriptionFormDefaults = (
 });
 
 export function SubscriptionListPage() {
+  const { showConfirm } = useAppDialog();
   const { data: subscriptions, isLoading } = useSubscriptions();
   const createMutation = useCreateSubscription();
   const updateMutation = useUpdateSubscription();
@@ -117,12 +118,22 @@ export function SubscriptionListPage() {
     setEditId(null);
   };
 
-  const handleDelete = async (id: number) => {
-    if (confirm('Are you sure you want to delete this subscription plan?')) {
-      await deleteMutation.mutateAsync(id);
-      return true;
-    }
-    return false;
+  const handleDelete = (id: number) => {
+    showConfirm({
+      title: 'Delete Subscription Plan',
+      description: 'Are you sure you want to delete this subscription plan?',
+      variant: 'destructive',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      // Fire-and-forget: awaiting here keeps this dialog in its loading state
+      // and blocks the global Prod request-guard dialog (shared instance).
+      // Close the details sheet only once the delete actually succeeds.
+      onConfirm: () => {
+        deleteMutation.mutate(id, {
+          onSuccess: () => setViewId(null),
+        });
+      },
+    });
   };
 
   const { data: selectedSubscription, isLoading: isDetailsLoading } =
@@ -196,12 +207,7 @@ export function SubscriptionListPage() {
               <Button
                 type="button"
                 variant="destructive"
-                onClick={async () => {
-                  const deleted = await handleDelete(viewId);
-                  if (deleted) {
-                    setViewId(null);
-                  }
-                }}
+                onClick={() => handleDelete(viewId)}
               >
                 Delete Subscription
               </Button>

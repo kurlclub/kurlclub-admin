@@ -10,11 +10,16 @@ import {
   DataTableToolbar,
   Spinner,
   Tabs,
+  useAppDialog,
 } from '@kurlclub/ui-components';
 import { Plus } from 'lucide-react';
 
 import { StudioLayout } from '@/components/shared/layout';
-import { useBlogs, useDeleteBlog } from '@/services/social/blogs';
+import {
+  useBlogs,
+  useDeleteBlog,
+  useUpdateBlog,
+} from '@/services/social/blogs';
 import type { Blog, BlogStatus } from '@/types/blog';
 
 import { createBlogColumns } from './table/blogs-columns';
@@ -39,8 +44,10 @@ const filterBlogs = (
 
 export function BlogListPage() {
   const router = useRouter();
+  const { showConfirm } = useAppDialog();
   const { data, isLoading } = useBlogs();
   const deleteMutation = useDeleteBlog();
+  const updateMutation = useUpdateBlog();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -68,12 +75,47 @@ export function BlogListPage() {
   );
 
   const handleDelete = useCallback(
-    async (id: number, title: string) => {
-      if (confirm(`Delete "${title}"? This cannot be undone.`)) {
-        await deleteMutation.mutateAsync(id);
-      }
+    (id: number, title: string) => {
+      showConfirm({
+        title: 'Delete Blog',
+        description: `Delete "${title}"? This cannot be undone.`,
+        variant: 'destructive',
+        confirmLabel: 'Delete',
+        cancelLabel: 'Cancel',
+        // Fire-and-forget: don't await here, otherwise this dialog stays in its
+        // loading state and blocks the global Prod request-guard dialog (they
+        // share a single dialog instance).
+        onConfirm: () => {
+          deleteMutation.mutate(id);
+        },
+      });
     },
-    [deleteMutation],
+    [deleteMutation, showConfirm],
+  );
+
+  const handleToggleStatus = useCallback(
+    (blog: Blog) => {
+      const nextStatus: BlogStatus =
+        blog.status === 'published' ? 'draft' : 'published';
+      const publishing = nextStatus === 'published';
+      showConfirm({
+        title: publishing ? 'Publish Blog' : 'Move to Draft',
+        description: publishing
+          ? `Publish "${blog.title}"? It will become visible to readers.`
+          : `Move "${blog.title}" back to draft? It will no longer be visible to readers.`,
+        confirmLabel: publishing ? 'Publish' : 'Move to draft',
+        cancelLabel: 'Cancel',
+        // Fire-and-forget so this dialog closes immediately and frees the shared
+        // dialog instance for the global Prod request-guard confirmation.
+        onConfirm: () => {
+          updateMutation.mutate({
+            id: blog.id,
+            data: { status: nextStatus },
+          });
+        },
+      });
+    },
+    [updateMutation, showConfirm],
   );
 
   const columns = useMemo(
@@ -81,8 +123,9 @@ export function BlogListPage() {
       createBlogColumns({
         onEdit: (slug) => router.push(`/social/blogs/${slug}/edit`),
         onDelete: handleDelete,
+        onToggleStatus: handleToggleStatus,
       }),
-    [router, handleDelete],
+    [router, handleDelete, handleToggleStatus],
   );
 
   return (
