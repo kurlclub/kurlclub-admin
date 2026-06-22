@@ -1,0 +1,22 @@
+name: Branch flow guard
+
+# Enforces the feature -> dev -> main flow.
+# Any pull request targeting `main` must originate from the `dev` branch.
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  enforce-dev-source:
+    name: enforce-dev-source
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify PR source branch is dev
+        run: |
+          echo "PR source (head) branch: ${{ github.head_ref }}"
+          echo "PR target (base) branch: ${{ github.base_ref }}"
+          if [ "${{ github.head_ref }}" != "dev" ]; then
+            echo "::error::PRs into 'main' must come from 'dev' (source was '${{ github.head_ref }}'). Follow the feature -> dev -> main flow."
+            exit 1
+          fi
+          echo "OK: PR into main originates from dev."
