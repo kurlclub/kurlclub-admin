@@ -9,63 +9,72 @@ import { ArrowLeft, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import {
-  useBlog,
-  useCreateBlog,
-  useDeleteBlog,
-  useUpdateBlog,
-} from '@/services/social/blogs';
-import type { BlogFormData, BlogStatus } from '@/types/blog';
+  useCreateFeatureAnnouncement,
+  useDeleteFeatureAnnouncement,
+  useFeatureAnnouncement,
+  useUpdateFeatureAnnouncement,
+} from '@/services/social/feature-announcements';
+import type {
+  FeatureAnnouncementFormData,
+  FeatureAnnouncementStatus,
+} from '@/types/feature-announcement';
 
-import { BlogForm, type BlogFormHandle } from './components/blog-form';
+import { FeatureForm, type FeatureFormHandle } from './components/feature-form';
 
-interface BlogEditorPageProps {
+interface FeatureEditorPageProps {
   mode: 'create' | 'edit';
-  slug?: string;
+  id?: number;
 }
 
-// Which action bar button triggered the in-flight submit — drives the per-button
-// loading label so only the clicked button shows a spinner.
-type PendingAction = 'save' | 'draft' | 'publish-toggle';
-
-export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
+export function FeatureEditorPage({ mode, id }: FeatureEditorPageProps) {
   const router = useRouter();
   const { showConfirm } = useAppDialog();
-  const createMutation = useCreateBlog();
-  const updateMutation = useUpdateBlog();
-  const deleteMutation = useDeleteBlog();
+  const createMutation = useCreateFeatureAnnouncement();
+  const updateMutation = useUpdateFeatureAnnouncement();
+  const deleteMutation = useDeleteFeatureAnnouncement();
 
-  const { data: blog, isLoading } = useBlog(slug ?? '');
+  const { data: feature, isLoading } = useFeatureAnnouncement(id ?? 0);
 
-  const pendingStatusRef = useRef<BlogStatus>('draft');
-  const [pendingAction, setPendingAction] = useState<PendingAction | null>(
-    null,
-  );
+  const pendingStatusRef = useRef<FeatureAnnouncementStatus>('draft');
+  // Which button triggered the in-flight submit, so each shows its own busy
+  // label (a "Save Changes" on a published feature also targets 'published',
+  // which would otherwise light up the Unpublish button).
+  const [pendingAction, setPendingAction] = useState<
+    'draft' | 'publish' | 'save' | null
+  >(null);
+  // Tracks whether the edit form has unsaved changes, so "Save Changes" only
+  // appears once the user has actually edited something.
   const [isDirty, setIsDirty] = useState(false);
-  const formRef = useRef<BlogFormHandle>(null);
+  const formRef = useRef<FeatureFormHandle>(null);
 
   const isPending = createMutation.isPending || updateMutation.isPending;
-  const currentStatus = blog?.status ?? 'draft';
+  const currentStatus = feature?.status ?? 'draft';
+  const isPublished = currentStatus === 'published';
 
-  const handleSave = async (data: BlogFormData): Promise<boolean> => {
-    const payload: BlogFormData = { ...data, status: pendingStatusRef.current };
+  const handleSave = async (
+    data: FeatureAnnouncementFormData,
+  ): Promise<boolean> => {
+    const payload: FeatureAnnouncementFormData = {
+      ...data,
+      status: pendingStatusRef.current,
+    };
     try {
       if (mode === 'create') {
         const created = await createMutation.mutateAsync(payload);
-        toast.success('Article saved');
-        router.push(`/social/blogs/${created.slug}/edit`);
-        return true;
-      } else if (blog) {
-        await updateMutation.mutateAsync({ id: blog.id, data: payload });
-        toast.success('Article updated');
-        return true;
+        toast.success('Feature saved');
+        router.push(`/social/features/${created.id}/edit`);
+      } else if (feature) {
+        await updateMutation.mutateAsync({ id: feature.id, data: payload });
+        toast.success('Feature updated');
       } else {
         toast.error(
-          'Unable to save: article data not loaded yet. Please try again.',
+          'Unable to save: feature data not loaded yet. Please try again.',
         );
         return false;
       }
+      return true;
     } catch {
-      toast.error('Failed to save article');
+      toast.error('Failed to save feature');
       return false;
     }
   };
@@ -74,63 +83,62 @@ export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
     formRef.current?.reset();
   };
 
-  const triggerSubmit = (status: BlogStatus, action: PendingAction) => {
+  const triggerSubmit = (
+    status: FeatureAnnouncementStatus,
+    action: 'draft' | 'publish' | 'save',
+  ) => {
     pendingStatusRef.current = status;
     setPendingAction(action);
     const form = document.getElementById(
-      'blog-editor-form',
+      'feature-editor-form',
     ) as HTMLFormElement | null;
     form?.requestSubmit();
   };
 
-  const isPublished = currentStatus === 'published';
-
-  // Save the edits without changing the article's status: a draft stays a draft,
-  // a published article stays published.
-  const handleSaveEdit = () => triggerSubmit(currentStatus, 'save');
-
-  // Switching a published article back to draft hides it from the site,
-  // Save Draft only exists in create mode, so this is always a fresh draft.
   const handleSaveDraft = () => triggerSubmit('draft', 'draft');
+
+  // Edit mode: persist changes while keeping the feature's current status
+  // (a published announcement stays published, a draft stays a draft).
+  const handleSaveChanges = () => triggerSubmit(currentStatus, 'save');
 
   const handlePublishToggle = () => {
     if (isPublished) {
-      // Switching a published article back to draft hides it from the site.
+      // Switching a published announcement back to draft hides it from users.
       showConfirm({
-        title: 'Unpublish article?',
+        title: 'Unpublish feature?',
         description:
-          'This article will be hidden from kurlclub.com until you publish it again.',
+          'This announcement will be hidden from users until you publish it again.',
         variant: 'destructive',
         confirmLabel: 'Unpublish',
         cancelLabel: 'Cancel',
-        onConfirm: () => triggerSubmit('draft', 'publish-toggle'),
+        onConfirm: () => triggerSubmit('draft', 'publish'),
       });
       return;
     }
     showConfirm({
-      title: 'Publish article?',
-      description: 'This article will be visible to everyone on kurlclub.com.',
+      title: 'Publish feature?',
+      description: 'This announcement will be shown to users in the app.',
       confirmLabel: 'Publish',
       cancelLabel: 'Cancel',
-      onConfirm: () => triggerSubmit('published', 'publish-toggle'),
+      onConfirm: () => triggerSubmit('published', 'publish'),
     });
   };
 
   const handleDelete = () => {
-    if (!blog) return;
+    if (!feature) return;
     showConfirm({
-      title: 'Delete article?',
-      description: `"${blog.title}" will be permanently deleted. This cannot be undone.`,
+      title: 'Delete feature?',
+      description: `Version "${feature.version}" will be permanently deleted. This cannot be undone.`,
       variant: 'destructive',
       confirmLabel: 'Delete',
       cancelLabel: 'Cancel',
       onConfirm: async () => {
         try {
-          await deleteMutation.mutateAsync(blog.id);
-          toast.success('Article deleted');
-          router.push('/social/blogs');
+          await deleteMutation.mutateAsync(feature.id);
+          toast.success('Feature deleted');
+          router.push('/social/features');
         } catch {
-          toast.error('Failed to delete article');
+          toast.error('Failed to delete feature');
         }
       },
     });
@@ -139,17 +147,17 @@ export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
   return (
     <div className="min-h-screen bg-background-dark">
       {/* Sticky top bar */}
-      <div className="sticky top-16 z-20 flex items-center justify-between border-b border-secondary-blue-700 bg-background-dark px-6 py-3">
+      <div className="sticky top-16 z-20 flex items-center justify-between border-b border-secondary-blue-800 bg-background-dark px-6 py-3">
         <div className="flex items-center gap-3">
           <Button
             type="button"
             variant="ghost"
             size="sm"
             className="gap-1.5"
-            onClick={() => router.push('/social/blogs')}
+            onClick={() => router.push('/social/features')}
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Blogs
+            Back to Features
           </Button>
           {mode === 'edit' && (
             <Badge variant={isPublished ? 'default' : 'secondary'}>
@@ -202,7 +210,7 @@ export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
               variant="outlinePrimary"
               size="sm"
               disabled={isPending}
-              onClick={handleSaveEdit}
+              onClick={handleSaveChanges}
             >
               {isPending && pendingAction === 'save'
                 ? 'Saving...'
@@ -215,10 +223,8 @@ export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
             disabled={isPending}
             onClick={handlePublishToggle}
           >
-            {isPending && pendingAction === 'publish-toggle'
-              ? isPublished
-                ? 'Unpublishing...'
-                : 'Publishing...'
+            {isPending && pendingAction === 'publish'
+              ? 'Publishing...'
               : isPublished
                 ? 'Unpublish'
                 : 'Publish'}
@@ -226,21 +232,21 @@ export function BlogEditorPage({ mode, slug }: BlogEditorPageProps) {
         </div>
       </div>
 
-      {/* Content area — full width, no height constraint (preview uses sticky) */}
-      <div className="px-6 py-4">
+      {/* Content area */}
+      <div className="px-6 py-6">
         {mode === 'edit' && isLoading ? (
           <div className="flex items-center justify-center py-40">
             <Spinner />
           </div>
-        ) : mode === 'edit' && !blog ? (
+        ) : mode === 'edit' && !feature ? (
           <div className="py-40 text-center text-secondary-blue-300">
-            Article not found.
+            Feature not found.
           </div>
         ) : (
-          <BlogForm
+          <FeatureForm
             ref={formRef}
-            formId="blog-editor-form"
-            defaultValues={blog}
+            formId="feature-editor-form"
+            defaultValues={feature}
             onSave={handleSave}
             onDirtyChange={setIsDirty}
           />
