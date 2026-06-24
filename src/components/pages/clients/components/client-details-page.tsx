@@ -267,7 +267,10 @@ export function ClientDetailsPage({ clientId }: ClientDetailsPageProps) {
             </section>
 
             {/* Status & Suspension */}
-            <SuspensionSection entityType="client" entityName={client.userName} />
+            <SuspensionSection
+              entityType="client"
+              entityName={client.userName}
+            />
 
             {/* Gyms */}
             <section className="rounded-2xl border border-secondary-blue-400 bg-secondary-blue-600/50 p-6">

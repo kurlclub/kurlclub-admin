@@ -8,6 +8,7 @@ import {
   Newspaper,
   RefreshCw,
   ScrollText,
+  UserCog,
   UserRound,
   Users,
 } from 'lucide-react';
@@ -89,6 +90,17 @@ export const navGroups: NavGroup[] = [
         title: 'Campaigns',
         url: '/campaigns',
         icon: Megaphone,
+      },
+    ],
+  },
+  {
+    label: 'ACCESS',
+    items: [
+      {
+        title: 'Users',
+        url: '/users',
+        icon: UserCog,
+        roles: ['admin', 'super_admin'],
       },
     ],
   },

@@ -39,7 +39,9 @@ export const auditColumns = [
     accessorKey: 'target',
     header: 'Target',
     cell: ({ row }) => (
-      <span className="text-secondary-blue-100">{row.original.target || '—'}</span>
+      <span className="text-secondary-blue-100">
+        {row.original.target || '—'}
+      </span>
     ),
   },
   {
