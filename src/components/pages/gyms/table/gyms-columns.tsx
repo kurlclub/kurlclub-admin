@@ -13,9 +13,16 @@ type GymActions = {
   onView: (id: number) => void;
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
+  /** Edit Gym Details is Super Admin only — hide the action otherwise. */
+  canEdit?: boolean;
 };
 
-export const createGymsColumns = ({ onView, onEdit, onDelete }: GymActions) =>
+export const createGymsColumns = ({
+  onView,
+  onEdit,
+  onDelete,
+  canEdit = true,
+}: GymActions) =>
   [
     {
       accessorKey: 'gymName',
@@ -88,13 +95,15 @@ export const createGymsColumns = ({ onView, onEdit, onDelete }: GymActions) =>
           >
             <Eye className="h-4 w-4" />
           </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => onEdit(row.original.id)}
-          >
-            <Edit className="h-4 w-4" />
-          </Button>
+          {canEdit && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onEdit(row.original.id)}
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+          )}
           <Button
             size="sm"
             variant="destructive"

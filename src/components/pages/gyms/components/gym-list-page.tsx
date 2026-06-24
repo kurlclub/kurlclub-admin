@@ -19,7 +19,9 @@ import {
   createGymsColumns,
 } from '@/components/pages/gyms/table/gyms-columns';
 import { StudioLayout } from '@/components/shared/layout';
+import { isRoleAllowed } from '@/lib/authz';
 import { resolveClientId } from '@/lib/client-utils';
+import { useAuth } from '@/providers/auth-provider';
 import { useClients } from '@/services/clients';
 import {
   useCreateGym,
@@ -53,6 +55,8 @@ const filterGyms = (gyms: GymRow[], term: string) => {
 export function GymListPage() {
   const router = useRouter();
   const { showConfirm } = useAppDialog();
+  const { user } = useAuth();
+  const canEditGym = isRoleAllowed(user?.userRole, ['super_admin']);
   const { data: gyms, isLoading } = useGyms();
   const { data: clients } = useClients();
 
@@ -126,8 +130,9 @@ export function GymListPage() {
         onView: (id) => router.push(`/gyms/${id}`),
         onEdit: (id) => setEditId(id),
         onDelete: handleDelete,
+        canEdit: canEditGym,
       }),
-    [handleDelete, router],
+    [handleDelete, router, canEditGym],
   );
 
   return (

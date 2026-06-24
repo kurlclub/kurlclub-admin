@@ -15,13 +15,17 @@ import {
 import { Sheet } from '@kurlclub/ui-components';
 import { ChevronLeft } from 'lucide-react';
 
+import { RoleGuard } from '@/components/auth/role-guard';
 import { createClientGymsColumns } from '@/components/pages/clients/table/client-gyms-columns';
 import { StudioLayout } from '@/components/shared/layout';
+import { isRoleAllowed } from '@/lib/authz';
+import { useAuth } from '@/providers/auth-provider';
 import { useClient } from '@/services/clients';
 import { useDeleteGym, useGym, useUpdateGym } from '@/services/gyms';
 import type { GymFormData } from '@/types/gym';
 
 import { GymForm } from '../../gyms/components/gym-form';
+import { ClientEditSheet } from './client-edit-sheet';
 
 const formatDate = (value?: string | null) =>
   value ? new Date(value).toLocaleDateString() : '—';
@@ -42,6 +46,8 @@ interface ClientDetailsPageProps {
 export function ClientDetailsPage({ clientId }: ClientDetailsPageProps) {
   const router = useRouter();
   const { showConfirm } = useAppDialog();
+  const { user } = useAuth();
+  const canEditGym = isRoleAllowed(user?.userRole, ['super_admin']);
   const resolvedClientId =
     typeof clientId === 'string' ? Number(clientId) : clientId;
   const isValidClientId =
@@ -51,6 +57,7 @@ export function ClientDetailsPage({ clientId }: ClientDetailsPageProps) {
   );
   const [editGymId, setEditGymId] = useState<number | null>(null);
   const [gymSearch, setGymSearch] = useState('');
+  const [isEditingClient, setIsEditingClient] = useState(false);
 
   const deleteGymMutation = useDeleteGym();
   const updateGymMutation = useUpdateGym();
@@ -110,8 +117,9 @@ export function ClientDetailsPage({ clientId }: ClientDetailsPageProps) {
         onView: (id) => router.push(`/gyms/${id}`),
         onEdit: (id) => setEditGymId(id),
         onDelete: handleDeleteGym,
+        canEdit: canEditGym,
       }),
-    [handleDeleteGym, router],
+    [handleDeleteGym, router, canEditGym],
   );
 
   if (!isValidClientId) {
@@ -140,6 +148,17 @@ export function ClientDetailsPage({ clientId }: ClientDetailsPageProps) {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
+            {client && (
+              <RoleGuard roles={['super_admin']} fallback={null}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsEditingClient(true)}
+                >
+                  Edit Client
+                </Button>
+              </RoleGuard>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -327,6 +346,14 @@ export function ClientDetailsPage({ clientId }: ClientDetailsPageProps) {
           </div>
         )}
       </Sheet>
+
+      {client && (
+        <ClientEditSheet
+          isOpen={isEditingClient}
+          onClose={() => setIsEditingClient(false)}
+          client={client}
+        />
+      )}
     </StudioLayout>
   );
 }
