@@ -1,4 +1,5 @@
 import {
+  Bell,
   Building2,
   CreditCard,
   Home,
@@ -72,6 +73,21 @@ export const navGroups: NavGroup[] = [
         title: 'Subscription Plans',
         url: '/subscription-plans',
         icon: CreditCard,
+      },
+    ],
+  },
+  {
+    label: 'ENGAGEMENT',
+    items: [
+      {
+        title: 'Push Notifications',
+        url: '/notifications',
+        icon: Bell,
+      },
+      {
+        title: 'Campaigns',
+        url: '/campaigns',
+        icon: Megaphone,
       },
     ],
   },

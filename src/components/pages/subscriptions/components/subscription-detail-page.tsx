@@ -52,7 +52,13 @@ const Section = ({
   </section>
 );
 
-const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+const Field = ({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) => (
   <label className="block space-y-1.5">
     <span className="text-sm text-secondary-blue-200">{label}</span>
     {children}
@@ -84,7 +90,9 @@ export function SubscriptionDetailPage() {
               </Button>
               <div>
                 <div className="flex items-center gap-3">
-                  <h1 className="text-2xl font-bold text-white">Subscription</h1>
+                  <h1 className="text-2xl font-bold text-white">
+                    Subscription
+                  </h1>
                   <Badge variant="info">—</Badge>
                 </div>
                 <p className="mt-1 text-sm text-secondary-blue-200">
@@ -96,16 +104,32 @@ export function SubscriptionDetailPage() {
               <Button size="sm" onClick={() => setSheet('upgrade')}>
                 Upgrade
               </Button>
-              <Button size="sm" variant="outline" onClick={() => setSheet('change-plan')}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setSheet('change-plan')}
+              >
                 Change Plan
               </Button>
-              <Button size="sm" variant="outline" onClick={() => setSheet('renew')}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setSheet('renew')}
+              >
                 Renew
               </Button>
-              <Button size="sm" variant="outline" onClick={() => setSheet('extend-trial')}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setSheet('extend-trial')}
+              >
                 Extend Trial
               </Button>
-              <Button size="sm" variant="destructive" onClick={() => setSheet('cancel')}>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => setSheet('cancel')}
+              >
                 Cancel
               </Button>
             </div>
