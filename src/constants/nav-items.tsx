@@ -5,6 +5,7 @@ import {
   LifeBuoy,
   Megaphone,
   Newspaper,
+  RefreshCw,
   UserRound,
   Users,
 } from 'lucide-react';
@@ -62,6 +63,11 @@ export const navGroups: NavGroup[] = [
   {
     label: 'PRODUCT',
     items: [
+      {
+        title: 'Subscriptions',
+        url: '/subscriptions',
+        icon: RefreshCw,
+      },
       {
         title: 'Subscription Plans',
         url: '/subscription-plans',
