@@ -14,10 +14,7 @@ import { toast } from 'sonner';
 
 import { StudioLayout } from '@/components/shared/layout';
 
-import {
-  type AdminUserRow,
-  createUsersColumns,
-} from '../table/users-columns';
+import { type AdminUserRow, createUsersColumns } from '../table/users-columns';
 
 const inputClass =
   'w-full rounded-lg border border-secondary-blue-400 bg-secondary-blue-700 px-3 py-2 text-sm text-white outline-none focus:border-primary-green-500';
@@ -180,7 +177,9 @@ export function UsersListPage() {
       >
         <div className="space-y-4">
           <label className="block space-y-1.5">
-            <span className="text-sm text-secondary-blue-200">New Password</span>
+            <span className="text-sm text-secondary-blue-200">
+              New Password
+            </span>
             <input type="password" className={inputClass} />
           </label>
           <label className="block space-y-1.5">

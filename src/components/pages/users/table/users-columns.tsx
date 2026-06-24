@@ -7,7 +7,13 @@ import {
   DropdownMenuTrigger,
 } from '@kurlclub/ui-components';
 import type { ColumnDef } from '@tanstack/react-table';
-import { KeyRound, Lock, MoreHorizontal, RotateCcw, ShieldCheck } from 'lucide-react';
+import {
+  KeyRound,
+  Lock,
+  MoreHorizontal,
+  RotateCcw,
+  ShieldCheck,
+} from 'lucide-react';
 
 /** UI-only row shape for the users list (no backend yet). */
 export type AdminUserRow = {
@@ -80,16 +86,22 @@ export const createUsersColumns = (actions: UserActions) =>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => actions.onSetPassword(row.original)}>
+              <DropdownMenuItem
+                onClick={() => actions.onSetPassword(row.original)}
+              >
                 <KeyRound className="mr-2 h-4 w-4" /> Update Password
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => actions.onForceReset(row.original)}>
+              <DropdownMenuItem
+                onClick={() => actions.onForceReset(row.original)}
+              >
                 <RotateCcw className="mr-2 h-4 w-4" /> Force Password Reset
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => actions.onUnlock(row.original)}>
                 <Lock className="mr-2 h-4 w-4" /> Unlock Account
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => actions.onChangeRole(row.original)}>
+              <DropdownMenuItem
+                onClick={() => actions.onChangeRole(row.original)}
+              >
                 <ShieldCheck className="mr-2 h-4 w-4" /> Change Role
               </DropdownMenuItem>
             </DropdownMenuContent>

@@ -8,6 +8,7 @@ import {
   Newspaper,
   RefreshCw,
   ScrollText,
+  TrendingUp,
   UserCog,
   UserRound,
   Users,
@@ -75,6 +76,16 @@ export const navGroups: NavGroup[] = [
         title: 'Subscription Plans',
         url: '/subscription-plans',
         icon: CreditCard,
+      },
+    ],
+  },
+  {
+    label: 'GROWTH',
+    items: [
+      {
+        title: 'Analytics',
+        url: '/analytics',
+        icon: TrendingUp,
       },
     ],
   },
