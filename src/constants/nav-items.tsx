@@ -134,6 +134,11 @@ export const navGroups: NavGroup[] = [
         url: '/audit',
         icon: ScrollText,
       },
+      {
+        title: 'Logs & Analytics',
+        url: '/logs',
+        icon: ScrollText,
+      },
     ],
   },
   {
