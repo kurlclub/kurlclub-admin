@@ -25,9 +25,7 @@ export function GlobalSearchPage() {
   const clientResults = useMemo(() => {
     if (!term) return [];
     return (clients ?? [])
-      .filter((c) =>
-        `${c.userName} ${c.email}`.toLowerCase().includes(term),
-      )
+      .filter((c) => `${c.userName} ${c.email}`.toLowerCase().includes(term))
       .slice(0, 10);
   }, [clients, term]);
 

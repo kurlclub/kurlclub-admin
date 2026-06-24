@@ -25,13 +25,25 @@ export function BulkOperationsPage() {
             0 selected
           </span>
           <div className="ml-auto flex flex-wrap gap-2">
-            <Button size="sm" variant="outline" onClick={() => toast.info(STUB)}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => toast.info(STUB)}
+            >
               Suspend
             </Button>
-            <Button size="sm" variant="outline" onClick={() => toast.info(STUB)}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => toast.info(STUB)}
+            >
               Reactivate
             </Button>
-            <Button size="sm" variant="outline" onClick={() => toast.info(STUB)}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => toast.info(STUB)}
+            >
               Notify
             </Button>
           </div>
