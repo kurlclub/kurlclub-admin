@@ -34,7 +34,9 @@ export function SubscriptionsListPage() {
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white">Subscriptions</h1>
+            <h1 className="text-2xl font-bold text-white">
+              Client Subscriptions
+            </h1>
             <p className="mt-1 text-sm text-secondary-blue-200">
               Manage client subscriptions — upgrade, renew, extend trials, and
               cancel

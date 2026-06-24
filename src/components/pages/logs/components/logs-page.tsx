@@ -30,9 +30,9 @@ export function LogsPage() {
       <div className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white">Logs & Analytics</h1>
+            <h1 className="text-2xl font-bold text-white">Logs & Audit</h1>
             <p className="mt-1 text-sm text-secondary-blue-200">
-              Activity, audit, and system usage logs
+              Activity, audit trail, and system usage logs
             </p>
           </div>
           <Button

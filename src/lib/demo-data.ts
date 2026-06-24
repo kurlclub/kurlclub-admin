@@ -362,60 +362,6 @@ export const demoUsers: DemoUser[] = [
   },
 ];
 
-// --- Audit logs -----------------------------------------------------------
-
-export type DemoAudit = {
-  id: number;
-  createdAt: string;
-  actor: string;
-  action: string;
-  target: string;
-  ip: string;
-};
-
-export const demoAuditLogs: DemoAudit[] = [
-  {
-    id: 1,
-    createdAt: daysAgo(0),
-    actor: 'support@kurlclub.com',
-    action: 'Suspended gym',
-    target: 'Beast Mode Gym',
-    ip: '103.42.18.7',
-  },
-  {
-    id: 2,
-    createdAt: daysAgo(1),
-    actor: 'riya.kapoor@kurlclub.com',
-    action: 'Edited client',
-    target: 'Aarav Sharma',
-    ip: '49.36.220.14',
-  },
-  {
-    id: 3,
-    createdAt: daysAgo(2),
-    actor: 'support@kurlclub.com',
-    action: 'Changed plan',
-    target: 'Diya Patel · Growth → Pro',
-    ip: '103.42.18.7',
-  },
-  {
-    id: 4,
-    createdAt: daysAgo(3),
-    actor: 'arjun.menon@kurlclub.com',
-    action: 'Reactivated client',
-    target: 'Kabir Mehta',
-    ip: '157.49.88.2',
-  },
-  {
-    id: 5,
-    createdAt: daysAgo(5),
-    actor: 'support@kurlclub.com',
-    action: 'Forced password reset',
-    target: 'sara.das@kurlclub.com',
-    ip: '103.42.18.7',
-  },
-];
-
 // --- Content --------------------------------------------------------------
 
 export const demoBanners = [

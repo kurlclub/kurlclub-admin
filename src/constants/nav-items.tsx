@@ -80,12 +80,12 @@ export const navGroups: NavGroup[] = [
     label: 'PRODUCT',
     items: [
       {
-        title: 'Subscriptions',
+        title: 'Client Subscriptions',
         url: '/subscriptions',
         icon: RefreshCw,
       },
       {
-        title: 'Subscription Plans',
+        title: 'Plans',
         url: '/subscription-plans',
         icon: CreditCard,
       },
@@ -136,12 +136,7 @@ export const navGroups: NavGroup[] = [
         icon: Activity,
       },
       {
-        title: 'Audit Logs',
-        url: '/audit',
-        icon: ScrollText,
-      },
-      {
-        title: 'Logs & Analytics',
+        title: 'Logs & Audit',
         url: '/logs',
         icon: ScrollText,
       },
