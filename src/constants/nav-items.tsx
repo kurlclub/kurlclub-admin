@@ -3,6 +3,8 @@ import {
   Bell,
   Building2,
   CreditCard,
+  DatabaseBackup,
+  Flag,
   Home,
   Image as ImageIcon,
   LifeBuoy,
@@ -10,14 +12,18 @@ import {
   Megaphone,
   MessageCircle,
   Newspaper,
+  Power,
   RefreshCw,
   ScrollText,
+  Search,
   Sparkles,
   TicketPercent,
   TrendingUp,
   UserCog,
   UserRound,
   Users,
+  UserSquare,
+  Wrench,
 } from 'lucide-react';
 
 import type { UserRole } from '@/types/user';
@@ -189,6 +195,42 @@ export const navGroups: NavGroup[] = [
         title: 'WhatsApp Campaigns',
         url: '/content/whatsapp-campaigns',
         icon: MessageCircle,
+      },
+    ],
+  },
+  {
+    label: 'SYSTEM',
+    items: [
+      {
+        title: 'Global Search',
+        url: '/search',
+        icon: Search,
+      },
+      {
+        title: 'Feature Flags',
+        url: '/feature-flags',
+        icon: Flag,
+      },
+      {
+        title: 'Maintenance Mode',
+        url: '/maintenance',
+        icon: Power,
+      },
+      {
+        title: 'Backup & Restore',
+        url: '/backup',
+        icon: DatabaseBackup,
+      },
+      {
+        title: 'Bulk Operations',
+        url: '/bulk-operations',
+        icon: Wrench,
+      },
+      {
+        title: 'Impersonate',
+        url: '/impersonate',
+        icon: UserSquare,
+        roles: ['super_admin'],
       },
     ],
   },
