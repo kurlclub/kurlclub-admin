@@ -4,7 +4,12 @@ import { useMemo, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 
-import { Button, DataTable, DataTableToolbar, Sheet } from '@kurlclub/ui-components';
+import {
+  Button,
+  DataTable,
+  DataTableToolbar,
+  Sheet,
+} from '@kurlclub/ui-components';
 import { Megaphone, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 

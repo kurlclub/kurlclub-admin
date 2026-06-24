@@ -7,6 +7,7 @@ import {
   Megaphone,
   Newspaper,
   RefreshCw,
+  ScrollText,
   UserRound,
   Users,
 } from 'lucide-react';
@@ -88,6 +89,16 @@ export const navGroups: NavGroup[] = [
         title: 'Campaigns',
         url: '/campaigns',
         icon: Megaphone,
+      },
+    ],
+  },
+  {
+    label: 'MONITORING',
+    items: [
+      {
+        title: 'Audit Logs',
+        url: '/audit',
+        icon: ScrollText,
       },
     ],
   },

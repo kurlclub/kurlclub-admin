@@ -26,7 +26,9 @@ export const createCampaignsColumns = ({
     {
       accessorKey: 'name',
       header: 'Campaign',
-      cell: ({ row }) => <span className="text-white">{row.original.name}</span>,
+      cell: ({ row }) => (
+        <span className="text-white">{row.original.name}</span>
+      ),
     },
     {
       accessorKey: 'channel',

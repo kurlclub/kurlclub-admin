@@ -35,7 +35,10 @@ export function PushNotificationsPage() {
             <div className="space-y-4">
               <label className="block space-y-1.5">
                 <span className="text-sm text-secondary-blue-200">Title</span>
-                <input className={inputClass} placeholder="Notification title" />
+                <input
+                  className={inputClass}
+                  placeholder="Notification title"
+                />
               </label>
               <label className="block space-y-1.5">
                 <span className="text-sm text-secondary-blue-200">Message</span>

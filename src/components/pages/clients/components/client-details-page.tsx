@@ -18,6 +18,7 @@ import { ChevronLeft } from 'lucide-react';
 import { RoleGuard } from '@/components/auth/role-guard';
 import { createClientGymsColumns } from '@/components/pages/clients/table/client-gyms-columns';
 import { StudioLayout } from '@/components/shared/layout';
+import { SuspensionSection } from '@/components/shared/suspension-section';
 import { isRoleAllowed } from '@/lib/authz';
 import { useAuth } from '@/providers/auth-provider';
 import { useClient } from '@/services/clients';
@@ -264,6 +265,9 @@ export function ClientDetailsPage({ clientId }: ClientDetailsPageProps) {
                 </Button>
               </div>
             </section>
+
+            {/* Status & Suspension */}
+            <SuspensionSection entityType="client" entityName={client.userName} />
 
             {/* Gyms */}
             <section className="rounded-2xl border border-secondary-blue-400 bg-secondary-blue-600/50 p-6">
