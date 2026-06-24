@@ -1,3 +1,33 @@
 @import 'tailwindcss';
 @import '@kurlclub/ui-components/styles';
 @import '@kurlclub/ui-components/dist/style.css';
+
+/*
+  Project-local design tokens.
+
+  The core palette lives in the @kurlclub/ui-components package (node_modules),
+  which we can't edit here. These are colors that had no exact match in that
+  palette but were hardcoded as Tailwind arbitrary values / inline hex across
+  the app. Defining them here lets Tailwind v4 generate the matching utilities
+  (bg-*, text-*, border-*, decoration-*, with opacity modifiers) and lets them
+  resolve as var(--color-*) for inline SVG / style props.
+
+  Review / rename freely — names are semantic guesses based on current usage.
+*/
+@theme {
+  /* Surfaces (subscription plan cards) */
+  --color-surface-card: #1b1e26; /* plan card background */
+  --color-surface-raised: #1f222b; /* raised panels / icon buttons */
+  --color-surface-chip: #232730; /* badge / chip background */
+  --color-surface-toggle: #2b2f38; /* billing-cycle toggle track */
+  --color-border-subtle: #2a2f3a; /* low-contrast card borders */
+
+  /* Content / text */
+  --color-content-on-accent: #20242c; /* dark text on lime accents */
+  --color-content-muted: #c7cbd3; /* muted body / icon text */
+  --color-content-faint: #8b9098; /* faint text (e.g. ₹0 price) */
+  --color-neutral-white: #f8f8f8; /* off-white body text */
+
+  /* Accents (plan accents reuse the existing primary-green palette) */
+  --color-alert-coral: #f04c5b; /* limit / over-quota badge */
+}
