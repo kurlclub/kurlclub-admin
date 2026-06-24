@@ -15,6 +15,7 @@ import { ChevronLeft, Users } from 'lucide-react';
 
 import { createGymMembersColumns } from '@/components/pages/gyms/table/gym-members-columns';
 import { StudioLayout } from '@/components/shared/layout';
+import { SuspensionSection } from '@/components/shared/suspension-section';
 import { useGym, useGymMembers } from '@/services/gyms';
 
 const formatDate = (value?: string | null) =>
@@ -149,6 +150,9 @@ export function GymDetailsPage({ gymId }: GymDetailsPageProps) {
                 </div>
               </div>
             </section>
+
+            {/* Status & Suspension */}
+            <SuspensionSection entityType="gym" entityName={gym.gymName} />
 
             {/* Members */}
             <section className="rounded-2xl border border-secondary-blue-400 bg-secondary-blue-600/50 p-6">

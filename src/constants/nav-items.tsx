@@ -1,12 +1,29 @@
 import {
+  Activity,
+  Bell,
   Building2,
   CreditCard,
+  DatabaseBackup,
+  Flag,
   Home,
+  Image as ImageIcon,
   LifeBuoy,
+  Mail,
   Megaphone,
+  MessageCircle,
   Newspaper,
+  Power,
+  RefreshCw,
+  ScrollText,
+  Search,
+  Sparkles,
+  TicketPercent,
+  TrendingUp,
+  UserCog,
   UserRound,
+  UserSquare,
   Users,
+  Wrench,
 } from 'lucide-react';
 
 import type { UserRole } from '@/types/user';
@@ -63,9 +80,65 @@ export const navGroups: NavGroup[] = [
     label: 'PRODUCT',
     items: [
       {
-        title: 'Subscription Plans',
+        title: 'Client Subscriptions',
+        url: '/subscriptions',
+        icon: RefreshCw,
+      },
+      {
+        title: 'Plans',
         url: '/subscription-plans',
         icon: CreditCard,
+      },
+    ],
+  },
+  {
+    label: 'GROWTH',
+    items: [
+      {
+        title: 'Analytics',
+        url: '/analytics',
+        icon: TrendingUp,
+      },
+    ],
+  },
+  {
+    label: 'ENGAGEMENT',
+    items: [
+      {
+        title: 'Push Notifications',
+        url: '/notifications',
+        icon: Bell,
+      },
+      {
+        title: 'Campaigns',
+        url: '/campaigns',
+        icon: Megaphone,
+      },
+    ],
+  },
+  {
+    label: 'ACCESS',
+    items: [
+      {
+        title: 'Users',
+        url: '/users',
+        icon: UserCog,
+        roles: ['admin', 'super_admin'],
+      },
+    ],
+  },
+  {
+    label: 'MONITORING',
+    items: [
+      {
+        title: 'System Health',
+        url: '/health',
+        icon: Activity,
+      },
+      {
+        title: 'Logs & Audit',
+        url: '/logs',
+        icon: ScrollText,
       },
     ],
   },
@@ -81,7 +154,7 @@ export const navGroups: NavGroup[] = [
     ],
   },
   {
-    label: 'SOCIAL',
+    label: 'CONTENT',
     items: [
       {
         title: 'Blogs',
@@ -92,6 +165,67 @@ export const navGroups: NavGroup[] = [
         title: 'Feature',
         url: '/social/features',
         icon: Megaphone,
+      },
+      {
+        title: 'Banners',
+        url: '/content/banners',
+        icon: ImageIcon,
+      },
+      {
+        title: 'Offers & Coupons',
+        url: '/content/coupons',
+        icon: TicketPercent,
+      },
+      {
+        title: 'Announcements',
+        url: '/announcements',
+        icon: Sparkles,
+      },
+      {
+        title: 'Email Campaigns',
+        url: '/content/email-campaigns',
+        icon: Mail,
+      },
+      {
+        title: 'WhatsApp Campaigns',
+        url: '/content/whatsapp-campaigns',
+        icon: MessageCircle,
+      },
+    ],
+  },
+  {
+    label: 'SYSTEM',
+    items: [
+      {
+        title: 'Global Search',
+        url: '/search',
+        icon: Search,
+      },
+      {
+        title: 'Feature Flags',
+        url: '/feature-flags',
+        icon: Flag,
+      },
+      {
+        title: 'Maintenance Mode',
+        url: '/maintenance',
+        icon: Power,
+      },
+      {
+        title: 'Backup & Restore',
+        url: '/backup',
+        icon: DatabaseBackup,
+      },
+      {
+        title: 'Bulk Operations',
+        url: '/bulk-operations',
+        icon: Wrench,
+      },
+      {
+        title: 'Impersonate',
+        url: '/impersonate',
+        icon: UserSquare,
+        roles: ['super_admin'],
       },
     ],
   },
