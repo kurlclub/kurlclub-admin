@@ -93,14 +93,14 @@ export function SubscriptionDetails({
         <button
           type="button"
           onClick={onEdit}
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-[#1f222b] text-secondary-blue-200 transition hover:text-white"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-surface-raised text-secondary-blue-200 transition hover:text-white"
           aria-label="Edit subscription"
         >
           <PenLine className="h-4 w-4" />
         </button>
       </div>
 
-      <section className="relative overflow-hidden rounded-2xl border border-[#2a2f3a] bg-[#1f222b] p-3.5 shadow-[0_7px_11px_rgba(0,0,0,0.4)]">
+      <section className="relative overflow-hidden rounded-2xl border border-border-subtle bg-surface-raised p-3.5 shadow-[0_7px_11px_rgba(0,0,0,0.4)]">
         <div className="relative flex items-center justify-between">
           <div className="relative h-12 w-12 overflow-hidden rounded-xl">
             {subscription.photoPath ? (
@@ -117,14 +117,14 @@ export function SubscriptionDetails({
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 rounded-full bg-[#2b2f38] p-0.5 text-[10px] font-semibold text-white">
+            <div className="flex items-center gap-1 rounded-full bg-surface-toggle p-0.5 text-[10px] font-semibold text-white">
               <button
                 type="button"
                 onClick={() => setBillingCycle('monthly')}
                 className={`rounded-full px-2.5 py-0.5 transition ${
                   billingCycle === 'monthly'
-                    ? 'bg-[#d4ff3f] text-[#20242c]'
-                    : 'text-[#c7cbd3]'
+                    ? 'bg-accent-lime-light text-content-on-accent'
+                    : 'text-content-muted'
                 }`}
               >
                 M
@@ -134,8 +134,8 @@ export function SubscriptionDetails({
                 onClick={() => setBillingCycle('sixMonths')}
                 className={`rounded-full px-2.5 py-0.5 transition ${
                   billingCycle === 'sixMonths'
-                    ? 'bg-[#d4ff3f] text-[#20242c]'
-                    : 'text-[#c7cbd3]'
+                    ? 'bg-accent-lime-light text-content-on-accent'
+                    : 'text-content-muted'
                 }`}
               >
                 6M
@@ -145,8 +145,8 @@ export function SubscriptionDetails({
                 onClick={() => setBillingCycle('yearly')}
                 className={`rounded-full px-2.5 py-0.5 transition ${
                   billingCycle === 'yearly'
-                    ? 'bg-[#d4ff3f] text-[#20242c]'
-                    : 'text-[#c7cbd3]'
+                    ? 'bg-accent-lime-light text-content-on-accent'
+                    : 'text-content-muted'
                 }`}
               >
                 Y
@@ -161,12 +161,12 @@ export function SubscriptionDetails({
               {subscription.name}
             </h3>
             {subscription.badge && (
-              <span className="rounded-full border border-[#c9ff32]/35 bg-[#232730] px-2 py-0.5 text-[10px] font-semibold text-[#c9ff32]">
+              <span className="rounded-full border border-accent-lime/35 bg-surface-chip px-2 py-0.5 text-[10px] font-semibold text-accent-lime">
                 {subscription.badge}
               </span>
             )}
             {subscription.isPopular && (
-              <span className="rounded-full border border-[#c9ff32]/35 bg-[#232730] px-2 py-0.5 text-[10px] font-semibold text-[#c9ff32]">
+              <span className="rounded-full border border-accent-lime/35 bg-surface-chip px-2 py-0.5 text-[10px] font-semibold text-accent-lime">
                 Popular
               </span>
             )}
@@ -180,7 +180,7 @@ export function SubscriptionDetails({
 
           <div
             className={`text-[40px] font-semibold leading-none ${
-              price === 0 ? 'text-[#8b9098]' : 'text-[#c9ff32]'
+              price === 0 ? 'text-content-faint' : 'text-accent-lime'
             }`}
           >
             ₹{price}
@@ -201,7 +201,7 @@ export function SubscriptionDetails({
           {limitRows.map((item) => (
             <div
               key={item.key}
-              className="rounded-2xl border border-white/8 bg-[#1f222b] px-4 py-3"
+              className="rounded-2xl border border-white/8 bg-surface-raised px-4 py-3"
             >
               <div className="text-xs uppercase tracking-wider text-secondary-blue-300">
                 {item.label}
@@ -217,7 +217,7 @@ export function SubscriptionDetails({
       <section className="space-y-4">
         <h3 className="text-lg font-semibold text-white">Features</h3>
         {enabledFeatureGroups.length === 0 ? (
-          <div className="rounded-2xl border border-white/8 bg-[#1f222b] px-4 py-5 text-sm text-secondary-blue-200">
+          <div className="rounded-2xl border border-white/8 bg-surface-raised px-4 py-5 text-sm text-secondary-blue-200">
             No feature toggles are enabled for this plan.
           </div>
         ) : (
@@ -225,7 +225,7 @@ export function SubscriptionDetails({
             {enabledFeatureGroups.map((group) => (
               <div
                 key={group.title}
-                className="rounded-2xl border border-white/8 bg-[#1f222b] px-4 py-4"
+                className="rounded-2xl border border-white/8 bg-surface-raised px-4 py-4"
               >
                 <h4 className="text-sm font-semibold uppercase tracking-wider text-primary-green-400">
                   {group.title}
@@ -236,7 +236,7 @@ export function SubscriptionDetails({
                       key={feature.responseKey}
                       className="flex items-center gap-3"
                     >
-                      <span className="h-2 w-2 rounded-[3px] bg-[#c9ff32]" />
+                      <span className="h-2 w-2 rounded-[3px] bg-accent-lime" />
                       <span>{feature.label}</span>
                     </div>
                   ))}

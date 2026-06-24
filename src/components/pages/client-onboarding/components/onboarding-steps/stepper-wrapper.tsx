@@ -35,8 +35,9 @@ export function StepWrapper({
             {gymCount}
           </span>
         </div>
-        {/* TODO: color missing in library */}
-        <p className="text-base leading-[109%] text-[#F8F8F8]">{description}</p>
+        <p className="text-base leading-[109%] text-neutral-white">
+          {description}
+        </p>
       </div>
 
       {/* Main content area */}
