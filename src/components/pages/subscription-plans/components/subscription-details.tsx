@@ -123,7 +123,7 @@ export function SubscriptionDetails({
                 onClick={() => setBillingCycle('monthly')}
                 className={`rounded-full px-2.5 py-0.5 transition ${
                   billingCycle === 'monthly'
-                    ? 'bg-accent-lime-light text-content-on-accent'
+                    ? 'bg-primary-green-400 text-content-on-accent'
                     : 'text-content-muted'
                 }`}
               >
@@ -134,7 +134,7 @@ export function SubscriptionDetails({
                 onClick={() => setBillingCycle('sixMonths')}
                 className={`rounded-full px-2.5 py-0.5 transition ${
                   billingCycle === 'sixMonths'
-                    ? 'bg-accent-lime-light text-content-on-accent'
+                    ? 'bg-primary-green-400 text-content-on-accent'
                     : 'text-content-muted'
                 }`}
               >
@@ -145,7 +145,7 @@ export function SubscriptionDetails({
                 onClick={() => setBillingCycle('yearly')}
                 className={`rounded-full px-2.5 py-0.5 transition ${
                   billingCycle === 'yearly'
-                    ? 'bg-accent-lime-light text-content-on-accent'
+                    ? 'bg-primary-green-400 text-content-on-accent'
                     : 'text-content-muted'
                 }`}
               >
@@ -161,12 +161,12 @@ export function SubscriptionDetails({
               {subscription.name}
             </h3>
             {subscription.badge && (
-              <span className="rounded-full border border-accent-lime/35 bg-surface-chip px-2 py-0.5 text-[10px] font-semibold text-accent-lime">
+              <span className="rounded-full border border-primary-green-500/35 bg-surface-chip px-2 py-0.5 text-[10px] font-semibold text-primary-green-500">
                 {subscription.badge}
               </span>
             )}
             {subscription.isPopular && (
-              <span className="rounded-full border border-accent-lime/35 bg-surface-chip px-2 py-0.5 text-[10px] font-semibold text-accent-lime">
+              <span className="rounded-full border border-primary-green-500/35 bg-surface-chip px-2 py-0.5 text-[10px] font-semibold text-primary-green-500">
                 Popular
               </span>
             )}
@@ -180,7 +180,7 @@ export function SubscriptionDetails({
 
           <div
             className={`text-[40px] font-semibold leading-none ${
-              price === 0 ? 'text-content-faint' : 'text-accent-lime'
+              price === 0 ? 'text-content-faint' : 'text-primary-green-500'
             }`}
           >
             ₹{price}
@@ -236,7 +236,7 @@ export function SubscriptionDetails({
                       key={feature.responseKey}
                       className="flex items-center gap-3"
                     >
-                      <span className="h-2 w-2 rounded-[3px] bg-accent-lime" />
+                      <span className="h-2 w-2 rounded-[3px] bg-primary-green-500" />
                       <span>{feature.label}</span>
                     </div>
                   ))}

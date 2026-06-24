@@ -28,8 +28,6 @@
   --color-content-faint: #8b9098; /* faint text (e.g. ₹0 price) */
   --color-neutral-white: #f8f8f8; /* off-white body text */
 
-  /* Accents */
-  --color-accent-lime: #c9ff32; /* primary plan accent */
-  --color-accent-lime-light: #d4ff3f; /* brighter lime (popular badge) */
+  /* Accents (plan accents reuse the existing primary-green palette) */
   --color-alert-coral: #f04c5b; /* limit / over-quota badge */
 }

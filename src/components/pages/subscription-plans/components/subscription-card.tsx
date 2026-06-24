@@ -80,7 +80,7 @@ export function SubscriptionCard({
   return (
     <div className="relative h-full overflow-visible">
       {subscription.isPopular && (
-        <div className="absolute -top-3 left-1/2 z-20 inline-flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-accent-lime-light px-3 py-1 text-xs font-semibold text-content-on-accent shadow-[0_8px_12px_rgba(201,255,50,0.25)]">
+        <div className="absolute -top-3 left-1/2 z-20 inline-flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-primary-green-400 px-3 py-1 text-xs font-semibold text-content-on-accent shadow-[0_8px_12px_rgba(201,255,50,0.25)]">
           <Star className="h-3.5 w-3.5" />
           Popular
         </div>
@@ -88,14 +88,14 @@ export function SubscriptionCard({
       <div
         className={`group relative flex h-full flex-col overflow-hidden rounded-[22px] border bg-surface-card p-4 transition ${
           subscription.isPopular
-            ? 'border-accent-lime/40 shadow-[0_26px_50px_rgba(0,0,0,0.55)]'
+            ? 'border-primary-green-500/40 shadow-[0_26px_50px_rgba(0,0,0,0.55)]'
             : 'border-border-subtle shadow-[0_18px_36px_rgba(0,0,0,0.45)]'
         }`}
       >
         {subscription.isPopular && (
           <>
-            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-0.75 rounded-t-[22px] bg-accent-lime shadow-[0_6px_16px_rgba(201,255,50,0.45)]" />
-            <div className="pointer-events-none absolute inset-0 z-10 rounded-[22px] border border-accent-lime/30" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-0.75 rounded-t-[22px] bg-primary-green-500 shadow-[0_6px_16px_rgba(201,255,50,0.45)]" />
+            <div className="pointer-events-none absolute inset-0 z-10 rounded-[22px] border border-primary-green-500/30" />
           </>
         )}
         <div className="relative flex items-center justify-between">
@@ -119,7 +119,7 @@ export function SubscriptionCard({
                 onClick={() => setBillingCycle('monthly')}
                 className={`rounded-full px-2.5 py-0.5 transition ${
                   billingCycle === 'monthly'
-                    ? 'bg-accent-lime-light text-content-on-accent'
+                    ? 'bg-primary-green-400 text-content-on-accent'
                     : 'text-content-muted'
                 }`}
               >
@@ -130,7 +130,7 @@ export function SubscriptionCard({
                 onClick={() => setBillingCycle('sixMonths')}
                 className={`rounded-full px-2.5 py-0.5 transition ${
                   billingCycle === 'sixMonths'
-                    ? 'bg-accent-lime-light text-content-on-accent'
+                    ? 'bg-primary-green-400 text-content-on-accent'
                     : 'text-content-muted'
                 }`}
               >
@@ -141,7 +141,7 @@ export function SubscriptionCard({
                 onClick={() => setBillingCycle('yearly')}
                 className={`rounded-full px-2.5 py-0.5 transition ${
                   billingCycle === 'yearly'
-                    ? 'bg-accent-lime-light text-content-on-accent'
+                    ? 'bg-primary-green-400 text-content-on-accent'
                     : 'text-content-muted'
                 }`}
               >
@@ -158,7 +158,7 @@ export function SubscriptionCard({
                 {subscription.name}
               </h3>
               {subscription.badge && (
-                <span className="rounded-full border border-accent-lime/35 bg-surface-chip px-2 py-0.5 text-[10px] font-semibold text-accent-lime">
+                <span className="rounded-full border border-primary-green-500/35 bg-surface-chip px-2 py-0.5 text-[10px] font-semibold text-primary-green-500">
                   {subscription.badge}
                 </span>
               )}
@@ -171,7 +171,7 @@ export function SubscriptionCard({
           </div>
           <div
             className={`text-[32px] font-semibold leading-none ${
-              price === 0 ? 'text-content-faint' : 'text-accent-lime'
+              price === 0 ? 'text-content-faint' : 'text-primary-green-500'
             }`}
           >
             ₹{price}
@@ -204,7 +204,7 @@ export function SubscriptionCard({
                     <span>{item.label}</span>
                   </div>
                   {isUnlimited(item.value) ? (
-                    <span className="rounded-full border border-accent-lime/40 bg-surface-chip px-2 py-0.5 text-[10px] font-semibold text-accent-lime">
+                    <span className="rounded-full border border-primary-green-500/40 bg-surface-chip px-2 py-0.5 text-[10px] font-semibold text-primary-green-500">
                       Unlimited
                     </span>
                   ) : (
@@ -220,7 +220,7 @@ export function SubscriptionCard({
           <button
             type="button"
             onClick={() => onView(subscription.id)}
-            className="mt-auto inline-flex items-center gap-2 text-xs font-semibold text-accent-lime underline decoration-accent-lime/70 underline-offset-4"
+            className="mt-auto inline-flex items-center gap-2 text-xs font-semibold text-primary-green-500 underline decoration-primary-green-500/70 underline-offset-4"
           >
             Show all features
             <ChevronRight className="h-3.5 w-3.5" />
