@@ -9,6 +9,7 @@ import { ChevronLeft } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { StudioLayout } from '@/components/shared/layout';
+import { demoSubscriptionDetail as sub } from '@/lib/demo-data';
 import { useSubscriptions } from '@/services/subscription';
 
 const inputClass =
@@ -30,12 +31,21 @@ type SheetKind =
 
 const STUB = 'Will be enabled once the backend is connected';
 
-const DetailField = ({ label }: { label: string }) => (
+const DetailField = ({
+  label,
+  value = '—',
+}: {
+  label: string;
+  value?: string;
+}) => (
   <div>
     <p className="text-xs text-secondary-blue-300">{label}</p>
-    <p className="mt-0.5 text-sm text-white">—</p>
+    <p className="mt-0.5 text-sm text-white">{value}</p>
   </div>
 );
+
+const fmtDate = (iso: string) =>
+  iso === '—' ? '—' : new Date(iso).toLocaleDateString();
 
 const Section = ({
   title,
@@ -93,7 +103,7 @@ export function SubscriptionDetailPage() {
                   <h1 className="text-2xl font-bold text-white">
                     Subscription
                   </h1>
-                  <Badge variant="info">—</Badge>
+                  <Badge variant="info">{sub.status}</Badge>
                 </div>
                 <p className="mt-1 text-sm text-secondary-blue-200">
                   Manage this client&apos;s subscription lifecycle
@@ -138,22 +148,38 @@ export function SubscriptionDetailPage() {
           {/* Overview */}
           <Section title="Overview">
             <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
-              <DetailField label="Client" />
-              <DetailField label="Plan" />
-              <DetailField label="Status" />
-              <DetailField label="Billing Cycle" />
-              <DetailField label="Amount" />
-              <DetailField label="Started" />
-              <DetailField label="Renews / Ends" />
-              <DetailField label="Trial Ends" />
+              <DetailField label="Client" value={sub.clientName} />
+              <DetailField label="Plan" value={sub.plan} />
+              <DetailField label="Status" value={sub.status} />
+              <DetailField label="Billing Cycle" value={sub.billingCycle} />
+              <DetailField label="Amount" value={sub.amount} />
+              <DetailField label="Started" value={fmtDate(sub.started)} />
+              <DetailField label="Renews / Ends" value={fmtDate(sub.renewsOn)} />
+              <DetailField label="Trial Ends" value={sub.trialEnds} />
             </div>
           </Section>
 
           {/* History */}
           <Section title="Subscription History">
-            <p className="py-6 text-center text-sm text-secondary-blue-300">
-              No subscription history yet.
-            </p>
+            <ol className="relative space-y-4 border-l border-secondary-blue-400 pl-5">
+              {sub.events.map((e) => (
+                <li key={e.id} className="relative">
+                  <span className="absolute -left-[1.42rem] top-1.5 h-2 w-2 rounded-full bg-secondary-blue-200 ring-4 ring-secondary-blue-600" />
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <p className="text-sm font-medium text-white">{e.action}</p>
+                    <time className="text-xs text-secondary-blue-300">
+                      {fmtDate(e.at)}
+                    </time>
+                  </div>
+                  <p className="mt-0.5 text-sm text-secondary-blue-200">
+                    {e.detail}
+                  </p>
+                  <p className="mt-0.5 text-xs text-secondary-blue-300">
+                    by {e.actor}
+                  </p>
+                </li>
+              ))}
+            </ol>
           </Section>
         </div>
       </StudioLayout>

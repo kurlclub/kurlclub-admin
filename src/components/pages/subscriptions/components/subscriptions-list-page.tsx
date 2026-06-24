@@ -8,6 +8,7 @@ import { Button, DataTable, DataTableToolbar } from '@kurlclub/ui-components';
 import { CreditCard } from 'lucide-react';
 
 import { StudioLayout } from '@/components/shared/layout';
+import { demoSubscriptions } from '@/lib/demo-data';
 
 import {
   type ClientSubscriptionRow,
@@ -17,8 +18,8 @@ import {
 export function SubscriptionsListPage() {
   const router = useRouter();
 
-  // No backend yet — the list renders its empty state until subscriptions are wired.
-  const data: ClientSubscriptionRow[] = [];
+  // Prototype demo data.
+  const data: ClientSubscriptionRow[] = demoSubscriptions;
 
   const columns = useMemo(
     () =>

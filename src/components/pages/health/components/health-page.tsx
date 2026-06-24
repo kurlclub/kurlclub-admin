@@ -1,30 +1,57 @@
 'use client';
 
-import { Badge } from '@kurlclub/ui-components';
 import { AlertTriangle } from 'lucide-react';
 
-import { ChartPlaceholder } from '@/components/shared/dashboard-primitives';
 import { StudioLayout } from '@/components/shared/layout';
+import { BarChartMini } from '@/components/shared/mini-chart';
+import {
+  demoHealthAlerts,
+  demoHealthServices,
+  demoUptimeTrend,
+} from '@/lib/demo-data';
 
-const SERVICES = [
-  { key: 'api', name: 'API' },
-  { key: 'web', name: 'Web Application' },
-  { key: 'biometric', name: 'Biometric Devices' },
-  { key: 'whatsapp', name: 'WhatsApp Service' },
-  { key: 'razorpay', name: 'Razorpay Integration' },
-];
+const TONE_TEXT: Record<string, string> = {
+  ok: 'text-primary-green-500',
+  warn: 'text-amber-400',
+  down: 'text-[#f04c5b]',
+};
+const TONE_DOT: Record<string, string> = {
+  ok: 'bg-primary-green-500',
+  warn: 'bg-amber-400',
+  down: 'bg-[#f04c5b]',
+};
 
-function ServiceCard({ name }: { name: string }) {
+function ServiceCard({
+  service,
+}: {
+  service: (typeof demoHealthServices)[number];
+}) {
+  const { name, status, tone, lastSync, latency, uptime } = service;
   return (
     <div className="rounded-2xl border border-secondary-blue-400 bg-secondary-blue-600/50 p-5">
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-base font-semibold text-white">{name}</h3>
-        <Badge variant="info">Unknown</Badge>
+        <span
+          className={`inline-flex items-center gap-1.5 text-xs font-medium ${TONE_TEXT[tone]}`}
+        >
+          <span className={`h-1.5 w-1.5 rounded-full ${TONE_DOT[tone]}`} />
+          {status}
+        </span>
       </div>
-      <div className="mt-4 flex items-center justify-between text-sm">
-        <span className="text-secondary-blue-300">Last sync</span>
-        <span className="text-secondary-blue-100">—</span>
-      </div>
+      <dl className="mt-4 grid grid-cols-3 gap-2 text-sm">
+        <div>
+          <dt className="text-xs text-secondary-blue-300">Latency</dt>
+          <dd className="text-white">{latency}</dd>
+        </div>
+        <div>
+          <dt className="text-xs text-secondary-blue-300">Uptime</dt>
+          <dd className="text-white">{uptime}</dd>
+        </div>
+        <div>
+          <dt className="text-xs text-secondary-blue-300">Last sync</dt>
+          <dd className="text-white">{lastSync}</dd>
+        </div>
+      </dl>
     </div>
   );
 }
@@ -42,16 +69,21 @@ export function HealthPage() {
 
         {/* Service status */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {SERVICES.map((s) => (
-            <ServiceCard key={s.key} name={s.name} />
+          {demoHealthServices.map((s) => (
+            <ServiceCard key={s.key} service={s} />
           ))}
         </div>
 
         {/* Uptime */}
-        <ChartPlaceholder
-          title="Uptime Monitoring"
-          description="Service uptime over time"
-        />
+        <section className="rounded-2xl border border-secondary-blue-400 bg-secondary-blue-600/50 p-6">
+          <h2 className="mb-1 text-sm font-semibold uppercase tracking-wider text-secondary-blue-200">
+            Uptime Monitoring
+          </h2>
+          <p className="mb-4 text-xs text-secondary-blue-300">
+            Uptime % over the last 12 periods
+          </p>
+          <BarChartMini data={demoUptimeTrend} height={140} />
+        </section>
 
         {/* Failure alerts */}
         <section className="rounded-2xl border border-secondary-blue-400 bg-secondary-blue-600/50 p-6">
@@ -61,9 +93,33 @@ export function HealthPage() {
               Failure Alerts &amp; Notifications
             </h2>
           </div>
-          <p className="py-8 text-center text-sm text-secondary-blue-300">
-            No alerts — failures will appear here once the backend is connected.
-          </p>
+          <ul className="divide-y divide-secondary-blue-400/60">
+            {demoHealthAlerts.map((a) => (
+              <li
+                key={a.id}
+                className="flex flex-wrap items-center justify-between gap-2 py-3 first:pt-0 last:pb-0"
+              >
+                <div>
+                  <p className="text-sm text-white">
+                    <span
+                      className={
+                        a.level === 'Critical'
+                          ? 'text-[#f04c5b]'
+                          : 'text-amber-400'
+                      }
+                    >
+                      {a.level}
+                    </span>{' '}
+                    · {a.service}
+                  </p>
+                  <p className="mt-0.5 text-sm text-secondary-blue-200">
+                    {a.message}
+                  </p>
+                </div>
+                <span className="text-xs text-secondary-blue-300">{a.at}</span>
+              </li>
+            ))}
+          </ul>
         </section>
       </div>
     </StudioLayout>

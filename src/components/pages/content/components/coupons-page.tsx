@@ -2,11 +2,12 @@
 
 import { useState } from 'react';
 
-import { Button, Sheet } from '@kurlclub/ui-components';
-import { Plus, TicketPercent } from 'lucide-react';
+import { Badge, Button, Sheet } from '@kurlclub/ui-components';
+import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { StudioLayout } from '@/components/shared/layout';
+import { demoCoupons } from '@/lib/demo-data';
 
 const inputClass =
   'w-full rounded-lg border border-secondary-blue-400 bg-secondary-blue-700 px-3 py-2 text-sm text-white outline-none focus:border-primary-green-500';
@@ -40,14 +41,44 @@ export function CouponsPage() {
             </Button>
           </div>
 
-          <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-secondary-blue-400 bg-secondary-blue-600/50 py-16 text-center">
-            <TicketPercent className="h-8 w-8 text-secondary-blue-300" />
-            <div>
-              <p className="text-sm font-medium text-white">No coupons yet</p>
-              <p className="mt-1 text-sm text-secondary-blue-300">
-                Coupons will appear here once the backend is connected.
-              </p>
-            </div>
+          <div className="overflow-x-auto rounded-2xl border border-secondary-blue-400 bg-secondary-blue-600/50">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-secondary-blue-400 text-left text-xs uppercase tracking-wide text-secondary-blue-300">
+                  <th className="px-5 py-3 font-medium">Code</th>
+                  <th className="px-5 py-3 font-medium">Discount</th>
+                  <th className="px-5 py-3 font-medium">Redeemed</th>
+                  <th className="px-5 py-3 font-medium">Validity</th>
+                  <th className="px-5 py-3 font-medium">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {demoCoupons.map((c) => (
+                  <tr
+                    key={c.id}
+                    className="border-b border-secondary-blue-400/50 last:border-0"
+                  >
+                    <td className="px-5 py-3 font-medium text-white">
+                      {c.code}
+                    </td>
+                    <td className="px-5 py-3 text-secondary-blue-100">
+                      {c.type}
+                    </td>
+                    <td className="px-5 py-3 text-secondary-blue-100">
+                      {c.redeemed} / {c.max}
+                    </td>
+                    <td className="px-5 py-3 text-secondary-blue-100">
+                      {c.validity}
+                    </td>
+                    <td className="px-5 py-3">
+                      <Badge variant="info">
+                        {c.active ? 'Active' : 'Disabled'}
+                      </Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </StudioLayout>

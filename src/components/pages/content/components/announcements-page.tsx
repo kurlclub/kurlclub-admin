@@ -2,11 +2,15 @@
 
 import { useState } from 'react';
 
-import { Button, Sheet } from '@kurlclub/ui-components';
-import { Plus, Sparkles } from 'lucide-react';
+import { Badge, Button, Sheet } from '@kurlclub/ui-components';
+import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { StudioLayout } from '@/components/shared/layout';
+import { demoAnnouncements } from '@/lib/demo-data';
+
+const fmtDate = (iso: string | null) =>
+  iso ? new Date(iso).toLocaleDateString() : '—';
 
 const inputClass =
   'w-full rounded-lg border border-secondary-blue-400 bg-secondary-blue-700 px-3 py-2 text-sm text-white outline-none focus:border-primary-green-500';
@@ -46,16 +50,36 @@ export function AnnouncementsPage() {
             </Button>
           </div>
 
-          <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-secondary-blue-400 bg-secondary-blue-600/50 py-16 text-center">
-            <Sparkles className="h-8 w-8 text-secondary-blue-300" />
-            <div>
-              <p className="text-sm font-medium text-white">
-                No announcements yet
-              </p>
-              <p className="mt-1 text-sm text-secondary-blue-300">
-                Announcements will appear here once the backend is connected.
-              </p>
-            </div>
+          <div className="overflow-x-auto rounded-2xl border border-secondary-blue-400 bg-secondary-blue-600/50">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-secondary-blue-400 text-left text-xs uppercase tracking-wide text-secondary-blue-300">
+                  <th className="px-5 py-3 font-medium">Title</th>
+                  <th className="px-5 py-3 font-medium">Audience</th>
+                  <th className="px-5 py-3 font-medium">Published</th>
+                  <th className="px-5 py-3 font-medium">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {demoAnnouncements.map((a) => (
+                  <tr
+                    key={a.id}
+                    className="border-b border-secondary-blue-400/50 last:border-0"
+                  >
+                    <td className="px-5 py-3 text-white">{a.title}</td>
+                    <td className="px-5 py-3 text-secondary-blue-100">
+                      {a.audience}
+                    </td>
+                    <td className="px-5 py-3 text-secondary-blue-100">
+                      {fmtDate(a.publishedAt)}
+                    </td>
+                    <td className="px-5 py-3">
+                      <Badge variant="info">{a.status}</Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       </StudioLayout>

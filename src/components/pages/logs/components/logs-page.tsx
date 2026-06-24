@@ -3,11 +3,12 @@
 import { useState } from 'react';
 
 import { Button } from '@kurlclub/ui-components';
-import { Download, ScrollText } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { ChartPlaceholder } from '@/components/shared/dashboard-primitives';
 import { StudioLayout } from '@/components/shared/layout';
+import { BarChartMini } from '@/components/shared/mini-chart';
+import { demoLogs, demoPerfTrend } from '@/lib/demo-data';
 
 const TABS = [
   { key: 'admin', label: 'Admin Activity' },
@@ -18,9 +19,11 @@ const TABS = [
   { key: 'usage', label: 'System Usage' },
 ];
 
+const fmtTime = (iso: string) => new Date(iso).toLocaleString();
+
 export function LogsPage() {
   const [tab, setTab] = useState('admin');
-  const activeLabel = TABS.find((t) => t.key === tab)?.label ?? '';
+  const rows = demoLogs[tab] ?? [];
 
   return (
     <StudioLayout>
@@ -63,24 +66,49 @@ export function LogsPage() {
           ))}
         </div>
 
-        {/* Active log table shell */}
-        <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-secondary-blue-400 bg-secondary-blue-600/50 py-16 text-center">
-          <ScrollText className="h-8 w-8 text-secondary-blue-300" />
-          <div>
-            <p className="text-sm font-medium text-white">
-              No {activeLabel.toLowerCase()} yet
-            </p>
-            <p className="mt-1 text-sm text-secondary-blue-300">
-              Logs will appear here once the backend is connected.
-            </p>
-          </div>
+        {/* Active log table */}
+        <div className="overflow-x-auto rounded-2xl border border-secondary-blue-400 bg-secondary-blue-600/50">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-secondary-blue-400 text-left text-xs uppercase tracking-wide text-secondary-blue-300">
+                <th className="px-5 py-3 font-medium">Time</th>
+                <th className="px-5 py-3 font-medium">Actor</th>
+                <th className="px-5 py-3 font-medium">Action</th>
+                <th className="px-5 py-3 font-medium">Detail</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr
+                  key={r.id}
+                  className="border-b border-secondary-blue-400/50 last:border-0"
+                >
+                  <td className="whitespace-nowrap px-5 py-3 text-secondary-blue-100">
+                    {fmtTime(r.time)}
+                  </td>
+                  <td className="px-5 py-3 text-white">{r.actor}</td>
+                  <td className="px-5 py-3 text-secondary-blue-100">
+                    {r.action}
+                  </td>
+                  <td className="px-5 py-3 text-secondary-blue-100">
+                    {r.detail}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
 
         {/* Performance metrics */}
-        <ChartPlaceholder
-          title="Performance Metrics"
-          description="Latency, error rate, and throughput over time"
-        />
+        <section className="rounded-2xl border border-secondary-blue-400 bg-secondary-blue-600/50 p-6">
+          <h2 className="mb-1 text-sm font-semibold uppercase tracking-wider text-secondary-blue-200">
+            Performance Metrics
+          </h2>
+          <p className="mb-4 text-xs text-secondary-blue-300">
+            Average API latency (ms) over time
+          </p>
+          <BarChartMini data={demoPerfTrend} height={140} />
+        </section>
       </div>
     </StudioLayout>
   );

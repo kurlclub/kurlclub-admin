@@ -14,11 +14,9 @@ import { Megaphone, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { StudioLayout } from '@/components/shared/layout';
+import { demoCampaigns } from '@/lib/demo-data';
 
-import {
-  type CampaignRow,
-  createCampaignsColumns,
-} from '../table/campaigns-columns';
+import { createCampaignsColumns } from '../table/campaigns-columns';
 import { AudienceFields } from './audience-fields';
 
 const inputClass =
@@ -47,8 +45,8 @@ export function CampaignsListPage({
   const [isCreating, setIsCreating] = useState(false);
   const [scheduleLater, setScheduleLater] = useState(false);
 
-  // No backend yet — empty-state shell.
-  const data: CampaignRow[] = [];
+  // Prototype demo data.
+  const data = demoCampaigns;
 
   const columns = useMemo(
     () =>

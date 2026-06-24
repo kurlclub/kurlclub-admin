@@ -4,12 +4,13 @@ import { DataTable, DataTableToolbar } from '@kurlclub/ui-components';
 import { ScrollText } from 'lucide-react';
 
 import { StudioLayout } from '@/components/shared/layout';
+import { demoAuditLogs } from '@/lib/demo-data';
 
 import { type AuditRow, auditColumns } from '../table/audit-columns';
 
 export function AuditLogsPage() {
-  // No backend yet — empty-state shell.
-  const data: AuditRow[] = [];
+  // Prototype demo data.
+  const data: AuditRow[] = demoAuditLogs;
 
   return (
     <StudioLayout>

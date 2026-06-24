@@ -13,6 +13,7 @@ import { UserCog } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { StudioLayout } from '@/components/shared/layout';
+import { demoUsers } from '@/lib/demo-data';
 
 import { type AdminUserRow, createUsersColumns } from '../table/users-columns';
 
@@ -40,8 +41,8 @@ type SheetKind = 'set-password' | 'change-role' | null;
 export function UsersListPage() {
   const { showConfirm } = useAppDialog();
 
-  // No backend yet — empty-state shell.
-  const data: AdminUserRow[] = [];
+  // Prototype demo data.
+  const data: AdminUserRow[] = demoUsers;
 
   const [sheet, setSheet] = useState<SheetKind>(null);
   const [activeUser, setActiveUser] = useState<AdminUserRow>(SAMPLE_USER);
