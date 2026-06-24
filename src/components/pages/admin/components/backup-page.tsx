@@ -47,9 +47,15 @@ export function BackupPage() {
                   key={b.id}
                   className="border-b border-secondary-blue-400/50 last:border-0"
                 >
-                  <td className="px-5 py-3 text-white">{fmtDate(b.createdAt)}</td>
-                  <td className="px-5 py-3 text-secondary-blue-100">{b.size}</td>
-                  <td className="px-5 py-3 text-secondary-blue-100">{b.type}</td>
+                  <td className="px-5 py-3 text-white">
+                    {fmtDate(b.createdAt)}
+                  </td>
+                  <td className="px-5 py-3 text-secondary-blue-100">
+                    {b.size}
+                  </td>
+                  <td className="px-5 py-3 text-secondary-blue-100">
+                    {b.type}
+                  </td>
                   <td className="px-5 py-3">
                     <Badge variant="info">{b.status}</Badge>
                   </td>

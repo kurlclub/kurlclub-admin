@@ -1,7 +1,7 @@
 'use client';
 
-import { StudioLayout } from '@/components/shared/layout';
 import { StatTile } from '@/components/shared/dashboard-primitives';
+import { StudioLayout } from '@/components/shared/layout';
 import { BarChartMini, HBarList } from '@/components/shared/mini-chart';
 import {
   demoPlanMix,
@@ -24,14 +24,26 @@ export function DashboardPage() {
 
         {/* MRR / ARR tracking */}
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <StatTile label="MRR" value={demoRevenueKpis.mrr} hint="▲ 6.1% vs last month" />
-          <StatTile label="ARR" value={demoRevenueKpis.arr} hint="▲ 7.2% vs last month" />
+          <StatTile
+            label="MRR"
+            value={demoRevenueKpis.mrr}
+            hint="▲ 6.1% vs last month"
+          />
+          <StatTile
+            label="ARR"
+            value={demoRevenueKpis.arr}
+            hint="▲ 7.2% vs last month"
+          />
           <StatTile
             label="Active Subscriptions"
             value={demoRevenueKpis.activeSubscriptions}
             hint="▲ 2.4% vs last month"
           />
-          <StatTile label="Trial → Paid" value={demoRevenueKpis.trialToPaid} hint="312 active" />
+          <StatTile
+            label="Trial → Paid"
+            value={demoRevenueKpis.trialToPaid}
+            hint="312 active"
+          />
         </div>
 
         {/* Revenue + plan mix */}
@@ -40,7 +52,9 @@ export function DashboardPage() {
             <h2 className="mb-1 text-sm font-semibold uppercase tracking-wider text-secondary-blue-200">
               Revenue Trend
             </h2>
-            <p className="mb-4 text-xs text-secondary-blue-300">MRR over the last 12 months</p>
+            <p className="mb-4 text-xs text-secondary-blue-300">
+              MRR over the last 12 months
+            </p>
             <BarChartMini data={demoRevenueTrend} />
           </section>
           <section className="rounded-2xl border border-secondary-blue-400 bg-secondary-blue-600/50 p-6">

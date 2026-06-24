@@ -1,7 +1,7 @@
 'use client';
 
-import { StudioLayout } from '@/components/shared/layout';
 import { StatTile } from '@/components/shared/dashboard-primitives';
+import { StudioLayout } from '@/components/shared/layout';
 import { BarChartMini, HBarList } from '@/components/shared/mini-chart';
 import {
   demoAnalyticsKpis,
@@ -22,9 +22,15 @@ export function AnalyticsPage() {
         </div>
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-          <StatTile label="Conversion Rate" value={demoAnalyticsKpis.conversion} />
+          <StatTile
+            label="Conversion Rate"
+            value={demoAnalyticsKpis.conversion}
+          />
           <StatTile label="Churn Rate" value={demoAnalyticsKpis.churn} />
-          <StatTile label="Trial → Paid Rate" value={demoAnalyticsKpis.trialToPaid} />
+          <StatTile
+            label="Trial → Paid Rate"
+            value={demoAnalyticsKpis.trialToPaid}
+          />
         </div>
 
         <section className="rounded-2xl border border-secondary-blue-400 bg-secondary-blue-600/50 p-6">
@@ -45,7 +51,9 @@ export function AnalyticsPage() {
             <h2 className="mb-1 text-sm font-semibold uppercase tracking-wider text-secondary-blue-200">
               Churn Analysis
             </h2>
-            <p className="mb-4 text-xs text-secondary-blue-300">Monthly churn %</p>
+            <p className="mb-4 text-xs text-secondary-blue-300">
+              Monthly churn %
+            </p>
             <BarChartMini data={demoChurnTrend} color="#f04c5b" height={140} />
           </section>
           <section className="rounded-2xl border border-secondary-blue-400 bg-secondary-blue-600/50 p-6">

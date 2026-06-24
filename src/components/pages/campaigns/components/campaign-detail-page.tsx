@@ -68,7 +68,10 @@ export function CampaignDetailPage() {
             <DetailField label="Channel" value={c.channel} />
             <DetailField label="Audience" value={c.audience} />
             <DetailField label="Status" value={c.status} />
-            <DetailField label="Scheduled For" value={fmtDate(c.scheduledFor)} />
+            <DetailField
+              label="Scheduled For"
+              value={fmtDate(c.scheduledFor)}
+            />
             <DetailField label="Sent At" value={fmtDate(c.sentAt)} />
             <DetailField label="Created" value={fmtDate(c.created)} />
           </div>

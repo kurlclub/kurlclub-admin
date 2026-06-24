@@ -154,7 +154,10 @@ export function SubscriptionDetailPage() {
               <DetailField label="Billing Cycle" value={sub.billingCycle} />
               <DetailField label="Amount" value={sub.amount} />
               <DetailField label="Started" value={fmtDate(sub.started)} />
-              <DetailField label="Renews / Ends" value={fmtDate(sub.renewsOn)} />
+              <DetailField
+                label="Renews / Ends"
+                value={fmtDate(sub.renewsOn)}
+              />
               <DetailField label="Trial Ends" value={sub.trialEnds} />
             </div>
           </Section>

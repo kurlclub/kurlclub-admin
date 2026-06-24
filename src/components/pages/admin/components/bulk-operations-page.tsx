@@ -22,7 +22,9 @@ export function BulkOperationsPage() {
 
   const run = (action: string) => {
     if (!selected.length) return;
-    toast.info(`${action} ${selected.length} user(s) — connect backend to apply`);
+    toast.info(
+      `${action} ${selected.length} user(s) — connect backend to apply`,
+    );
   };
 
   return (
