@@ -1,4 +1,5 @@
 import {
+  Activity,
   Bell,
   Building2,
   CreditCard,
@@ -123,6 +124,11 @@ export const navGroups: NavGroup[] = [
   {
     label: 'MONITORING',
     items: [
+      {
+        title: 'System Health',
+        url: '/health',
+        icon: Activity,
+      },
       {
         title: 'Audit Logs',
         url: '/audit',

@@ -27,7 +27,9 @@ export function CouponsPage() {
         <div className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-white">Offers & Coupons</h1>
+              <h1 className="text-2xl font-bold text-white">
+                Offers & Coupons
+              </h1>
               <p className="mt-1 text-sm text-secondary-blue-200">
                 Create promotional offers and discount coupons
               </p>
@@ -91,7 +93,9 @@ export function CouponsPage() {
           </label>
           <div className="grid grid-cols-2 gap-4">
             <label className="block space-y-1.5">
-              <span className="text-sm text-secondary-blue-200">Valid From</span>
+              <span className="text-sm text-secondary-blue-200">
+                Valid From
+              </span>
               <input type="date" className={inputClass} />
             </label>
             <label className="block space-y-1.5">
