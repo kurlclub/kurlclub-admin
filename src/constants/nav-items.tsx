@@ -3,11 +3,16 @@ import {
   Building2,
   CreditCard,
   Home,
+  Image as ImageIcon,
   LifeBuoy,
+  Mail,
   Megaphone,
+  MessageCircle,
   Newspaper,
   RefreshCw,
   ScrollText,
+  Sparkles,
+  TicketPercent,
   TrendingUp,
   UserCog,
   UserRound,
@@ -137,7 +142,7 @@ export const navGroups: NavGroup[] = [
     ],
   },
   {
-    label: 'SOCIAL',
+    label: 'CONTENT',
     items: [
       {
         title: 'Blogs',
@@ -148,6 +153,31 @@ export const navGroups: NavGroup[] = [
         title: 'Feature',
         url: '/social/features',
         icon: Megaphone,
+      },
+      {
+        title: 'Banners',
+        url: '/content/banners',
+        icon: ImageIcon,
+      },
+      {
+        title: 'Offers & Coupons',
+        url: '/content/coupons',
+        icon: TicketPercent,
+      },
+      {
+        title: 'Announcements',
+        url: '/announcements',
+        icon: Sparkles,
+      },
+      {
+        title: 'Email Campaigns',
+        url: '/content/email-campaigns',
+        icon: Mail,
+      },
+      {
+        title: 'WhatsApp Campaigns',
+        url: '/content/whatsapp-campaigns',
+        icon: MessageCircle,
       },
     ],
   },

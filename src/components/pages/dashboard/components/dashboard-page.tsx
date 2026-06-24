@@ -1,10 +1,10 @@
 'use client';
 
-import { StudioLayout } from '@/components/shared/layout';
 import {
   ChartPlaceholder,
   StatTile,
 } from '@/components/shared/dashboard-primitives';
+import { StudioLayout } from '@/components/shared/layout';
 
 const EMPTY = (
   <p className="py-10 text-center text-sm text-secondary-blue-300">

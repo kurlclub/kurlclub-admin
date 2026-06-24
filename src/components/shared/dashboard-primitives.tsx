@@ -42,7 +42,9 @@ export function ChartPlaceholder({
           {title}
         </h2>
         {description && (
-          <p className="mt-0.5 text-xs text-secondary-blue-300">{description}</p>
+          <p className="mt-0.5 text-xs text-secondary-blue-300">
+            {description}
+          </p>
         )}
       </div>
       <div className="flex h-56 items-center justify-center rounded-xl border border-dashed border-secondary-blue-400 text-sm text-secondary-blue-300">

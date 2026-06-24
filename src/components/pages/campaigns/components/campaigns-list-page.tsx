@@ -31,7 +31,18 @@ const CHANNELS = [
   { value: 'in_app', label: 'In-app' },
 ];
 
-export function CampaignsListPage() {
+interface CampaignsListPageProps {
+  title?: string;
+  description?: string;
+  /** Preselects the channel in the create sheet (for Email/WhatsApp campaigns). */
+  channelPreset?: string;
+}
+
+export function CampaignsListPage({
+  title = 'Campaigns',
+  description = 'Create and track marketing campaigns across channels',
+  channelPreset = 'push',
+}: CampaignsListPageProps = {}) {
   const router = useRouter();
   const [isCreating, setIsCreating] = useState(false);
   const [scheduleLater, setScheduleLater] = useState(false);
@@ -58,9 +69,9 @@ export function CampaignsListPage() {
         <div className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-white">Campaigns</h1>
+              <h1 className="text-2xl font-bold text-white">{title}</h1>
               <p className="mt-1 text-sm text-secondary-blue-200">
-                Create and track marketing campaigns across channels
+                {description}
               </p>
             </div>
             <Button onClick={() => setIsCreating(true)} className="gap-2">
@@ -132,7 +143,7 @@ export function CampaignsListPage() {
               </label>
               <label className="block space-y-1.5">
                 <span className="text-sm text-secondary-blue-200">Channel</span>
-                <select className={inputClass} defaultValue="push">
+                <select className={inputClass} defaultValue={channelPreset}>
                   {CHANNELS.map((c) => (
                     <option key={c.value} value={c.value}>
                       {c.label}

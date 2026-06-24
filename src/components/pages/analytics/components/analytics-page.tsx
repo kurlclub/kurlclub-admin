@@ -1,10 +1,10 @@
 'use client';
 
-import { StudioLayout } from '@/components/shared/layout';
 import {
   ChartPlaceholder,
   StatTile,
 } from '@/components/shared/dashboard-primitives';
+import { StudioLayout } from '@/components/shared/layout';
 
 export function AnalyticsPage() {
   return (
